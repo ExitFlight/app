@@ -168,10 +168,50 @@ export class MemStorage implements IStorage {
       { code: "CHC", name: "Christchurch Airport", city: "Christchurch", country: "New Zealand", region: "Australia/NZ" },
       { code: "WLG", name: "Wellington Airport", city: "Wellington", country: "New Zealand", region: "Australia/NZ" },
       
+      // Central America
+      { code: "SJO", name: "Juan Santamaría International Airport", city: "San José", country: "Costa Rica", region: "Central America" },
+      { code: "LIR", name: "Daniel Oduber Quirós International Airport", city: "Liberia", country: "Costa Rica", region: "Central America" },
+      { code: "PTY", name: "Tocumen International Airport", city: "Panama City", country: "Panama", region: "Central America" },
+      { code: "SAL", name: "El Salvador International Airport", city: "San Salvador", country: "El Salvador", region: "Central America" },
+      { code: "GUA", name: "La Aurora International Airport", city: "Guatemala City", country: "Guatemala", region: "Central America" },
+      { code: "BZE", name: "Philip S. W. Goldson International Airport", city: "Belize City", country: "Belize", region: "Central America" },
+      { code: "MGA", name: "Augusto C. Sandino International Airport", city: "Managua", country: "Nicaragua", region: "Central America" },
+      { code: "SAP", name: "Ramón Villeda Morales International Airport", city: "San Pedro Sula", country: "Honduras", region: "Central America" },
+      { code: "TGU", name: "Toncontín International Airport", city: "Tegucigalpa", country: "Honduras", region: "Central America" },
+      
       // South America
+      // Brazil
       { code: "GRU", name: "São Paulo–Guarulhos International Airport", city: "São Paulo", country: "Brazil", region: "South America" },
+      { code: "GIG", name: "Rio de Janeiro–Galeão International Airport", city: "Rio de Janeiro", country: "Brazil", region: "South America" },
+      { code: "BSB", name: "Brasília International Airport", city: "Brasília", country: "Brazil", region: "South America" },
+      { code: "CNF", name: "Belo Horizonte International Airport", city: "Belo Horizonte", country: "Brazil", region: "South America" },
+      { code: "SSA", name: "Salvador International Airport", city: "Salvador", country: "Brazil", region: "South America" },
+      // Argentina
       { code: "EZE", name: "Ministro Pistarini International Airport", city: "Buenos Aires", country: "Argentina", region: "South America" },
+      { code: "AEP", name: "Jorge Newbery Airfield", city: "Buenos Aires", country: "Argentina", region: "South America" },
+      { code: "COR", name: "Ingeniero Aeronáutico Ambrosio L.V. Taravella International Airport", city: "Córdoba", country: "Argentina", region: "South America" },
+      { code: "MDZ", name: "Governor Francisco Gabrielli International Airport", city: "Mendoza", country: "Argentina", region: "South America" },
+      // Colombia
       { code: "BOG", name: "El Dorado International Airport", city: "Bogotá", country: "Colombia", region: "South America" },
+      { code: "MDE", name: "José María Córdova International Airport", city: "Medellín", country: "Colombia", region: "South America" },
+      { code: "CTG", name: "Rafael Núñez International Airport", city: "Cartagena", country: "Colombia", region: "South America" },
+      // Peru
+      { code: "LIM", name: "Jorge Chávez International Airport", city: "Lima", country: "Peru", region: "South America" },
+      { code: "CUZ", name: "Alejandro Velasco Astete International Airport", city: "Cusco", country: "Peru", region: "South America" },
+      // Chile
+      { code: "SCL", name: "Arturo Merino Benítez International Airport", city: "Santiago", country: "Chile", region: "South America" },
+      // Ecuador
+      { code: "UIO", name: "Mariscal Sucre International Airport", city: "Quito", country: "Ecuador", region: "South America" },
+      { code: "GYE", name: "José Joaquín de Olmedo International Airport", city: "Guayaquil", country: "Ecuador", region: "South America" },
+      // Venezuela
+      { code: "CCS", name: "Simón Bolívar International Airport", city: "Caracas", country: "Venezuela", region: "South America" },
+      // Bolivia
+      { code: "LPB", name: "El Alto International Airport", city: "La Paz", country: "Bolivia", region: "South America" },
+      { code: "VVI", name: "Viru Viru International Airport", city: "Santa Cruz", country: "Bolivia", region: "South America" },
+      // Paraguay
+      { code: "ASU", name: "Silvio Pettirossi International Airport", city: "Asunción", country: "Paraguay", region: "South America" },
+      // Uruguay
+      { code: "MVD", name: "Carrasco International Airport", city: "Montevideo", country: "Uruguay", region: "South America" },
     ];
 
     airports.forEach(airport => this.createAirport(airport));
@@ -221,6 +261,25 @@ export class MemStorage implements IStorage {
       { code: "TG", name: "Thai Airways", logo: "thai-airways", region: "Asia" },
       { code: "VJ", name: "VietJet Air", logo: "vietjet-air", region: "Asia" },
       { code: "VN", name: "Vietnam Airlines", logo: "vietnam-airlines", region: "Asia" },
+      
+      // Central America
+      { code: "TA", name: "Avianca Costa Rica", logo: "avianca", region: "Central America" },
+      { code: "LR", name: "LACSA", logo: "lacsa", region: "Central America" },
+      { code: "CM", name: "Copa Airlines", logo: "copa-airlines", region: "Central America" },
+      { code: "AV", name: "TACA Airlines", logo: "taca", region: "Central America" },
+      { code: "5Q", name: "Volaris Costa Rica", logo: "volaris", region: "Central America" },
+      
+      // South America
+      { code: "LA", name: "LATAM Airlines", logo: "latam", region: "South America" },
+      { code: "JJ", name: "LATAM Brasil", logo: "latam-brasil", region: "South America" },
+      { code: "AV", name: "Avianca", logo: "avianca", region: "South America" },
+      { code: "H2", name: "Sky Airline", logo: "sky-airline", region: "South America" },
+      { code: "AD", name: "Azul Brazilian Airlines", logo: "azul", region: "South America" },
+      { code: "G3", name: "Gol Transportes Aéreos", logo: "gol", region: "South America" },
+      { code: "AR", name: "Aerolíneas Argentinas", logo: "aerolineas-argentinas", region: "South America" },
+      { code: "LP", name: "LATAM Peru", logo: "latam-peru", region: "South America" },
+      { code: "P9", name: "Peruvian Airlines", logo: "peruvian", region: "South America" },
+      { code: "OB", name: "Boliviana de Aviación", logo: "boa", region: "South America" },
       
       // Australia/NZ
       { code: "JQ", name: "Jetstar Airways", logo: "jetstar", region: "Australia/NZ" },

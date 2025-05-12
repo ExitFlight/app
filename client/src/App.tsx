@@ -10,7 +10,7 @@ import FlightSelection from "@/pages/FlightSelection";
 import PassengerDetails from "@/pages/PassengerDetails";
 import TicketPreview from "@/pages/TicketPreview";
 import Confirmation from "@/pages/Confirmation";
-import ItineraryDemo from "@/pages/ItineraryDemo";
+
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -25,7 +25,7 @@ function Router() {
           <Route path="/passenger-details" component={PassengerDetails} />
           <Route path="/preview" component={TicketPreview} />
           <Route path="/confirmation" component={Confirmation} />
-          <Route path="/itinerary-demo" component={ItineraryDemo} />
+
           <Route component={NotFound} />
         </Switch>
       </main>

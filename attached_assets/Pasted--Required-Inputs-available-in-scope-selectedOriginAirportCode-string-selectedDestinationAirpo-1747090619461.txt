@@ -1,0 +1,38 @@
+// Required Inputs (available in scope): selectedOriginAirportCode: string, selectedDestinationAirportCode: string, departureDateString: string ("YYYY-MM-DD"), departureTimeString: string ("HH:mm")
+// Task: Implement realistic flight time estimation based on distance and calculate initial times.
+
+Create a functional TypeScript function `calculateRealisticFlightTimes(originCode: string, destCode: string, departureDateStr: string, departureTimeStr: string): Promise<{durationMinutes: number, departureUTC: Date, arrivalUTC: Date, departureLocal: Date}>` using `date-fns-tz` or `Luxon`.
+1. Define or access necessary data:
+    - `airportCoordinates: { [code: string]: { lat: number; lon: number } }` (e.g., `{'LHR': {lat: 51.47, lon: -0.45}, 'JFK': {lat: 40.64, lon: -73.78}}`).
+    - `airportTimezones: { [code: string]: string }` (e.g., `{'LHR': 'Europe/London'}`).
+2. Inside the function:
+    a. Look up the lat/lon for `originCode` and `destCode` from `airportCoordinates`.
+    b. **Implement Haversine formula:** Calculate the great-circle distance in kilometers between the two coordinates. (You'll need a helper function for this math: converts degrees to radians, uses the formula).
+    c. **Estimate Flight Duration:**
+        i. Define an average cruise speed in km/h (e.g., `const cruiseSpeedKmh = 875;`).
+        ii. Calculate base flight time in hours: `distanceKm / cruiseSpeedKmh`.
+        iii. Add a buffer: e.g., `bufferMinutes = 90 + (baseFlightTimeHours * 60 * 0.08)` (90 mins fixed + 8% variable).
+        iv. Calculate total estimated `durationMinutes = (baseFlightTimeHours * 60) + bufferMinutes`. Ensure it's an integer.
+    d. Combine `departureDateStr` and `departureTimeStr`.
+    e. Parse this combined string using the timezone from `airportTimezones` for the `originCode` to get the exact `departureLocal` Date object.
+    f. Convert `departureLocal` to `departureUTC`.
+    g. Calculate `arrivalUTC` by adding the calculated `durationMinutes` to `departureUTC`.
+    h. Return `{ durationMinutes, departureUTC, arrivalUTC, departureLocal }`. Include error handling for missing coordinates.
+
+// Helper function for Haversine distance (or use a library like `geolib` if acceptable)
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c; // Distance in km
+  return distance;
+}
+
+function deg2rad(deg: number): number {
+  return deg * (Math.PI / 180);
+}

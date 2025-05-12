@@ -3,18 +3,18 @@ import { Link } from "wouter";
 
 const Header = () => {
   return (
-    <header className="bg-white shadow-md">
+    <header className="bg-background shadow-md border-b border-border">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link href="/">
-          <a className="flex items-center">
+          <div className="flex items-center cursor-pointer">
             <Plane className="text-primary text-2xl mr-2" />
-            <h1 className="text-2xl font-bold text-neutral-800">
+            <h1 className="text-2xl font-bold text-foreground">
               Flight<span className="text-primary">Back</span>
             </h1>
-          </a>
+          </div>
         </Link>
-        <div className="hidden md:block">
-          <p className="text-neutral-600 italic">Fake Flight Ticket Generator</p>
+        <div className="block">
+          <p className="text-muted-foreground">Ticket Generator</p>
         </div>
       </div>
     </header>

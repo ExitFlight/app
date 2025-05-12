@@ -96,7 +96,18 @@ export class MemStorage implements IStorage {
       { code: "LAX", name: "Los Angeles International Airport", city: "Los Angeles", country: "United States", region: "North America" },
       { code: "ORD", name: "O'Hare International Airport", city: "Chicago", country: "United States", region: "North America" },
       { code: "YYZ", name: "Toronto Pearson International Airport", city: "Toronto", country: "Canada", region: "North America" },
+      
+      // Mexico
       { code: "MEX", name: "Mexico City International Airport", city: "Mexico City", country: "Mexico", region: "North America" },
+      { code: "CUN", name: "Cancún International Airport", city: "Cancún", country: "Mexico", region: "North America" },
+      { code: "GDL", name: "Guadalajara International Airport", city: "Guadalajara", country: "Mexico", region: "North America" },
+      { code: "MTY", name: "Monterrey International Airport", city: "Monterrey", country: "Mexico", region: "North America" },
+      { code: "SJD", name: "Los Cabos International Airport", city: "San José del Cabo", country: "Mexico", region: "North America" },
+      { code: "PVR", name: "Licenciado Gustavo Díaz Ordaz International Airport", city: "Puerto Vallarta", country: "Mexico", region: "North America" },
+      { code: "TIJ", name: "Tijuana International Airport", city: "Tijuana", country: "Mexico", region: "North America" },
+      { code: "MZT", name: "General Rafael Buelna International Airport", city: "Mazatlán", country: "Mexico", region: "North America" },
+      { code: "MID", name: "Manuel Crescencio Rejón International Airport", city: "Mérida", country: "Mexico", region: "North America" },
+      { code: "OAX", name: "Oaxaca International Airport", city: "Oaxaca", country: "Mexico", region: "North America" },
       
       // Europe
       { code: "LHR", name: "London Heathrow Airport", city: "London", country: "United Kingdom", region: "Europe" },
@@ -159,18 +170,51 @@ export class MemStorage implements IStorage {
       { code: "NYU", name: "Bagan Nyaung U Airport", city: "Bagan", country: "Myanmar", region: "Asia" },
       
       // Oceania
+      // Australia
       { code: "SYD", name: "Sydney Airport", city: "Sydney", country: "Australia", region: "Oceania" },
       { code: "MEL", name: "Melbourne Airport", city: "Melbourne", country: "Australia", region: "Oceania" },
       { code: "BNE", name: "Brisbane Airport", city: "Brisbane", country: "Australia", region: "Oceania" },
       { code: "PER", name: "Perth Airport", city: "Perth", country: "Australia", region: "Oceania" },
       { code: "ADL", name: "Adelaide Airport", city: "Adelaide", country: "Australia", region: "Oceania" },
+      { code: "CNS", name: "Cairns Airport", city: "Cairns", country: "Australia", region: "Oceania" },
+      
+      // New Zealand
       { code: "AKL", name: "Auckland Airport", city: "Auckland", country: "New Zealand", region: "Oceania" },
       { code: "CHC", name: "Christchurch Airport", city: "Christchurch", country: "New Zealand", region: "Oceania" },
       { code: "WLG", name: "Wellington Airport", city: "Wellington", country: "New Zealand", region: "Oceania" },
       { code: "ZQN", name: "Queenstown Airport", city: "Queenstown", country: "New Zealand", region: "Oceania" },
+      
+      // Melanesia
+      // Fiji
       { code: "NAN", name: "Nadi International Airport", city: "Nadi", country: "Fiji", region: "Oceania" },
       { code: "SUV", name: "Nausori International Airport", city: "Suva", country: "Fiji", region: "Oceania" },
-      { code: "BFJ", name: "Labasa Airport", city: "Labasa", country: "Fiji", region: "Oceania" },
+      // Papua New Guinea
+      { code: "POM", name: "Port Moresby Jacksons International Airport", city: "Port Moresby", country: "Papua New Guinea", region: "Oceania" },
+      // Solomon Islands
+      { code: "HIR", name: "Honiara International Airport", city: "Honiara", country: "Solomon Islands", region: "Oceania" },
+      // Vanuatu
+      { code: "VLI", name: "Bauerfield International Airport", city: "Port Vila", country: "Vanuatu", region: "Oceania" },
+      // New Caledonia
+      { code: "NOU", name: "La Tontouta International Airport", city: "Nouméa", country: "New Caledonia", region: "Oceania" },
+      
+      // Micronesia
+      // Guam
+      { code: "GUM", name: "Antonio B. Won Pat International Airport", city: "Hagåtña", country: "Guam", region: "Oceania" },
+      // Palau
+      { code: "ROR", name: "Roman Tmetuchl International Airport", city: "Koror", country: "Palau", region: "Oceania" },
+      // Federated States of Micronesia
+      { code: "PNI", name: "Pohnpei International Airport", city: "Pohnpei", country: "Federated States of Micronesia", region: "Oceania" },
+      
+      // Polynesia
+      // French Polynesia
+      { code: "PPT", name: "Faa'a International Airport", city: "Papeete", country: "French Polynesia", region: "Oceania" },
+      { code: "BOB", name: "Bora Bora Airport", city: "Bora Bora", country: "French Polynesia", region: "Oceania" },
+      // Samoa
+      { code: "APW", name: "Faleolo International Airport", city: "Apia", country: "Samoa", region: "Oceania" },
+      // Tonga
+      { code: "TBU", name: "Fua'amotu International Airport", city: "Nukuʻalofa", country: "Tonga", region: "Oceania" },
+      // Cook Islands
+      { code: "RAR", name: "Rarotonga International Airport", city: "Rarotonga", country: "Cook Islands", region: "Oceania" },
       
       // Central America
       { code: "SJO", name: "Juan Santamaría International Airport", city: "San José", country: "Costa Rica", region: "Central America" },
@@ -286,11 +330,27 @@ export class MemStorage implements IStorage {
       { code: "OB", name: "Boliviana de Aviación", logo: "boa", region: "South America" },
       
       // Oceania
+      // Australia & New Zealand
       { code: "JQ", name: "Jetstar Airways", logo: "jetstar", region: "Oceania" },
       { code: "QF", name: "Qantas Airways", logo: "qantas", region: "Oceania" },
       { code: "VA", name: "Virgin Australia", logo: "virgin-australia", region: "Oceania" },
       { code: "NZ", name: "Air New Zealand", logo: "air-new-zealand", region: "Oceania" },
+      // Melanesia
       { code: "FJ", name: "Fiji Airways", logo: "fiji-airways", region: "Oceania" },
+      { code: "PX", name: "Air Niugini", logo: "air-niugini", region: "Oceania" },
+      { code: "IE", name: "Solomon Airlines", logo: "solomon-airlines", region: "Oceania" },
+      { code: "NF", name: "Air Vanuatu", logo: "air-vanuatu", region: "Oceania" },
+      { code: "SB", name: "Air Calin", logo: "air-calin", region: "Oceania" },
+      // Micronesia & Polynesia
+      { code: "GU", name: "United Airlines Guam", logo: "united-airlines", region: "Oceania" },
+      { code: "TN", name: "Air Tahiti Nui", logo: "air-tahiti-nui", region: "Oceania" },
+      { code: "VT", name: "Air Tahiti", logo: "air-tahiti", region: "Oceania" },
+      { code: "DN", name: "Air Nauru", logo: "air-nauru", region: "Oceania" },
+      { code: "HW", name: "Hawaiian Airlines", logo: "hawaiian-airlines", region: "Oceania" },
+      { code: "MU", name: "Air Marshall Islands", logo: "air-marshall", region: "Oceania" },
+      { code: "ON", name: "Air Nauru", logo: "air-nauru", region: "Oceania" },
+      { code: "OG", name: "Air Rarotonga", logo: "air-rarotonga", region: "Oceania" },
+      { code: "RA", name: "Royal Tongan Airlines", logo: "royal-tongan", region: "Oceania" },
     ];
 
     airlines.forEach(airline => this.createAirline(airline));

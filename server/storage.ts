@@ -158,15 +158,19 @@ export class MemStorage implements IStorage {
       { code: "MDL", name: "Mandalay International Airport", city: "Mandalay", country: "Myanmar", region: "Asia" },
       { code: "NYU", name: "Bagan Nyaung U Airport", city: "Bagan", country: "Myanmar", region: "Asia" },
       
-      // Australia/NZ
-      { code: "SYD", name: "Sydney Airport", city: "Sydney", country: "Australia", region: "Australia/NZ" },
-      { code: "MEL", name: "Melbourne Airport", city: "Melbourne", country: "Australia", region: "Australia/NZ" },
-      { code: "BNE", name: "Brisbane Airport", city: "Brisbane", country: "Australia", region: "Australia/NZ" },
-      { code: "PER", name: "Perth Airport", city: "Perth", country: "Australia", region: "Australia/NZ" },
-      { code: "ADL", name: "Adelaide Airport", city: "Adelaide", country: "Australia", region: "Australia/NZ" },
-      { code: "AKL", name: "Auckland Airport", city: "Auckland", country: "New Zealand", region: "Australia/NZ" },
-      { code: "CHC", name: "Christchurch Airport", city: "Christchurch", country: "New Zealand", region: "Australia/NZ" },
-      { code: "WLG", name: "Wellington Airport", city: "Wellington", country: "New Zealand", region: "Australia/NZ" },
+      // Oceania
+      { code: "SYD", name: "Sydney Airport", city: "Sydney", country: "Australia", region: "Oceania" },
+      { code: "MEL", name: "Melbourne Airport", city: "Melbourne", country: "Australia", region: "Oceania" },
+      { code: "BNE", name: "Brisbane Airport", city: "Brisbane", country: "Australia", region: "Oceania" },
+      { code: "PER", name: "Perth Airport", city: "Perth", country: "Australia", region: "Oceania" },
+      { code: "ADL", name: "Adelaide Airport", city: "Adelaide", country: "Australia", region: "Oceania" },
+      { code: "AKL", name: "Auckland Airport", city: "Auckland", country: "New Zealand", region: "Oceania" },
+      { code: "CHC", name: "Christchurch Airport", city: "Christchurch", country: "New Zealand", region: "Oceania" },
+      { code: "WLG", name: "Wellington Airport", city: "Wellington", country: "New Zealand", region: "Oceania" },
+      { code: "ZQN", name: "Queenstown Airport", city: "Queenstown", country: "New Zealand", region: "Oceania" },
+      { code: "NAN", name: "Nadi International Airport", city: "Nadi", country: "Fiji", region: "Oceania" },
+      { code: "SUV", name: "Nausori International Airport", city: "Suva", country: "Fiji", region: "Oceania" },
+      { code: "BFJ", name: "Labasa Airport", city: "Labasa", country: "Fiji", region: "Oceania" },
       
       // Central America
       { code: "SJO", name: "Juan Santamaría International Airport", city: "San José", country: "Costa Rica", region: "Central America" },
@@ -281,11 +285,12 @@ export class MemStorage implements IStorage {
       { code: "P9", name: "Peruvian Airlines", logo: "peruvian", region: "South America" },
       { code: "OB", name: "Boliviana de Aviación", logo: "boa", region: "South America" },
       
-      // Australia/NZ
-      { code: "JQ", name: "Jetstar Airways", logo: "jetstar", region: "Australia/NZ" },
-      { code: "QF", name: "Qantas Airways", logo: "qantas", region: "Australia/NZ" },
-      { code: "VA", name: "Virgin Australia", logo: "virgin-australia", region: "Australia/NZ" },
-      { code: "NZ", name: "Air New Zealand", logo: "air-new-zealand", region: "Australia/NZ" },
+      // Oceania
+      { code: "JQ", name: "Jetstar Airways", logo: "jetstar", region: "Oceania" },
+      { code: "QF", name: "Qantas Airways", logo: "qantas", region: "Oceania" },
+      { code: "VA", name: "Virgin Australia", logo: "virgin-australia", region: "Oceania" },
+      { code: "NZ", name: "Air New Zealand", logo: "air-new-zealand", region: "Oceania" },
+      { code: "FJ", name: "Fiji Airways", logo: "fiji-airways", region: "Oceania" },
     ];
 
     airlines.forEach(airline => this.createAirline(airline));
@@ -556,7 +561,11 @@ export class MemStorage implements IStorage {
 
   async createPassenger(insertPassenger: InsertPassenger): Promise<Passenger> {
     const id = this.currentPassengerId++;
-    const passenger: Passenger = { ...insertPassenger, id };
+    const passenger: Passenger = { 
+      ...insertPassenger, 
+      id,
+      phone: insertPassenger.phone || null  // Ensure phone is string | null
+    };
     this.passengers.set(id, passenger);
     return passenger;
   }

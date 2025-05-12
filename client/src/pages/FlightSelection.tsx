@@ -87,17 +87,7 @@ const FlightSelection = () => {
     queryKey: ["/api/airlines/regions"],
   });
 
-  // Fetch flights based on search criteria
-  const { data: flights, isLoading: isLoadingFlights } = useQuery<FlightWithDetails[]>({
-    queryKey: [
-      "/api/flights/search",
-      departureAirport,
-      arrivalAirport,
-      departureDate,
-      departureTime,
-    ],
-    enabled: !!(departureAirport && arrivalAirport && departureDate),
-  });
+  // We're not fetching flights anymore since we're letting the user simulate their own ticket
 
   // Reset country when region changes
   useEffect(() => {

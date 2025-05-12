@@ -27,10 +27,36 @@ const FlightSelection = () => {
   const [departureDate, setDepartureDate] = useState<string>(flightDetails?.departureDate || new Date().toISOString().split('T')[0]);
   const [departureTime, setDepartureTime] = useState<string>(flightDetails?.departureTime || "");
   const [selectedFlightId, setSelectedFlightId] = useState<number | null>(null);
+  const [selectedDepartureRegion, setSelectedDepartureRegion] = useState<string>("");
+  const [selectedArrivalRegion, setSelectedArrivalRegion] = useState<string>("");
+  const [selectedAirlineRegion, setSelectedAirlineRegion] = useState<string>("");
 
   // Fetch airports
   const { data: airports, isLoading: isLoadingAirports } = useQuery<Airport[]>({
-    queryKey: ["/api/airports"],
+    queryKey: ["/api/airports", selectedDepartureRegion, selectedArrivalRegion],
+    queryFn: async () => {
+      let url = "/api/airports";
+      if (selectedDepartureRegion || selectedArrivalRegion) {
+        return fetch(`${url}`).then(res => res.json());
+      }
+      return fetch(url).then(res => res.json());
+    },
+  });
+  
+  // Fetch airport regions
+  const { data: airportRegions } = useQuery<{region: string, airports: Airport[]}[]>({
+    queryKey: ["/api/airports/regions"],
+    queryFn: async () => {
+      return fetch("/api/airports/regions").then(res => res.json());
+    },
+  });
+  
+  // Fetch airline regions
+  const { data: airlineRegions } = useQuery<{region: string, airlines: any[]}[]>({
+    queryKey: ["/api/airlines/regions"],
+    queryFn: async () => {
+      return fetch("/api/airlines/regions").then(res => res.json());
+    },
   });
 
   // Fetch flights based on search criteria

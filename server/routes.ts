@@ -15,13 +15,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all airports
   app.get("/api/airports", async (req: Request, res: Response) => {
     const airports = await storage.getAllAirports();
+    
+    // If region query parameter is provided, filter by region
+    const region = req.query.region as string | undefined;
+    if (region) {
+      const filteredAirports = airports.filter(airport => airport.region === region);
+      return res.json(filteredAirports);
+    }
+    
     res.json(airports);
+  });
+  
+  // Get airports grouped by region
+  app.get("/api/airports/regions", async (req: Request, res: Response) => {
+    const airports = await storage.getAllAirports();
+    
+    // Group airports by region
+    const regionsSet = new Set<string>();
+    airports.forEach(airport => regionsSet.add(airport.region));
+    const regions = Array.from(regionsSet).sort();
+    
+    const airportsByRegion = regions.map(region => {
+      return {
+        region,
+        airports: airports.filter(airport => airport.region === region)
+      };
+    });
+    
+    res.json(airportsByRegion);
   });
 
   // Get all airlines
   app.get("/api/airlines", async (req: Request, res: Response) => {
     const airlines = await storage.getAllAirlines();
+    
+    // If region query parameter is provided, filter by region
+    const region = req.query.region as string | undefined;
+    if (region) {
+      const filteredAirlines = airlines.filter(airline => airline.region === region);
+      return res.json(filteredAirlines);
+    }
+    
     res.json(airlines);
+  });
+  
+  // Get airlines grouped by region
+  app.get("/api/airlines/regions", async (req: Request, res: Response) => {
+    const airlines = await storage.getAllAirlines();
+    
+    // Group airlines by region
+    const regionsSet = new Set<string>();
+    airlines.forEach(airline => regionsSet.add(airline.region));
+    const regions = Array.from(regionsSet).sort();
+    
+    const airlinesByRegion = regions.map(region => {
+      return {
+        region,
+        airlines: airlines.filter(airline => airline.region === region)
+      };
+    });
+    
+    res.json(airlinesByRegion);
   });
 
   // Search flights

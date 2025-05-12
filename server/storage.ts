@@ -109,18 +109,39 @@ export class MemStorage implements IStorage {
       { code: "DXB", name: "Dubai International Airport", city: "Dubai", country: "United Arab Emirates", region: "Middle East" },
       { code: "DOH", name: "Hamad International Airport", city: "Doha", country: "Qatar", region: "Middle East" },
       { code: "AUH", name: "Abu Dhabi International Airport", city: "Abu Dhabi", country: "United Arab Emirates", region: "Middle East" },
+      { code: "IST", name: "Istanbul Airport", city: "Istanbul", country: "Turkey", region: "Middle East" },
+      { code: "SAW", name: "Istanbul Sabiha Gökçen International Airport", city: "Istanbul", country: "Turkey", region: "Middle East" },
+      { code: "JED", name: "King Abdulaziz International Airport", city: "Jeddah", country: "Saudi Arabia", region: "Middle East" },
+      { code: "RUH", name: "King Khalid International Airport", city: "Riyadh", country: "Saudi Arabia", region: "Middle East" },
       
       // Asia
-      { code: "SIN", name: "Singapore Changi Airport", city: "Singapore", country: "Singapore", region: "Southeast Asia" },
-      { code: "BKK", name: "Suvarnabhumi Airport", city: "Bangkok", country: "Thailand", region: "Southeast Asia" },
+      { code: "SIN", name: "Singapore Changi Airport", city: "Singapore", country: "Singapore", region: "Asia" },
+      { code: "BKK", name: "Suvarnabhumi Airport", city: "Bangkok", country: "Thailand", region: "Asia" },
+      { code: "DMK", name: "Don Mueang International Airport", city: "Bangkok", country: "Thailand", region: "Asia" },
       { code: "HKG", name: "Hong Kong International Airport", city: "Hong Kong", country: "China", region: "Asia" },
       { code: "PEK", name: "Beijing Capital International Airport", city: "Beijing", country: "China", region: "Asia" },
       { code: "HND", name: "Tokyo Haneda Airport", city: "Tokyo", country: "Japan", region: "Asia" },
+      { code: "NRT", name: "Narita International Airport", city: "Tokyo", country: "Japan", region: "Asia" },
+      { code: "KIX", name: "Kansai International Airport", city: "Osaka", country: "Japan", region: "Asia" },
+      { code: "ICN", name: "Incheon International Airport", city: "Seoul", country: "South Korea", region: "Asia" },
+      { code: "CGK", name: "Soekarno-Hatta International Airport", city: "Jakarta", country: "Indonesia", region: "Asia" },
+      { code: "DPS", name: "Ngurah Rai International Airport", city: "Bali", country: "Indonesia", region: "Asia" },
+      { code: "KUL", name: "Kuala Lumpur International Airport", city: "Kuala Lumpur", country: "Malaysia", region: "Asia" },
+      { code: "MNL", name: "Ninoy Aquino International Airport", city: "Manila", country: "Philippines", region: "Asia" },
+      { code: "CEB", name: "Mactan-Cebu International Airport", city: "Cebu", country: "Philippines", region: "Asia" },
+      { code: "BWN", name: "Brunei International Airport", city: "Bandar Seri Begawan", country: "Brunei", region: "Asia" },
+      { code: "SGN", name: "Tan Son Nhat International Airport", city: "Ho Chi Minh City", country: "Vietnam", region: "Asia" },
+      { code: "HAN", name: "Noi Bai International Airport", city: "Hanoi", country: "Vietnam", region: "Asia" },
       
-      // Oceania
-      { code: "SYD", name: "Sydney Airport", city: "Sydney", country: "Australia", region: "Oceania" },
-      { code: "MEL", name: "Melbourne Airport", city: "Melbourne", country: "Australia", region: "Oceania" },
-      { code: "AKL", name: "Auckland Airport", city: "Auckland", country: "New Zealand", region: "Oceania" },
+      // Australia/NZ
+      { code: "SYD", name: "Sydney Airport", city: "Sydney", country: "Australia", region: "Australia/NZ" },
+      { code: "MEL", name: "Melbourne Airport", city: "Melbourne", country: "Australia", region: "Australia/NZ" },
+      { code: "BNE", name: "Brisbane Airport", city: "Brisbane", country: "Australia", region: "Australia/NZ" },
+      { code: "PER", name: "Perth Airport", city: "Perth", country: "Australia", region: "Australia/NZ" },
+      { code: "ADL", name: "Adelaide Airport", city: "Adelaide", country: "Australia", region: "Australia/NZ" },
+      { code: "AKL", name: "Auckland Airport", city: "Auckland", country: "New Zealand", region: "Australia/NZ" },
+      { code: "CHC", name: "Christchurch Airport", city: "Christchurch", country: "New Zealand", region: "Australia/NZ" },
+      { code: "WLG", name: "Wellington Airport", city: "Wellington", country: "New Zealand", region: "Australia/NZ" },
       
       // South America
       { code: "GRU", name: "São Paulo–Guarulhos International Airport", city: "São Paulo", country: "Brazil", region: "South America" },
@@ -176,11 +197,11 @@ export class MemStorage implements IStorage {
       { code: "VJ", name: "VietJet Air", logo: "vietjet-air", region: "Asia" },
       { code: "VN", name: "Vietnam Airlines", logo: "vietnam-airlines", region: "Asia" },
       
-      // Oceania
-      { code: "JQ", name: "Jetstar Airways", logo: "jetstar", region: "Oceania" },
-      { code: "QF", name: "Qantas Airways", logo: "qantas", region: "Oceania" },
-      { code: "VA", name: "Virgin Australia", logo: "virgin-australia", region: "Oceania" },
-      { code: "NZ", name: "Air New Zealand", logo: "air-new-zealand", region: "Oceania" },
+      // Australia/NZ
+      { code: "JQ", name: "Jetstar Airways", logo: "jetstar", region: "Australia/NZ" },
+      { code: "QF", name: "Qantas Airways", logo: "qantas", region: "Australia/NZ" },
+      { code: "VA", name: "Virgin Australia", logo: "virgin-australia", region: "Australia/NZ" },
+      { code: "NZ", name: "Air New Zealand", logo: "air-new-zealand", region: "Australia/NZ" },
     ];
 
     airlines.forEach(airline => this.createAirline(airline));

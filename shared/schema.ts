@@ -80,7 +80,7 @@ export const passengers = pgTable("passengers", {
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   email: text("email").notNull(),
-  phone: text("phone"),
+  phone: text("phone"), // nullable by default in drizzle
   passportNumber: text("passport_number").notNull(),
   nationality: text("nationality").notNull(),
   birthdate: text("birthdate").notNull(),

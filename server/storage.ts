@@ -561,10 +561,16 @@ export class MemStorage implements IStorage {
 
   async createPassenger(insertPassenger: InsertPassenger): Promise<Passenger> {
     const id = this.currentPassengerId++;
+    // Create a properly typed passenger object
     const passenger: Passenger = { 
-      ...insertPassenger, 
       id,
-      phone: insertPassenger.phone || null  // Ensure phone is string | null
+      firstName: insertPassenger.firstName,
+      lastName: insertPassenger.lastName,
+      email: insertPassenger.email,
+      phone: insertPassenger.phone || null,  // Explicitly handle the nullable phone
+      passportNumber: insertPassenger.passportNumber,
+      nationality: insertPassenger.nationality,
+      birthdate: insertPassenger.birthdate
     };
     this.passengers.set(id, passenger);
     return passenger;

@@ -202,7 +202,7 @@ const FlightSelection = () => {
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="" disabled>
+                        <SelectItem value="loading" disabled>
                           Loading airports...
                         </SelectItem>
                       )}
@@ -281,7 +281,7 @@ const FlightSelection = () => {
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="" disabled>
+                        <SelectItem value="loading" disabled>
                           Loading airports...
                         </SelectItem>
                       )}

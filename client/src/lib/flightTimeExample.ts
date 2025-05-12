@@ -1,62 +1,90 @@
-// This is a simple example showing how to use the flight time calculator
+import { estimateFlightTimes, calculateFlightDetails, formatDuration } from './flightTimeCalculator';
 
-import { calculateBasicFlightDetails } from './flightTimeCalculator';
-
-// Example function to demonstrate the flight time calculator
-export async function demonstrateFlightTimeCalculation() {
+/**
+ * Example function to demonstrate the usage of estimateFlightTimes
+ */
+export async function demoEstimateFlightTimes(): Promise<void> {
+  const originCode = 'JFK';  // New York
+  const destCode = 'LHR';    // London
+  
+  console.log(`Estimating flight times for ${originCode} to ${destCode}:`);
+  
   try {
-    // Calculate flight details between New York and London
-    const flightDetails = await calculateBasicFlightDetails('New York', 'London');
+    const flightTimes = await estimateFlightTimes(originCode, destCode);
     
-    console.log('Flight Details Calculation Example:');
-    console.log('---------------------------------');
-    console.log(`Origin: ${flightDetails.originAirport.city} (${flightDetails.originAirport.code})`);
-    console.log(`Destination: ${flightDetails.destinationAirport.city} (${flightDetails.destinationAirport.code})`);
-    console.log(`Departure: ${flightDetails.departureDateLocal} at ${flightDetails.departureTimeLocal}`);
-    console.log(`Arrival: ${flightDetails.arrivalDateLocal} at ${flightDetails.arrivalTimeLocal}`);
+    console.log(`Flight Duration: ${formatDuration(flightTimes.durationMinutes)}`);
+    console.log(`Departure UTC: ${flightTimes.departureUTC.toISOString()}`);
+    console.log(`Arrival UTC: ${flightTimes.arrivalUTC.toISOString()}`);
     
-    if (flightDetails.arrivalDateOffset === 1) {
-      console.log('Arrives: Next day');
-    } else if (flightDetails.arrivalDateOffset === -1) {
-      console.log('Arrives: Previous day');
-    } else {
-      console.log('Arrives: Same day');
+    return Promise.resolve();
+  } catch (error) {
+    console.error('Error estimating flight times:', error);
+    return Promise.reject(error);
+  }
+}
+
+/**
+ * Example function to demonstrate the usage of calculateFlightDetails
+ */
+export async function demoCalculateFlightDetails(): Promise<void> {
+  // Test cases for different region pairs
+  const flightTestCases = [
+    { origin: 'JFK', dest: 'LHR', description: 'Transatlantic: New York to London' },
+    { origin: 'LHR', dest: 'SIN', description: 'Europe to Asia: London to Singapore' },
+    { origin: 'SYD', dest: 'LAX', description: 'Transpacific: Sydney to Los Angeles' },
+    { origin: 'NRT', dest: 'BKK', description: 'Within Asia: Tokyo to Bangkok' },
+    { origin: 'CDG', dest: 'FCO', description: 'Within Europe: Paris to Rome' },
+    { origin: 'DXB', dest: 'JNB', description: 'Middle East to Africa: Dubai to Johannesburg' },
+    { origin: 'GRU', dest: 'MEX', description: 'Within Americas: São Paulo to Mexico City' },
+    { origin: 'HKT', dest: 'CNX', description: 'Within Thailand: Phuket to Chiang Mai' },
+  ];
+
+  console.log('Demonstrating flight time calculations for various routes:');
+  console.log('--------------------------------------------------------');
+  
+  try {
+    for (const testCase of flightTestCases) {
+      console.log(`\nRoute: ${testCase.description} (${testCase.origin} -> ${testCase.dest})`);
+      
+      const details = await calculateFlightDetails(testCase.origin, testCase.dest);
+      
+      console.log(`Departure: ${details.departureTimeLocal} (${testCase.origin} local time)`);
+      console.log(`Arrival: ${details.arrivalTimeLocal} (${testCase.dest} local time)`);
+      console.log(`Duration: ${details.durationFormatted}`);
+      console.log(`Departure Date: ${details.departureDateLocal}`);
+      console.log(`Arrival Date: ${details.arrivalDateLocal}`);
+      
+      // Check if arrival is on a different day
+      if (details.departureDateLocal !== details.arrivalDateLocal) {
+        console.log('Note: This flight arrives on a different day than departure.');
+      }
     }
     
-    console.log(`Flight Duration: ${flightDetails.flightDurationFormatted}`);
-    console.log('---------------------------------');
-    
-    return flightDetails;
+    return Promise.resolve();
   } catch (error) {
-    console.error('Error demonstrating flight time calculation:', error);
-    throw error;
+    console.error('Error calculating flight details:', error);
+    return Promise.reject(error);
   }
 }
 
-// To use this function:
-/*
-  import { demonstrateFlightTimeCalculation } from './flightTimeExample';
+/**
+ * Run all demonstrations
+ */
+export async function runAllDemos(): Promise<void> {
+  console.log('FLIGHT TIME CALCULATOR DEMONSTRATION');
+  console.log('====================================');
   
-  // In a component or function
-  useEffect(() => {
-    demonstrateFlightTimeCalculation()
-      .then(details => {
-        // Use the flight details
-        console.log('Flight calculation successful!', details);
-      })
-      .catch(error => {
-        console.error('Flight calculation failed:', error);
-      });
-  }, []);
-*/
-
-// Example of using the flight calculator with specific origin and destination
-export async function calculateCustomFlightTime(originCity: string, destinationCity: string) {
   try {
-    const flightDetails = await calculateBasicFlightDetails(originCity, destinationCity);
-    return flightDetails;
+    await demoEstimateFlightTimes();
+    console.log('\n');
+    await demoCalculateFlightDetails();
+    
+    return Promise.resolve();
   } catch (error) {
-    console.error(`Error calculating flight time from ${originCity} to ${destinationCity}:`, error);
-    throw error;
+    console.error('Error running demos:', error);
+    return Promise.reject(error);
   }
 }
+
+// Uncomment to run the demos
+// runAllDemos();

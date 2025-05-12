@@ -1,6 +1,6 @@
 import { addHours, addMinutes, differenceInMinutes, format } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
-import { calculateBasicFlightDetails } from './flightTimeCalculator';
+import { calculateFlightDetails } from './flightTimeCalculator';
 
 // Interface for airline routes data
 interface AirlineRouteData {
@@ -375,7 +375,7 @@ export async function generateFlightItinerary(
 
   if (!requiresLayover) {
     // Generate a direct flight
-    const flightDetails = await calculateBasicFlightDetails(originCity, destinationCity);
+    const flightDetails = await calculateFlightDetails(originCity, destinationCity);
     
     // Create the flight segment
     const directSegment: FlightSegment = {

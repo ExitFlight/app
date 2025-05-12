@@ -1,363 +1,297 @@
-import { format, addMinutes, differenceInDays } from 'date-fns';
-import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
+import { format, addMinutes, setHours, setMinutes, setSeconds } from 'date-fns';
+import { toZonedTime, formatInTimeZone } from 'date-fns-tz';
 
-// Interfaces for the data structures
-interface Airport {
-  code: string;
-  name: string;
-  city: string;
-  country: string;
-  timezone?: string; // IANA timezone like 'America/New_York'
-}
-
-interface FlightDetails {
-  originAirport: Airport;
-  destinationAirport: Airport;
-  departureTimeLocal: string; // Format: HH:mm (24-hour)
-  arrivalTimeLocal: string;   // Format: HH:mm (24-hour)
-  departureDateLocal: string; // Format: YYYY-MM-DD
-  arrivalDateLocal: string;   // Format: YYYY-MM-DD
-  arrivalDateOffset: number;  // 0 = same day, 1 = next day, -1 = previous day
-  flightDurationFormatted: string; // Format: Xh Ym
-}
-
-// A map of estimated flight durations between city pairs (in minutes)
-const flightDurations: Record<string, Record<string, number>> = {
-  'New York': {
-    'London': 415,
-    'Tokyo': 840,
-    'Los Angeles': 360,
-    'Mexico City': 240,
-    'Sydney': 1260,
-    'Dubai': 780,
-    'Paris': 430,
-    'Singapore': 1020,
-    'Hong Kong': 960,
-    'Toronto': 90,
-  },
-  'London': {
-    'New York': 435,
-    'Tokyo': 720,
-    'Dubai': 420,
-    'Singapore': 820,
-    'Sydney': 1320,
-    'Delhi': 510,
-    'Paris': 75,
-    'Rome': 165,
-    'Berlin': 120,
-    'Cairo': 285,
-  },
-  'Tokyo': {
-    'New York': 810,
-    'London': 720,
-    'Singapore': 420,
-    'Sydney': 540,
-    'Hong Kong': 270,
-    'Delhi': 450,
-    'Bangkok': 390,
-    'Seoul': 150,
-    'Shanghai': 180,
-    'Taipei': 210,
-  },
-  // Add more cities as needed
-};
-
-// A map of airports with their IANA timezone identifiers
+// Example timezone data by airport code
 const airportTimezones: Record<string, string> = {
+  // North America
   'JFK': 'America/New_York',
-  'LGA': 'America/New_York',
   'LAX': 'America/Los_Angeles',
-  'SFO': 'America/Los_Angeles',
   'ORD': 'America/Chicago',
   'DFW': 'America/Chicago',
   'MIA': 'America/New_York',
+  'YYZ': 'America/Toronto',
+  'MEX': 'America/Mexico_City',
+  
+  // Europe
   'LHR': 'Europe/London',
   'CDG': 'Europe/Paris',
   'FRA': 'Europe/Berlin',
   'AMS': 'Europe/Amsterdam',
   'MAD': 'Europe/Madrid',
   'FCO': 'Europe/Rome',
-  'NRT': 'Asia/Tokyo',
+  'ZRH': 'Europe/Zurich',
+  
+  // Asia
   'HND': 'Asia/Tokyo',
+  'NRT': 'Asia/Tokyo',
   'PEK': 'Asia/Shanghai',
   'PVG': 'Asia/Shanghai',
   'HKG': 'Asia/Hong_Kong',
   'SIN': 'Asia/Singapore',
   'BKK': 'Asia/Bangkok',
-  'DXB': 'Asia/Dubai',
+  'DMK': 'Asia/Bangkok',
+  'HKT': 'Asia/Bangkok',
+  'CNX': 'Asia/Bangkok',
+  'USM': 'Asia/Bangkok',
+  'KBV': 'Asia/Bangkok',
+  'CEI': 'Asia/Bangkok',
+  'ICN': 'Asia/Seoul',
+  'GMP': 'Asia/Seoul',
   'DEL': 'Asia/Kolkata',
   'BOM': 'Asia/Kolkata',
+  
+  // Australia/Oceania
   'SYD': 'Australia/Sydney',
   'MEL': 'Australia/Melbourne',
+  'BNE': 'Australia/Brisbane',
+  'PER': 'Australia/Perth',
   'AKL': 'Pacific/Auckland',
-  'MEX': 'America/Mexico_City',
-  'GDL': 'America/Mexico_City',
-  'YYZ': 'America/Toronto',
-  'YVR': 'America/Vancouver',
+  'CHC': 'Pacific/Auckland',
+  'NAN': 'Pacific/Fiji',
+  'POM': 'Pacific/Port_Moresby',
+  
+  // Middle East
+  'DXB': 'Asia/Dubai',
+  'DOH': 'Asia/Qatar',
+  'AUH': 'Asia/Dubai',
+  'RUH': 'Asia/Riyadh',
+  
+  // South America
   'GRU': 'America/Sao_Paulo',
   'EZE': 'America/Argentina/Buenos_Aires',
+  'BOG': 'America/Bogota',
   'SCL': 'America/Santiago',
   'LIM': 'America/Lima',
-  'BOG': 'America/Bogota',
+  
+  // Africa
   'JNB': 'Africa/Johannesburg',
   'CPT': 'Africa/Johannesburg',
   'CAI': 'Africa/Cairo',
-  // Add more airports as needed
+  'NBO': 'Africa/Nairobi',
+  'LOS': 'Africa/Lagos',
+  'ACC': 'Africa/Accra',
+};
+
+// Example flight duration data (in minutes)
+// For simplicity, we'll calculate these dynamically but would be a lookup table in a real system
+const estimateFlightDuration = (originCode: string, destCode: string): number => {
+  // This is a simplified model that approximates flight times
+  // Real flight times would depend on aircraft type, weather, routes, etc.
+  
+  // Using the Haversine formula would be more accurate with actual coordinates,
+  // but for this example, we'll use a simple approximation based on region pairs
+  
+  const getRegion = (code: string): string => {
+    // Simple region determination based on airport codes
+    if (['JFK', 'LAX', 'ORD', 'DFW', 'MIA', 'YYZ', 'MEX'].includes(code)) return 'NA'; // North America
+    if (['LHR', 'CDG', 'FRA', 'AMS', 'MAD', 'FCO', 'ZRH'].includes(code)) return 'EU'; // Europe
+    if (['HND', 'NRT', 'PEK', 'PVG', 'HKG', 'SIN', 'BKK', 'ICN', 'DEL', 'BOM'].includes(code)) return 'AS'; // Asia
+    if (['SYD', 'MEL', 'BNE', 'PER', 'AKL', 'CHC', 'NAN', 'POM'].includes(code)) return 'OC'; // Oceania
+    if (['DXB', 'DOH', 'AUH', 'RUH'].includes(code)) return 'ME'; // Middle East
+    if (['GRU', 'EZE', 'BOG', 'SCL', 'LIM'].includes(code)) return 'SA'; // South America
+    if (['JNB', 'CPT', 'CAI', 'NBO', 'LOS', 'ACC'].includes(code)) return 'AF'; // Africa
+    return 'UN'; // Unknown
+  };
+  
+  const originRegion = getRegion(originCode);
+  const destRegion = getRegion(destCode);
+  
+  // Base duration for typical short-haul flight
+  let duration = 120; // 2 hours default
+  
+  // If same region, adjust by region
+  if (originRegion === destRegion) {
+    switch (originRegion) {
+      case 'NA': duration = 180; break; // North America is large
+      case 'EU': duration = 120; break; // Europe is relatively small
+      case 'AS': duration = 240; break; // Asia is large
+      case 'OC': duration = 180; break; // Australia/Oceania
+      case 'ME': duration = 120; break; // Middle East is relatively small
+      case 'SA': duration = 210; break; // South America
+      case 'AF': duration = 210; break; // Africa is large
+      default: duration = 150;
+    }
+    
+    // Add some randomness for variety (±15%)
+    const randomFactor = 0.85 + (Math.random() * 0.3);
+    duration = Math.round(duration * randomFactor);
+    
+    return duration;
+  }
+  
+  // If different regions, use a region-pair lookup
+  // These are simplified approximations
+  const regionPairs: Record<string, number> = {
+    'NA-EU': 480,   // North America to Europe
+    'EU-NA': 540,   // Europe to North America (jet stream makes westbound flights longer)
+    'NA-AS': 780,   // North America to Asia
+    'AS-NA': 720,   // Asia to North America
+    'NA-OC': 840,   // North America to Oceania
+    'OC-NA': 840,   // Oceania to North America
+    'NA-ME': 720,   // North America to Middle East
+    'ME-NA': 720,   // Middle East to North America
+    'NA-SA': 540,   // North America to South America
+    'SA-NA': 540,   // South America to North America
+    'NA-AF': 720,   // North America to Africa
+    'AF-NA': 720,   // Africa to North America
+    
+    'EU-AS': 600,   // Europe to Asia
+    'AS-EU': 600,   // Asia to Europe
+    'EU-OC': 1140,  // Europe to Oceania
+    'OC-EU': 1140,  // Oceania to Europe
+    'EU-ME': 300,   // Europe to Middle East
+    'ME-EU': 300,   // Middle East to Europe
+    'EU-SA': 720,   // Europe to South America
+    'SA-EU': 720,   // South America to Europe
+    'EU-AF': 360,   // Europe to Africa
+    'AF-EU': 360,   // Africa to Europe
+    
+    'AS-OC': 540,   // Asia to Oceania
+    'OC-AS': 540,   // Oceania to Asia
+    'AS-ME': 360,   // Asia to Middle East
+    'ME-AS': 360,   // Middle East to Asia
+    'AS-SA': 1260,  // Asia to South America
+    'SA-AS': 1260,  // South America to Asia
+    'AS-AF': 540,   // Asia to Africa
+    'AF-AS': 540,   // Africa to Asia
+    
+    'OC-ME': 840,   // Oceania to Middle East
+    'ME-OC': 840,   // Middle East to Oceania
+    'OC-SA': 840,   // Oceania to South America
+    'SA-OC': 840,   // South America to Oceania
+    'OC-AF': 900,   // Oceania to Africa
+    'AF-OC': 900,   // Africa to Oceania
+    
+    'ME-SA': 840,   // Middle East to South America
+    'SA-ME': 840,   // South America to Middle East
+    'ME-AF': 300,   // Middle East to Africa
+    'AF-ME': 300,   // Africa to Middle East
+    
+    'SA-AF': 660,   // South America to Africa
+    'AF-SA': 660,   // Africa to South America
+  };
+  
+  const pairKey = `${originRegion}-${destRegion}`;
+  duration = regionPairs[pairKey] || 500; // Default to ~8.5 hours if pair not found
+  
+  // Add some randomness (±10%)
+  const randomFactor = 0.9 + (Math.random() * 0.2);
+  duration = Math.round(duration * randomFactor);
+  
+  return duration;
 };
 
 /**
- * Calculates the estimated flight duration between two cities in minutes
+ * Estimates flight times between two airports, generating departure and arrival times in UTC
+ * @param originCode Origin airport code (e.g., 'LHR')
+ * @param destCode Destination airport code (e.g., 'JFK')
+ * @returns Promise resolving to object with duration in minutes, departure time in UTC, and arrival time in UTC
  */
-function estimateFlightDuration(originCity: string, destinationCity: string): number {
-  // Use predefined durations if available
-  if (flightDurations[originCity] && flightDurations[originCity][destinationCity]) {
-    return flightDurations[originCity][destinationCity];
-  }
+export const estimateFlightTimes = async (
+  originCode: string, 
+  destCode: string
+): Promise<{ durationMinutes: number; departureUTC: Date; arrivalUTC: Date }> => {
+  // 1. Look up the origin and destination timezones
+  const originTimezone = airportTimezones[originCode] || 'UTC';
   
-  // If destination-to-origin is available, add a small variation (5%)
-  if (flightDurations[destinationCity] && flightDurations[destinationCity][originCity]) {
-    const reverseFlightTime = flightDurations[destinationCity][originCity];
-    return Math.round(reverseFlightTime * 1.05); // Slightly longer in the other direction
-  }
+  // 2. Generate a random departure time in the origin's local timezone (between 6am and 10pm)
+  const today = new Date();
+  const randomHour = 6 + Math.floor(Math.random() * 16); // 6am to 10pm (22:00)
+  const randomMinute = Math.floor(Math.random() * 12) * 5; // 0, 5, 10, 15, ..., 55
   
-  // Fallback to a randomized reasonable value for unknown routes (3-15 hours)
-  // For a real app, this would be calculated based on distance and aircraft type
-  return Math.floor(Math.random() * (900 - 180 + 1)) + 180;
-}
-
-/**
- * Formats a flight duration in minutes to a human-readable string
- */
-function formatFlightDuration(durationInMinutes: number): string {
-  const hours = Math.floor(durationInMinutes / 60);
-  const minutes = durationInMinutes % 60;
+  // Create a date object with today's date and our random time
+  let localDepartureTime = new Date(today);
+  localDepartureTime = setHours(localDepartureTime, randomHour);
+  localDepartureTime = setMinutes(localDepartureTime, randomMinute);
+  localDepartureTime = setSeconds(localDepartureTime, 0);
   
-  if (hours === 0) {
-    return `${minutes}m`;
-  } else if (minutes === 0) {
-    return `${hours}h`;
-  } else {
-    return `${hours}h ${minutes}m`;
-  }
-}
-
-/**
- * Generates a random departure time
- */
-function generateRandomDepartureTime(): string {
-  const hour = Math.floor(Math.random() * 24).toString().padStart(2, '0');
-  // Generate minutes in 5-minute intervals
-  const minute = (Math.floor(Math.random() * 12) * 5).toString().padStart(2, '0');
-  return `${hour}:${minute}`;
-}
-
-/**
- * Looks up an airport by city name
- */
-async function lookupAirport(city: string): Promise<Airport> {
-  try {
-    // Make the API call to fetch airports by city
-    const response = await fetch(`/api/airports/by-city/${encodeURIComponent(city)}`);
-    
-    if (!response.ok) {
-      console.warn(`API call failed for ${city} with status ${response.status}`);
-      
-      // Fall back to a mock lookup for demonstration purposes
-      // This simulates finding an airport based on the city name
-      const mockAirport: Airport = {
-        code: city.substring(0, 3).toUpperCase(),
-        name: `${city} International Airport`,
-        city: city,
-        country: 'Unknown',
-        timezone: getTimezoneForCity(city)
-      };
-      
-      return mockAirport;
-    }
-    
-    const airports = await response.json();
-    
-    if (!airports || airports.length === 0) {
-      console.warn(`No airports found in API for ${city}`);
-      
-      // Fall back to a mock lookup for demonstration purposes
-      const mockAirport: Airport = {
-        code: city.substring(0, 3).toUpperCase(),
-        name: `${city} International Airport`,
-        city: city,
-        country: 'Unknown',
-        timezone: getTimezoneForCity(city)
-      };
-      
-      return mockAirport;
-    }
-    
-    // Choose the first (primary) airport for the city
-    const airport = airports[0];
-    
-    // Add timezone information if available
-    if (airportTimezones[airport.code]) {
-      airport.timezone = airportTimezones[airport.code];
-    } else {
-      console.warn(`No timezone data for ${airport.code}, using estimated timezone`);
-      airport.timezone = getTimezoneForCity(city);
-    }
-    
-    return airport;
-  } catch (error) {
-    console.error(`Error looking up airport for ${city}:`, error);
-    
-    // Fall back to a mock lookup for demonstration purposes
-    const mockAirport: Airport = {
-      code: city.substring(0, 3).toUpperCase(),
-      name: `${city} International Airport`,
-      city: city,
-      country: 'Unknown',
-      timezone: getTimezoneForCity(city)
-    };
-    
-    return mockAirport;
-  }
-}
-
-/**
- * Gets an estimated timezone for a city based on common knowledge
- * In a real app, this would be more comprehensive and data-driven
- */
-function getTimezoneForCity(city: string): string {
-  // This is a simplified mapping of major cities to their timezones
-  const cityTimezones: Record<string, string> = {
-    'New York': 'America/New_York',
-    'Los Angeles': 'America/Los_Angeles',
-    'Chicago': 'America/Chicago',
-    'London': 'Europe/London',
-    'Paris': 'Europe/Paris',
-    'Berlin': 'Europe/Berlin',
-    'Rome': 'Europe/Rome',
-    'Madrid': 'Europe/Madrid',
-    'Tokyo': 'Asia/Tokyo',
-    'Beijing': 'Asia/Shanghai',
-    'Hong Kong': 'Asia/Hong_Kong',
-    'Singapore': 'Asia/Singapore',
-    'Sydney': 'Australia/Sydney',
-    'Melbourne': 'Australia/Melbourne',
-    'Dubai': 'Asia/Dubai',
-    'Delhi': 'Asia/Kolkata',
-    'Mumbai': 'Asia/Kolkata',
-    'Mexico City': 'America/Mexico_City',
-    'Sao Paulo': 'America/Sao_Paulo'
+  // 3. Get the estimated flight duration in minutes
+  const durationMinutes = estimateFlightDuration(originCode, destCode);
+  
+  // Since date-fns-tz doesn't have a direct zonedTimeToUtc function, we need to calculate UTC time manually
+  // We'll use the local date and calculate the UTC offset
+  const departureUTC = new Date(localDepartureTime.getTime() - (localDepartureTime.getTimezoneOffset() * 60000));
+  
+  // 5. Calculate the arrival time in UTC by adding the duration
+  const arrivalUTC = addMinutes(departureUTC, durationMinutes);
+  
+  // Return the flight information
+  return {
+    durationMinutes,
+    departureUTC,
+    arrivalUTC
   };
-  
-  // Check if we have a direct timezone match
-  if (cityTimezones[city]) {
-    return cityTimezones[city];
-  }
-  
-  // Try to match based on partial city name
-  for (const [knownCity, timezone] of Object.entries(cityTimezones)) {
-    if (city.toLowerCase().includes(knownCity.toLowerCase()) || 
-        knownCity.toLowerCase().includes(city.toLowerCase())) {
-      return timezone;
-    }
-  }
-  
-  // Default to UTC if no match is found
-  return 'UTC';
-}
+};
 
 /**
- * Calculate flight details including time zone adjustments
+ * Formats a duration in minutes to a human-readable format (e.g., "2h 15m")
+ * @param minutes Total duration in minutes
+ * @returns Formatted duration string
  */
-export async function calculateBasicFlightDetails(
-  originCity: string,
-  destinationCity: string
-): Promise<FlightDetails> {
-  try {
-    // 1. Look up origin and destination airports
-    const originAirport = await lookupAirport(originCity);
-    const destinationAirport = await lookupAirport(destinationCity);
-    
-    // 2. Generate a random departure time (24-hour format)
-    const departureTimeLocal = generateRandomDepartureTime();
-    
-    // 3. Estimate flight duration in minutes
-    const flightDurationMinutes = estimateFlightDuration(originCity, destinationCity);
-    
-    // 4. Create a Date object for the departure (using today's date)
-    const today = new Date();
-    const departureDateLocal = format(today, 'yyyy-MM-dd');
-    
-    // Extract hours and minutes from the departure time
-    const [departureHours, departureMinutes] = departureTimeLocal.split(':').map(Number);
-    
-    // Create a departure date with the time set
-    const departureDate = new Date(today);
-    departureDate.setHours(departureHours, departureMinutes, 0, 0);
-    
-    // 5. Convert departure to local time at origin
-    const departureLocalTime = toZonedTime(
-      departureDate,
-      originAirport.timezone || 'UTC'
-    );
-    
-    // 6. Add flight duration to get arrival time (still in origin timezone)
-    const arrivalTimeInOriginTZ = addMinutes(departureLocalTime, flightDurationMinutes);
-    
-    // 7. Convert arrival time to destination local time
-    const arrivalLocalTime = toZonedTime(
-      arrivalTimeInOriginTZ,
-      destinationAirport.timezone || 'UTC'
-    );
-    
-    // 8. Format arrival time as HH:mm
-    const formattedArrivalTime = format(arrivalLocalTime, 'HH:mm');
-    
-    // 9. Determine if arrival is on a different date
-    const arrivalDateLocal = format(arrivalLocalTime, 'yyyy-MM-dd');
-    
-    // 10. Calculate date offset (how many days different from departure date)
-    const departureDateObj = new Date(departureDateLocal);
-    const arrivalDateObj = new Date(arrivalDateLocal);
-    
-    // Calculate the difference in days
-    const dayDiff = differenceInDays(arrivalDateObj, departureDateObj);
-    
-    return {
-      originAirport,
-      destinationAirport,
-      departureTimeLocal,
-      arrivalTimeLocal: formattedArrivalTime,
-      departureDateLocal,
-      arrivalDateLocal,
-      arrivalDateOffset: dayDiff,
-      flightDurationFormatted: formatFlightDuration(flightDurationMinutes)
-    };
-  } catch (error) {
-    console.error('Error calculating flight details:', error);
-    throw error;
-  }
-}
+export const formatDuration = (minutes: number): string => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`;
+};
 
 /**
- * Alternative implementation using an existing flight record
- * Useful when we have a selected flight but need to calculate its arrival time
+ * Formats a date to a time string in the specified timezone
+ * @param date Date object
+ * @param timezone IANA timezone string (e.g., 'America/New_York')
+ * @returns Formatted time string (e.g., "14:30")
  */
-export function calculateFlightDetailsFromRecord(
-  flight: {
-    departure: { time: string; airport: { city: string; code: string } };
-    arrival: { airport: { city: string; code: string } };
-    departureDate: string; // YYYY-MM-DD
-  }
-): Promise<FlightDetails> {
-  return calculateBasicFlightDetails(
-    flight.departure.airport.city,
-    flight.arrival.airport.city
-  ).then(details => {
-    // Override the generated departure time with the one from the record
-    return {
-      ...details,
-      departureTimeLocal: flight.departure.time,
-      departureDateLocal: flight.departureDate
-    };
-  });
-}
+export const formatTimeInTimezone = (date: Date, timezone: string): string => {
+  return formatInTimeZone(date, timezone, 'HH:mm');
+};
+
+/**
+ * Calculates and formats flight details between two airports
+ * @param originCode Origin airport code
+ * @param destCode Destination airport code
+ * @returns Promise resolving to formatted flight details
+ */
+export const calculateFlightDetails = async (
+  originCode: string,
+  destCode: string
+): Promise<{
+  durationFormatted: string;
+  departureTimeLocal: string;
+  arrivalTimeLocal: string;
+  departureDateLocal: string;
+  arrivalDateLocal: string;
+  durationMinutes: number;
+  departureUTC: Date;
+  arrivalUTC: Date;
+}> => {
+  // Get the timezones for the airports
+  const originTimezone = airportTimezones[originCode] || 'UTC';
+  const destTimezone = airportTimezones[destCode] || 'UTC';
+  
+  // Estimate the flight times
+  const { durationMinutes, departureUTC, arrivalUTC } = await estimateFlightTimes(originCode, destCode);
+  
+  // Convert UTC times to local times at origin and destination
+  const departureTimeLocal = formatTimeInTimezone(departureUTC, originTimezone);
+  const arrivalTimeLocal = formatTimeInTimezone(arrivalUTC, destTimezone);
+  
+  // Format dates
+  const departureDateLocal = formatInTimeZone(departureUTC, originTimezone, 'yyyy-MM-dd');
+  const arrivalDateLocal = formatInTimeZone(arrivalUTC, destTimezone, 'yyyy-MM-dd');
+  
+  // Format the duration
+  const durationFormatted = formatDuration(durationMinutes);
+  
+  return {
+    durationFormatted,
+    departureTimeLocal,
+    arrivalTimeLocal,
+    departureDateLocal,
+    arrivalDateLocal,
+    durationMinutes,
+    departureUTC,
+    arrivalUTC
+  };
+};
+
+// Example usage:
+// calculateFlightDetails('JFK', 'LHR').then(details => console.log(details));

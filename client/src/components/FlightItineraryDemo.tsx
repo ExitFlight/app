@@ -265,7 +265,76 @@ const FlightItineraryDemo = () => {
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
               </div>
             ) : formattedItinerary ? (
-              <div className="whitespace-pre-line">{formattedItinerary}</div>
+              <div className="space-y-4">
+                {itinerarySegments.map((segment, index) => (
+                  <div key={index} className="border rounded-lg p-4 bg-muted/30">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <div className="font-semibold text-lg">
+                          {segment.airline.code} {segment.flightNumber}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {segment.airline.name}
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="bg-primary/10">
+                        {segment.duration.formatted}
+                      </Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4">
+                      {/* Departure */}
+                      <div>
+                        <div className="text-2xl font-bold">{segment.origin.localDepartureTime}</div>
+                        <div className="text-sm">{segment.origin.localDepartureDate}</div>
+                        <div className="text-sm font-medium mt-1">{segment.origin.city}</div>
+                        <div className="text-xs text-muted-foreground">{segment.origin.code}</div>
+                      </div>
+
+                      {/* Flight Path */}
+                      <div className="flex items-center justify-center">
+                        <div className="w-full flex items-center">
+                          <div className="h-2 w-2 rounded-full bg-primary"></div>
+                          <div className="h-[2px] flex-1 bg-primary"></div>
+                          <div className="h-2 w-2 rounded-full bg-primary"></div>
+                        </div>
+                      </div>
+
+                      {/* Arrival */}
+                      <div className="text-right">
+                        <div className="text-2xl font-bold">{segment.destination.localArrivalTime}</div>
+                        <div className="text-sm">
+                          {segment.destination.localArrivalDate}
+                          {segment.destination.dateOffset !== 0 && 
+                            <span className="ml-1 text-xs text-primary">
+                              {segment.destination.dateOffset > 0 ? '+' : '-'}
+                              {Math.abs(segment.destination.dateOffset)}
+                            </span>
+                          }
+                        </div>
+                        <div className="text-sm font-medium mt-1">{segment.destination.city}</div>
+                        <div className="text-xs text-muted-foreground">{segment.destination.code}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {itinerarySegments.length > 1 && (
+                  <div className="border rounded-lg p-3 bg-secondary/10">
+                    <div className="text-sm font-medium">Layover in {itinerarySegments[0].destination.city}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Duration: {formatItineraryForPreview(itinerarySegments).layoverDuration}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="mt-4 p-3 border-t">
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm font-medium">Total travel time:</div>
+                    <div className="font-semibold">{totalTravelTime}</div>
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className="text-center text-muted-foreground h-64 flex flex-col justify-center">
                 <p>No itinerary generated yet.</p>

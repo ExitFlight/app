@@ -518,7 +518,7 @@ export async function generateFlightItinerary(
  */
 export function formatItineraryForPreview(
   segments: FlightSegment[]
-): { formattedString: string; totalTravelTime: string } {
+): { formattedString: string; totalTravelTime: string; layoverDuration?: string } {
   // Calculate total travel time
   let totalMinutes = 0;
   let formattedString = '';

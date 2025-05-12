@@ -102,6 +102,41 @@ const FlightSelection = () => {
     document.title = "Select Flight - FlightBack";
   }, []);
 
+  // Effect to calculate estimated arrival time when inputs change
+  useEffect(() => {
+    const calculateFlightEstimates = async () => {
+      // Only calculate if we have both departure and arrival cities
+      if (departureAirport && arrivalAirport) {
+        try {
+          // Get the airports data
+          const originAirport = airports?.find(a => a.code === departureAirport);
+          const destAirport = airports?.find(a => a.code === arrivalAirport);
+          
+          if (originAirport && destAirport) {
+            // Calculate flight details
+            const flightDetails = await calculateBasicFlightDetails(
+              originAirport.city,
+              destAirport.city
+            );
+            
+            // Override the departure time with our selected time
+            flightDetails.departureTimeLocal = `${departureHour}:${departureMinute}`;
+            flightDetails.departureDateLocal = departureDate;
+            
+            // Update state with estimated arrival info
+            setEstimatedArrivalTime(flightDetails.arrivalTimeLocal);
+            setEstimatedFlightDuration(flightDetails.flightDurationFormatted);
+            setArrivalDateOffset(flightDetails.arrivalDateOffset);
+          }
+        } catch (error) {
+          console.error('Error calculating flight estimates:', error);
+        }
+      }
+    };
+    
+    calculateFlightEstimates();
+  }, [departureAirport, arrivalAirport, departureHour, departureMinute, departureDate, airports]);
+  
   const handleContinue = () => {
     if (!departureAirport || !arrivalAirport || !departureDate) {
       toast({

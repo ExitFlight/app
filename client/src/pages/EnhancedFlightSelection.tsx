@@ -508,7 +508,9 @@ const EnhancedFlightSelection = () => {
                       {departureAirport && (
                         <>
                           {/* First show airlines from the departure region */}
-                          <SelectLabel>Based in {getAirportRegion(departureAirport)}</SelectLabel>
+                          <div className="px-2 py-1.5 text-sm font-medium text-muted-foreground">
+                            Based in {getAirportRegion(departureAirport)}
+                          </div>
                           {airlines
                             .filter(airline => airline.region === getAirportRegion(departureAirport))
                             .map((airline) => (
@@ -519,7 +521,9 @@ const EnhancedFlightSelection = () => {
                           }
                           
                           {/* Then show other airlines */}
-                          <SelectLabel className="mt-2">Other Airlines</SelectLabel>
+                          <div className="px-2 py-1.5 mt-2 text-sm font-medium text-muted-foreground">
+                            Other Airlines
+                          </div>
                           {airlines
                             .filter(airline => airline.region !== getAirportRegion(departureAirport))
                             .map((airline) => (

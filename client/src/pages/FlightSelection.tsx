@@ -117,7 +117,30 @@ const FlightSelection = () => {
         <Card className="mb-6 md:mb-8 border-border bg-card">
           <CardContent className="p-4 md:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              {/* Departure Region and City Selection */}
               <div>
+                <div>
+                  <label className="block text-foreground font-medium mb-2 text-sm">
+                    Departure Region
+                  </label>
+                  <Select
+                    value={selectedDepartureRegion}
+                    onValueChange={setSelectedDepartureRegion}
+                  >
+                    <SelectTrigger className="w-full bg-background mb-3">
+                      <SelectValue placeholder="All Regions" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Regions</SelectItem>
+                      {airportRegions && airportRegions.map((regionData) => (
+                        <SelectItem key={regionData.region} value={regionData.region}>
+                          {regionData.region}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
                 <label className="block text-foreground font-medium mb-2 text-sm" htmlFor="departure">
                   Departure City
                 </label>
@@ -131,17 +154,42 @@ const FlightSelection = () => {
                       <SelectValue placeholder="Select departure city" />
                     </SelectTrigger>
                     <SelectContent>
-                      {airports && airports.map((airport) => (
-                        <SelectItem key={airport.code} value={airport.code}>
-                          {airport.city} ({airport.code})
-                        </SelectItem>
-                      ))}
+                      {airports && airports
+                        .filter(airport => selectedDepartureRegion ? airport.region === selectedDepartureRegion : true)
+                        .map((airport) => (
+                          <SelectItem key={airport.code} value={airport.code}>
+                            {airport.city} ({airport.code})
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               
+              {/* Arrival Region and City Selection */}
               <div>
+                <div>
+                  <label className="block text-foreground font-medium mb-2 text-sm">
+                    Arrival Region
+                  </label>
+                  <Select
+                    value={selectedArrivalRegion}
+                    onValueChange={setSelectedArrivalRegion}
+                  >
+                    <SelectTrigger className="w-full bg-background mb-3">
+                      <SelectValue placeholder="All Regions" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Regions</SelectItem>
+                      {airportRegions && airportRegions.map((regionData) => (
+                        <SelectItem key={regionData.region} value={regionData.region}>
+                          {regionData.region}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
                 <label className="block text-foreground font-medium mb-2 text-sm" htmlFor="destination">
                   Destination City
                 </label>
@@ -155,11 +203,13 @@ const FlightSelection = () => {
                       <SelectValue placeholder="Select destination city" />
                     </SelectTrigger>
                     <SelectContent>
-                      {airports && airports.map((airport) => (
-                        <SelectItem key={airport.code} value={airport.code}>
-                          {airport.city} ({airport.code})
-                        </SelectItem>
-                      ))}
+                      {airports && airports
+                        .filter(airport => selectedArrivalRegion ? airport.region === selectedArrivalRegion : true)
+                        .map((airport) => (
+                          <SelectItem key={airport.code} value={airport.code}>
+                            {airport.city} ({airport.code})
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -202,7 +252,38 @@ const FlightSelection = () => {
           </CardContent>
         </Card>
         
-        <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-foreground">Available Flights</h3>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3 md:mb-4">
+          <h3 className="text-lg md:text-xl font-semibold text-foreground">Available Flights</h3>
+          
+          {airlineRegions && flights && flights.length > 0 && (
+            <div>
+              <label className="block text-foreground font-medium mb-2 text-sm">
+                Filter by Airline Region
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  variant={selectedAirlineRegion === "" ? "default" : "outline"} 
+                  size="sm" 
+                  onClick={() => setSelectedAirlineRegion("")}
+                  className="text-xs"
+                >
+                  All
+                </Button>
+                {airlineRegions.map((regionData) => (
+                  <Button 
+                    key={regionData.region} 
+                    variant={selectedAirlineRegion === regionData.region ? "default" : "outline"} 
+                    size="sm" 
+                    onClick={() => setSelectedAirlineRegion(regionData.region)}
+                    className="text-xs"
+                  >
+                    {regionData.region}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
         
         {isLoadingFlights ? (
           <div className="text-center py-8">
@@ -219,7 +300,9 @@ const FlightSelection = () => {
             </CardContent>
           </Card>
         ) : (
-          flights.map((flight) => (
+          flights
+            .filter(flight => selectedAirlineRegion ? flight.airline.region === selectedAirlineRegion : true)
+            .map((flight) => (
             <div key={flight.id} className="mb-4">
               <Card 
                 className={`overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer border-border bg-card ${

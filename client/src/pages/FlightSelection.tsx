@@ -90,7 +90,9 @@ const FlightSelection = () => {
   });
 
   // Fetch flights data for selected airports and date
-  const [selectedFlightId, setSelectedFlightId] = useState<number | null>(flightDetails?.flightId || null);
+  const [selectedFlightId, setSelectedFlightId] = useState<number | null>(
+    flightDetails && typeof flightDetails.flightId === 'number' ? flightDetails.flightId : null
+  );
   const { data: flights, isLoading: isLoadingFlights } = useQuery<FlightWithDetails[]>({
     queryKey: ["/api/flights/search", departureAirport, arrivalAirport, departureDate],
     queryFn: async () => {
@@ -151,6 +153,7 @@ const FlightSelection = () => {
       arrivalAirport,
       departureDate,
       departureTime: formattedTime,
+      flightId: selectedFlightId || undefined,
     });
     
     // Move to passenger details page
@@ -228,16 +231,18 @@ const FlightSelection = () => {
                         <SelectValue placeholder="Select airport" />
                       </SelectTrigger>
                       <SelectContent>
-                        {selectedDepartureRegion === "all" && airports && airports.map((airport) => (
-                          <SelectItem key={airport.code} value={airport.code}>
-                            {airport.city}, {airport.country} ({airport.code})
-                          </SelectItem>
-                        ))}
+                        {selectedDepartureRegion === "all" && airports && 
+                          [...airports].sort((a, b) => a.code.localeCompare(b.code)).map((airport) => (
+                            <SelectItem key={airport.code} value={airport.code}>
+                              {airport.code} - {airport.city}, {airport.country}
+                            </SelectItem>
+                          ))
+                        }
                         
                         {selectedDepartureRegion !== "all" && selectedDepartureCountry && departureAirports && 
-                          departureAirports.map((airport) => (
+                          [...departureAirports].sort((a, b) => a.code.localeCompare(b.code)).map((airport) => (
                             <SelectItem key={airport.code} value={airport.code}>
-                              {airport.city} - {airport.name} ({airport.code})
+                              {airport.code} - {airport.city}, {airport.name}
                             </SelectItem>
                           ))
                         }
@@ -308,16 +313,18 @@ const FlightSelection = () => {
                         <SelectValue placeholder="Select airport" />
                       </SelectTrigger>
                       <SelectContent>
-                        {selectedArrivalRegion === "all" && airports && airports.map((airport) => (
-                          <SelectItem key={airport.code} value={airport.code}>
-                            {airport.city}, {airport.country} ({airport.code})
-                          </SelectItem>
-                        ))}
+                        {selectedArrivalRegion === "all" && airports && 
+                          [...airports].sort((a, b) => a.code.localeCompare(b.code)).map((airport) => (
+                            <SelectItem key={airport.code} value={airport.code}>
+                              {airport.code} - {airport.city}, {airport.country}
+                            </SelectItem>
+                          ))
+                        }
                         
                         {selectedArrivalRegion !== "all" && selectedArrivalCountry && arrivalAirports && 
-                          arrivalAirports.map((airport) => (
+                          [...arrivalAirports].sort((a, b) => a.code.localeCompare(b.code)).map((airport) => (
                             <SelectItem key={airport.code} value={airport.code}>
-                              {airport.city} - {airport.name} ({airport.code})
+                              {airport.code} - {airport.city}, {airport.name}
                             </SelectItem>
                           ))
                         }

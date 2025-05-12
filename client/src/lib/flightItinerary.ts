@@ -419,7 +419,7 @@ export async function generateFlightItinerary(
     
     // Parse the arrival time at the layover hub
     const layoverArrivalDate = new Date(`${firstSegmentDetails.arrivalDateLocal}T${firstSegmentDetails.arrivalTimeLocal}:00`);
-    const layoverTimezone = firstSegmentDetails.destinationAirport.timezone || 'UTC';
+    const layoverTimezone = 'UTC'; // Using UTC as default timezone
     
     // Calculate the departure time from the layover hub
     const layoverDepDate = addMinutes(toZonedTime(layoverArrivalDate, layoverTimezone), layoverDurationMinutes);
@@ -437,9 +437,9 @@ export async function generateFlightItinerary(
     const layoverDepartureDate = new Date(`${layoverDepDay}T${layoverDepTime}:00`);
     const secondSegmentDuration = secondSegmentDetails.durationMinutes;
     
-    const destinationTimezone = 'UTC'; // Using UTC as default timezone
-    const finalArrivalDate = addMinutes(toZonedTime(layoverDepartureDate, layoverTimezone), secondSegmentDuration);
-    const finalArrivalDateZoned = toZonedTime(finalArrivalDate, destinationTimezone);
+    // Using UTC for all timezone calculations
+    const finalArrivalDate = addMinutes(layoverDepartureDate, secondSegmentDuration);
+    const finalArrivalDateZoned = finalArrivalDate;
     
     const finalArrivalTime = format(finalArrivalDateZoned, 'HH:mm');
     const finalArrivalDay = format(finalArrivalDateZoned, 'yyyy-MM-dd');
@@ -571,9 +571,25 @@ export function formatItineraryForPreview(
   const remainingMinutes = totalMinutes % 60;
   const totalTravelTime = formatDuration(totalMinutes);
   
+  // Get layover duration if there are multiple segments
+  let layoverDuration;
+  if (segments.length > 1) {
+    const firstSegment = segments[0];
+    const secondSegment = segments[1];
+    
+    // Calculate layover duration based on arrival of first segment and departure of second
+    const arrivalTime = new Date(`${firstSegment.destination.localArrivalDate}T${firstSegment.destination.localArrivalTime}:00`);
+    const departureTime = new Date(`${secondSegment.origin.localDepartureDate}T${secondSegment.origin.localDepartureTime}:00`);
+    
+    // Calculate difference in minutes between the two times
+    const layoverMinutes = differenceInMinutes(departureTime, arrivalTime);
+    layoverDuration = formatDuration(layoverMinutes);
+  }
+  
   return {
     formattedString,
-    totalTravelTime
+    totalTravelTime,
+    layoverDuration
   };
 }
 

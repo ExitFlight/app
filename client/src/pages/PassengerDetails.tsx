@@ -84,27 +84,31 @@ const PassengerDetails = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6 md:py-8">
       <ProgressStepper currentStep={2} />
 
       <div className="max-w-3xl mx-auto">
-        <h2 className="text-2xl font-semibold mb-6 text-neutral-800">Passenger Details</h2>
+        <h2 className="text-xl md:text-2xl font-semibold mb-4 md:mb-6 text-foreground">Passenger Details</h2>
         
-        <Card className="mb-8">
-          <CardContent className="p-6">
+        <Card className="mb-6 md:mb-8 border-border bg-card">
+          <CardContent className="p-4 md:p-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   <FormField
                     control={form.control}
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-neutral-700 font-medium">First Name</FormLabel>
+                        <FormLabel className="text-foreground font-medium text-sm">First Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="John" {...field} className="w-full p-3" />
+                          <Input 
+                            placeholder="John" 
+                            {...field} 
+                            className="w-full p-2 md:p-3 bg-background text-foreground" 
+                          />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-xs" />
                       </FormItem>
                     )}
                   />
@@ -114,11 +118,15 @@ const PassengerDetails = () => {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-neutral-700 font-medium">Last Name</FormLabel>
+                        <FormLabel className="text-foreground font-medium text-sm">Last Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Doe" {...field} className="w-full p-3" />
+                          <Input 
+                            placeholder="Doe" 
+                            {...field} 
+                            className="w-full p-2 md:p-3 bg-background text-foreground" 
+                          />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-xs" />
                       </FormItem>
                     )}
                   />
@@ -128,11 +136,15 @@ const PassengerDetails = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-neutral-700 font-medium">Email Address</FormLabel>
+                        <FormLabel className="text-foreground font-medium text-sm">Email Address</FormLabel>
                         <FormControl>
-                          <Input placeholder="your@email.com" {...field} className="w-full p-3" />
+                          <Input 
+                            placeholder="your@email.com" 
+                            {...field} 
+                            className="w-full p-2 md:p-3 bg-background text-foreground" 
+                          />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-xs" />
                       </FormItem>
                     )}
                   />
@@ -142,11 +154,15 @@ const PassengerDetails = () => {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-neutral-700 font-medium">Phone Number</FormLabel>
+                        <FormLabel className="text-foreground font-medium text-sm">Phone Number</FormLabel>
                         <FormControl>
-                          <Input placeholder="+1 (555) 123-4567" {...field} className="w-full p-3" />
+                          <Input 
+                            placeholder="+1 (555) 123-4567" 
+                            {...field} 
+                            className="w-full p-2 md:p-3 bg-background text-foreground" 
+                          />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-xs" />
                       </FormItem>
                     )}
                   />
@@ -156,11 +172,15 @@ const PassengerDetails = () => {
                     name="passportNumber"
                     render={({ field }) => (
                       <FormItem className="md:col-span-2">
-                        <FormLabel className="text-neutral-700 font-medium">Passport/ID Number</FormLabel>
+                        <FormLabel className="text-foreground font-medium text-sm">Passport/ID Number</FormLabel>
                         <FormControl>
-                          <Input placeholder="A1234567" {...field} className="w-full p-3" />
+                          <Input 
+                            placeholder="A1234567" 
+                            {...field} 
+                            className="w-full p-2 md:p-3 bg-background text-foreground" 
+                          />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-xs" />
                       </FormItem>
                     )}
                   />
@@ -170,13 +190,13 @@ const PassengerDetails = () => {
                     name="nationality"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-neutral-700 font-medium">Nationality</FormLabel>
+                        <FormLabel className="text-foreground font-medium text-sm">Nationality</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full bg-background text-foreground">
                               <SelectValue placeholder="Select nationality" />
                             </SelectTrigger>
                           </FormControl>
@@ -188,7 +208,7 @@ const PassengerDetails = () => {
                             ))}
                           </SelectContent>
                         </Select>
-                        <FormMessage />
+                        <FormMessage className="text-xs" />
                       </FormItem>
                     )}
                   />
@@ -198,26 +218,26 @@ const PassengerDetails = () => {
                     name="birthdate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-neutral-700 font-medium">Date of Birth</FormLabel>
+                        <FormLabel className="text-foreground font-medium text-sm">Date of Birth</FormLabel>
                         <FormControl>
                           <Input
                             type="date"
                             {...field}
-                            className="w-full p-3"
+                            className="w-full p-2 md:p-3 bg-background text-foreground"
                             max={new Date().toISOString().split('T')[0]}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-xs" />
                       </FormItem>
                     )}
                   />
                 </div>
                 
-                <div className="mt-8 flex flex-col md:flex-row justify-between">
+                <div className="mt-6 md:mt-8 flex flex-col md:flex-row justify-between">
                   <Button
                     type="button"
                     variant="outline"
-                    className="mb-4 md:mb-0"
+                    className="mb-3 md:mb-0 bg-background border-border text-foreground"
                     onClick={goBack}
                   >
                     <ArrowLeft className="mr-2" size={16} />

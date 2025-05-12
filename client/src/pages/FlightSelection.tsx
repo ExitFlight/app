@@ -82,17 +82,17 @@ const FlightSelection = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6 md:py-8">
       <ProgressStepper currentStep={1} />
 
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-semibold mb-6 text-neutral-800">Select Your Flight</h2>
+        <h2 className="text-xl md:text-2xl font-semibold mb-4 md:mb-6 text-foreground">Select Your Flight</h2>
         
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="mb-6 md:mb-8 border-border bg-card">
+          <CardContent className="p-4 md:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div>
-                <label className="block text-neutral-700 font-medium mb-2" htmlFor="departure">
+                <label className="block text-foreground font-medium mb-2 text-sm" htmlFor="departure">
                   Departure City
                 </label>
                 <div className="relative">
@@ -101,7 +101,7 @@ const FlightSelection = () => {
                     onValueChange={setDepartureAirport}
                     disabled={isLoadingAirports}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full bg-background">
                       <SelectValue placeholder="Select departure city" />
                     </SelectTrigger>
                     <SelectContent>
@@ -116,7 +116,7 @@ const FlightSelection = () => {
               </div>
               
               <div>
-                <label className="block text-neutral-700 font-medium mb-2" htmlFor="destination">
+                <label className="block text-foreground font-medium mb-2 text-sm" htmlFor="destination">
                   Destination City
                 </label>
                 <div className="relative">
@@ -125,7 +125,7 @@ const FlightSelection = () => {
                     onValueChange={setArrivalAirport}
                     disabled={isLoadingAirports}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full bg-background">
                       <SelectValue placeholder="Select destination city" />
                     </SelectTrigger>
                     <SelectContent>
@@ -140,14 +140,14 @@ const FlightSelection = () => {
               </div>
               
               <div>
-                <label className="block text-neutral-700 font-medium mb-2" htmlFor="date">
+                <label className="block text-foreground font-medium mb-2 text-sm" htmlFor="date">
                   Departure Date
                 </label>
                 <div className="relative">
                   <input
                     type="date"
                     id="date"
-                    className="w-full p-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                    className="w-full p-2 md:p-3 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
                     value={departureDate}
                     onChange={(e) => setDepartureDate(e.target.value)}
                     min={new Date().toISOString().split('T')[0]}
@@ -156,12 +156,12 @@ const FlightSelection = () => {
               </div>
               
               <div>
-                <label className="block text-neutral-700 font-medium mb-2" htmlFor="time">
+                <label className="block text-foreground font-medium mb-2 text-sm" htmlFor="time">
                   Departure Time
                 </label>
                 <div className="relative">
                   <Select value={departureTime} onValueChange={setDepartureTime}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full bg-background">
                       <SelectValue placeholder="Select departure time" />
                     </SelectTrigger>
                     <SelectContent>
@@ -176,19 +176,19 @@ const FlightSelection = () => {
           </CardContent>
         </Card>
         
-        <h3 className="text-xl font-semibold mb-4 text-neutral-800">Available Flights</h3>
+        <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-foreground">Available Flights</h3>
         
         {isLoadingFlights ? (
           <div className="text-center py-8">
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-neutral-600">Searching for flights...</p>
+            <p className="text-muted-foreground">Searching for flights...</p>
           </div>
         ) : !flights || flights.length === 0 ? (
-          <Card className="shadow-md mb-4">
+          <Card className="mb-4 border-border bg-card">
             <CardContent className="p-6">
-              <div className="text-center py-8">
-                <p className="text-neutral-600 mb-2">No flights found for this route and date.</p>
-                <p className="text-neutral-500">Try changing your search criteria.</p>
+              <div className="text-center py-6 md:py-8">
+                <p className="text-foreground mb-2">No flights found for this route and date.</p>
+                <p className="text-muted-foreground">Try changing your search criteria.</p>
               </div>
             </CardContent>
           </Card>
@@ -196,56 +196,57 @@ const FlightSelection = () => {
           flights.map((flight: FlightWithDetails) => (
             <div key={flight.id} className="mb-4">
               <Card 
-                className={`overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer ${
+                className={`overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer border-border bg-card ${
                   selectedFlightId === flight.id ? "border-2 border-primary" : ""
                 }`}
                 onClick={() => selectFlight(flight.id)}
               >
-                <CardContent className="p-5">
+                <CardContent className="p-4 md:p-5">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
                     <div className="flex items-center mb-4 md:mb-0">
                       <AirlineLogo 
                         airlineLogo={flight.airline.logo} 
                         airlineName={flight.airline.name} 
-                        className="mr-4" 
+                        className="mr-3 md:mr-4" 
+                        size={32}
                       />
                       <div>
-                        <h4 className="font-semibold text-lg text-neutral-800">
+                        <h4 className="font-semibold text-base md:text-lg text-foreground">
                           {flight.airline.name}
                         </h4>
-                        <p className="text-neutral-500 font-medium">
+                        <p className="text-muted-foreground text-sm font-medium">
                           Flight <span className="font-medium text-primary">{flight.flightNumber}</span>
                         </p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-8 md:space-x-16">
+                    <div className="flex items-center space-x-4 md:space-x-16 mt-2 md:mt-0">
                       <div className="text-center">
-                        <p className="text-xl font-semibold text-neutral-800">{flight.departure.time}</p>
-                        <p className="text-sm text-neutral-500">{flight.departure.airport.code}</p>
+                        <p className="text-lg md:text-xl font-semibold text-foreground">{flight.departure.time}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">{flight.departure.airport.code}</p>
                       </div>
                       
                       <div className="flex flex-col items-center">
-                        <div className="text-neutral-400 text-sm">{flight.duration}</div>
-                        <div className="flex items-center w-24 md:w-32">
-                          <div className="h-0.5 w-full bg-neutral-300 relative">
+                        <div className="text-muted-foreground text-xs md:text-sm">{flight.duration}</div>
+                        <div className="flex items-center w-16 md:w-32">
+                          <div className="h-0.5 w-full bg-muted relative">
                             <div className="absolute -top-1.5 right-0">
-                              <PlaneIcon className="text-primary" size={16} />
+                              <PlaneIcon className="text-primary" size={14} />
                             </div>
                           </div>
                         </div>
-                        <div className="text-neutral-400 text-xs">Direct</div>
+                        <div className="text-muted-foreground text-xs">Direct</div>
                       </div>
                       
                       <div className="text-center">
-                        <p className="text-xl font-semibold text-neutral-800">{flight.arrival.time}</p>
-                        <p className="text-sm text-neutral-500">{flight.arrival.airport.code}</p>
+                        <p className="text-lg md:text-xl font-semibold text-foreground">{flight.arrival.time}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">{flight.arrival.airport.code}</p>
                       </div>
                     </div>
                     
-                    <div className="mt-4 md:mt-0 md:ml-4 text-right">
-                      <p className="text-accent font-semibold text-lg">{flight.price}</p>
-                      <p className="text-neutral-500 text-sm">{flight.class}</p>
+                    <div className="mt-3 md:mt-0 md:ml-4 text-right">
+                      <p className="text-accent font-semibold text-base md:text-lg">{flight.price}</p>
+                      <p className="text-muted-foreground text-xs md:text-sm">{flight.class}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -254,8 +255,8 @@ const FlightSelection = () => {
           ))
         )}
         
-        <div className="mt-8 flex justify-end">
-          <Button onClick={handleContinue} className="px-6">
+        <div className="mt-6 md:mt-8 flex justify-end">
+          <Button onClick={handleContinue} className="px-4 md:px-6">
             Continue
             <ArrowRight className="ml-2" size={16} />
           </Button>

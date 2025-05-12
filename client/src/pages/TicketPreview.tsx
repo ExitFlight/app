@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormDescription } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Ticket } from "lucide-react";
+import { ArrowLeft, Ticket, Plane } from "lucide-react";
 import ProgressStepper from "@/components/ProgressStepper";
 import AirlineLogo from "@/components/AirlineLogo";
 import { useFlightContext } from "@/lib/context/FlightContext";
@@ -136,28 +136,28 @@ const TicketPreview = () => {
 
   if (isCreating || !ticket) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 md:py-8">
         <ProgressStepper currentStep={3} />
-        <div className="max-w-3xl mx-auto text-center py-12">
-          <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <h3 className="text-xl font-semibold text-neutral-800">Generating your ticket...</h3>
-          <p className="text-neutral-500 mt-2">Please wait while we create your flight ticket.</p>
+        <div className="max-w-3xl mx-auto text-center py-8 md:py-12">
+          <div className="animate-spin w-10 h-10 md:w-12 md:h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <h3 className="text-lg md:text-xl font-semibold text-foreground">Generating your ticket...</h3>
+          <p className="text-muted-foreground text-sm mt-2">Please wait while we create your flight ticket.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6 md:py-8">
       <ProgressStepper currentStep={3} />
 
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-semibold mb-6 text-neutral-800">Preview Your Ticket</h2>
+        <h2 className="text-xl md:text-2xl font-semibold mb-4 md:mb-6 text-foreground">Preview Your Ticket</h2>
         
         {/* Ticket Preview */}
-        <div className="mb-8 rotate-ticket">
-          <Card className="shadow-lg boarding-pass">
-            <CardContent className="p-6">
+        <div className="mb-6 md:mb-8 rotate-ticket">
+          <Card className="border-border bg-card boarding-pass">
+            <CardContent className="p-4 md:p-6">
               <div className="flex flex-col sm:flex-row">
                 {/* Left side of ticket */}
                 <div className="flex-1 pb-6 sm:pb-0 sm:pr-6">
@@ -165,112 +165,112 @@ const TicketPreview = () => {
                     <AirlineLogo 
                       airlineLogo={ticket.flight.airline.logo} 
                       airlineName={ticket.flight.airline.name}
-                      size={48}
+                      size={40}
                     />
                     <div className="text-right">
-                      <p className="text-xs text-neutral-500">Boarding Pass</p>
-                      <p className="font-medium text-lg text-primary">FIRST CLASS</p>
+                      <p className="text-xs text-muted-foreground">Boarding Pass</p>
+                      <p className="font-medium text-base md:text-lg text-primary">FIRST CLASS</p>
                     </div>
                   </div>
                   
                   <div className="mb-4">
-                    <h3 className="font-semibold text-xl text-neutral-800">
+                    <h3 className="font-semibold text-lg md:text-xl text-foreground">
                       {ticket.passenger.firstName} {ticket.passenger.lastName}
                     </h3>
-                    <p className="text-neutral-500 text-sm">Passenger</p>
+                    <p className="text-muted-foreground text-xs md:text-sm">Passenger</p>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <p className="text-neutral-500 text-xs">From</p>
-                      <p className="font-semibold text-neutral-800">{ticket.flight.departure.airport.city}</p>
-                      <p className="text-sm text-neutral-600">{ticket.flight.departure.airport.code}</p>
+                      <p className="text-muted-foreground text-xs">From</p>
+                      <p className="font-semibold text-foreground">{ticket.flight.departure.airport.city}</p>
+                      <p className="text-xs md:text-sm text-muted-foreground">{ticket.flight.departure.airport.code}</p>
                     </div>
                     <div>
-                      <p className="text-neutral-500 text-xs">To</p>
-                      <p className="font-semibold text-neutral-800">{ticket.flight.arrival.airport.city}</p>
-                      <p className="text-sm text-neutral-600">{ticket.flight.arrival.airport.code}</p>
+                      <p className="text-muted-foreground text-xs">To</p>
+                      <p className="font-semibold text-foreground">{ticket.flight.arrival.airport.city}</p>
+                      <p className="text-xs md:text-sm text-muted-foreground">{ticket.flight.arrival.airport.code}</p>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <p className="text-neutral-500 text-xs">Flight</p>
-                      <p className="font-medium text-neutral-800">{ticket.flight.flightNumber}</p>
+                      <p className="text-muted-foreground text-xs">Flight</p>
+                      <p className="font-medium text-foreground">{ticket.flight.flightNumber}</p>
                     </div>
                     <div>
-                      <p className="text-neutral-500 text-xs">Date</p>
-                      <p className="font-semibold text-neutral-800">{new Date().toLocaleDateString("en-US", { 
+                      <p className="text-muted-foreground text-xs">Date</p>
+                      <p className="font-semibold text-foreground">{new Date().toLocaleDateString("en-US", { 
                         day: "2-digit", 
                         month: "short", 
                         year: "numeric"
                       })}</p>
                     </div>
                     <div>
-                      <p className="text-neutral-500 text-xs">Boarding</p>
-                      <p className="font-semibold text-neutral-800">{ticket.boardingTime}</p>
+                      <p className="text-muted-foreground text-xs">Boarding</p>
+                      <p className="font-semibold text-foreground">{ticket.boardingTime}</p>
                     </div>
                   </div>
                 </div>
                 
                 {/* Right side of ticket */}
-                <div className="flex-1 pt-6 sm:pt-0 sm:pl-6 border-t sm:border-t-0 border-dashed sm:border-l">
+                <div className="flex-1 pt-6 sm:pt-0 sm:pl-6 border-t sm:border-t-0 border-dashed border-border sm:border-l">
                   <div className="flex justify-between items-start mb-6">
                     <div>
-                      <p className="text-neutral-500 text-xs">Flight</p>
-                      <p className="font-medium text-neutral-800">{ticket.flight.flightNumber}</p>
+                      <p className="text-muted-foreground text-xs">Flight</p>
+                      <p className="font-medium text-foreground">{ticket.flight.flightNumber}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-neutral-500 text-xs">Gate</p>
-                      <p className="font-semibold text-neutral-800">{ticket.gate}</p>
+                      <p className="text-muted-foreground text-xs">Gate</p>
+                      <p className="font-semibold text-foreground">{ticket.gate}</p>
                     </div>
                   </div>
                   
                   <div className="mb-6">
                     <div className="flex justify-between items-center mb-1">
                       <div className="text-center">
-                        <p className="font-semibold text-xl text-neutral-800">{ticket.flight.departure.time}</p>
-                        <p className="text-sm text-neutral-500">{ticket.flight.departure.airport.code}</p>
+                        <p className="font-semibold text-base md:text-xl text-foreground">{ticket.flight.departure.time}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">{ticket.flight.departure.airport.code}</p>
                       </div>
                       
-                      <div className="flex-1 mx-4">
+                      <div className="flex-1 mx-2 md:mx-4">
                         <div className="flex items-center">
-                          <div className="h-0.5 flex-1 bg-neutral-300 relative">
+                          <div className="h-0.5 flex-1 bg-muted relative">
                             <div className="absolute -top-1.5 right-1/2 transform translate-x-1/2">
-                              <Plane className="text-primary" size={16} />
+                              <Plane className="text-primary" size={14} />
                             </div>
                           </div>
                         </div>
-                        <div className="text-center text-neutral-400 text-xs mt-1">{ticket.flight.duration}</div>
+                        <div className="text-center text-muted-foreground text-xs mt-1">{ticket.flight.duration}</div>
                       </div>
                       
                       <div className="text-center">
-                        <p className="font-semibold text-xl text-neutral-800">{ticket.flight.arrival.time}</p>
-                        <p className="text-sm text-neutral-500">{ticket.flight.arrival.airport.code}</p>
+                        <p className="font-semibold text-base md:text-xl text-foreground">{ticket.flight.arrival.time}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">{ticket.flight.arrival.airport.code}</p>
                       </div>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <p className="text-neutral-500 text-xs">Seat</p>
-                      <p className="font-semibold text-lg text-neutral-800">{ticket.seatNumber}</p>
+                      <p className="text-muted-foreground text-xs">Seat</p>
+                      <p className="font-semibold text-base md:text-lg text-foreground">{ticket.seatNumber}</p>
                     </div>
                     <div>
-                      <p className="text-neutral-500 text-xs">Class</p>
-                      <p className="font-semibold text-lg text-neutral-800">{ticket.flight.class}</p>
+                      <p className="text-muted-foreground text-xs">Class</p>
+                      <p className="font-semibold text-base md:text-lg text-foreground">{ticket.flight.class}</p>
                     </div>
                   </div>
                   
                   <div className="text-center mt-4">
                     {/* Barcode placeholder */}
                     <div 
-                      className="h-12 mx-auto mb-2 bg-neutral-800" 
+                      className="h-10 md:h-12 mx-auto mb-2 bg-muted-foreground" 
                       style={{ 
-                        backgroundImage: "repeating-linear-gradient(90deg, #000, #000 2px, transparent 2px, transparent 5px)" 
+                        backgroundImage: "repeating-linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0.3) 2px, transparent 2px, transparent 5px)" 
                       }}
                     ></div>
-                    <p className="font-mono text-xs text-neutral-600">{ticket.bookingReference}</p>
+                    <p className="font-mono text-xs text-muted-foreground">{ticket.bookingReference}</p>
                   </div>
                 </div>
               </div>
@@ -279,9 +279,9 @@ const TicketPreview = () => {
         </div>
         
         {/* Delivery Options */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <h3 className="text-xl font-semibold mb-4 text-neutral-800">Delivery Options</h3>
+        <Card className="mb-6 md:mb-8 border-border bg-card">
+          <CardContent className="p-4 md:p-6">
+            <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-foreground">Delivery Options</h3>
             
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -297,8 +297,8 @@ const TicketPreview = () => {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel className="font-medium">Email the ticket</FormLabel>
-                        <FormDescription className="text-neutral-500">
+                        <FormLabel className="font-medium text-foreground">Email the ticket</FormLabel>
+                        <FormDescription className="text-xs text-muted-foreground">
                           Receive your ticket at {ticket.passenger.email}
                         </FormDescription>
                       </div>
@@ -318,8 +318,8 @@ const TicketPreview = () => {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel className="font-medium">Download as PDF</FormLabel>
-                        <FormDescription className="text-neutral-500">
+                        <FormLabel className="font-medium text-foreground">Download as PDF</FormLabel>
+                        <FormDescription className="text-xs text-muted-foreground">
                           Save your ticket to your device
                         </FormDescription>
                       </div>
@@ -327,11 +327,11 @@ const TicketPreview = () => {
                   )}
                 />
                 
-                <div className="mt-8 flex flex-col md:flex-row justify-between">
+                <div className="mt-6 md:mt-8 flex flex-col md:flex-row justify-between">
                   <Button
                     type="button"
                     variant="outline"
-                    className="mb-4 md:mb-0"
+                    className="mb-3 md:mb-0 bg-background border-border text-foreground"
                     onClick={goBack}
                   >
                     <ArrowLeft className="mr-2" size={16} />
@@ -340,7 +340,7 @@ const TicketPreview = () => {
                   
                   <Button 
                     type="submit" 
-                    className="bg-accent hover:bg-accent/90"
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
                     disabled={deliverTicketMutation.isPending}
                   >
                     {deliverTicketMutation.isPending ? (

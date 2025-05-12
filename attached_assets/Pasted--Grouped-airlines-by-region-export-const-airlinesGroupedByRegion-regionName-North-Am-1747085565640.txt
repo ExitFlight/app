@@ -1,0 +1,93 @@
+// Grouped airlines by region
+export const airlinesGroupedByRegion = [
+  {
+    regionName: "North America",
+    airlines: [
+      // USA
+      { value: "AA", label: "American Airlines" },
+      { value: "AS", label: "Alaska Airlines" },
+      { value: "B6", label: "JetBlue Airways" },
+      { value: "DL", label: "Delta Air Lines" },
+      { value: "F9", label: "Frontier Airlines" },
+      { value: "HA", label: "Hawaiian Airlines" },
+      { value: "NK", label: "Spirit Airlines" },
+      { value: "UA", label: "United Airlines" },
+      { value: "WN", label: "Southwest Airlines" },
+      // Canada
+      { value: "AC", label: "Air Canada" },
+    ].sort((a, b) => a.label.localeCompare(b.label)), // Sort airlines within the region
+  },
+  {
+    regionName: "Europe",
+    airlines: [
+      // France
+      { value: "AF", label: "Air France" },
+      // Germany
+      { value: "LH", label: "Lufthansa" },
+      // Netherlands
+      { value: "KL", label: "KLM Royal Dutch Airlines" },
+      // United Kingdom
+      { value: "BA", label: "British Airways" },
+    ].sort((a, b) => a.label.localeCompare(b.label)),
+  },
+  {
+    regionName: "Middle East",
+    airlines: [
+      // Qatar
+      { value: "QR", label: "Qatar Airways" },
+      // Saudi Arabia
+      { value: "SV", label: "Saudia (Saudi Arabian Airlines)" },
+      // Turkey
+      { value: "TK", label: "Turkish Airlines" },
+      // UAE (United Arab Emirates)
+      { value: "EK", label: "Emirates" },
+      { value: "EY", label: "Etihad Airways" },
+    ].sort((a, b) => a.label.localeCompare(b.label)),
+  },
+  {
+    regionName: "Asia", // Combining Southeast & East Asia for simplicity here, can be split further
+    airlines: [
+      // Brunei
+      { value: "BI", label: "Royal Brunei Airlines" },
+      // Hong Kong
+      { value: "CX", label: "Cathay Pacific (Hong Kong)" },
+      // Indonesia
+      { value: "GA", label: "Garuda Indonesia" },
+      { value: "JT", label: "Lion Air (Indonesia)" },
+      // Japan
+      { value: "JL", label: "Japan Airlines (JAL)" },
+      { value: "NH", label: "All Nippon Airways (ANA)" },
+      // Malaysia
+      { value: "AK", label: "AirAsia (Malaysia)" },
+      { value: "MH", label: "Malaysia Airlines" },
+      // Philippines
+      { value: "5J", label: "Cebu Pacific (Philippines)" },
+      { value: "PR", label: "Philippine Airlines" },
+      // Singapore
+      { value: "SQ", label: "Singapore Airlines" },
+      { value: "TR", label: "Scoot (Singapore Airlines LCC)" },
+      // South Korea
+      { value: "KE", label: "Korean Air" },
+      // Thailand
+      { value: "FD", label: "Thai AirAsia" },
+      { value: "TG", label: "Thai Airways" },
+      // Vietnam
+      { value: "VJ", label: "VietJet Air" },
+      { value: "VN", label: "Vietnam Airlines" },
+    ].sort((a, b) => a.label.localeCompare(b.label)),
+  },
+  {
+    regionName: "Oceania",
+    airlines: [
+      // Australia
+      { value: "JQ", label: "Jetstar Airways (Australia)" },
+      { value: "QF", label: "Qantas Airways" },
+      { value: "VA", label: "Virgin Australia" },
+      // New Zealand
+      { value: "NZ", label: "Air New Zealand" },
+    ].sort((a, b) => a.label.localeCompare(b.label)),
+  },
+].sort((a, b) => a.regionName.localeCompare(b.regionName)); // Sort regions by name
+
+// Flattened list of all airlines
+export const airlines = airlinesGroupedByRegion.flatMap(region => region.airlines);

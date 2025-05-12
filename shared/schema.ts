@@ -21,6 +21,7 @@ export const airports = pgTable("airports", {
   name: text("name").notNull(),
   city: text("city").notNull(),
   country: text("country").notNull(),
+  region: text("region").notNull(),
 });
 
 export const insertAirportSchema = createInsertSchema(airports).pick({
@@ -28,6 +29,7 @@ export const insertAirportSchema = createInsertSchema(airports).pick({
   name: true,
   city: true,
   country: true,
+  region: true,
 });
 
 // Airline schema
@@ -36,12 +38,14 @@ export const airlines = pgTable("airlines", {
   code: text("code").notNull().unique(),
   name: text("name").notNull(),
   logo: text("logo").notNull(),
+  region: text("region").notNull(),
 });
 
 export const insertAirlineSchema = createInsertSchema(airlines).pick({
   code: true,
   name: true,
   logo: true,
+  region: true,
 });
 
 // Flight schema

@@ -91,24 +91,96 @@ export class MemStorage implements IStorage {
   private initializeSampleData() {
     // Add airports
     const airports: InsertAirport[] = [
-      { code: "JFK", name: "John F. Kennedy International Airport", city: "New York", country: "United States" },
-      { code: "LAX", name: "Los Angeles International Airport", city: "Los Angeles", country: "United States" },
-      { code: "LHR", name: "London Heathrow Airport", city: "London", country: "United Kingdom" },
-      { code: "CDG", name: "Charles de Gaulle Airport", city: "Paris", country: "France" },
-      { code: "DXB", name: "Dubai International Airport", city: "Dubai", country: "United Arab Emirates" },
-      { code: "SIN", name: "Singapore Changi Airport", city: "Singapore", country: "Singapore" },
-      { code: "HND", name: "Tokyo Haneda Airport", city: "Tokyo", country: "Japan" },
-      { code: "SYD", name: "Sydney Airport", city: "Sydney", country: "Australia" },
+      // North America
+      { code: "JFK", name: "John F. Kennedy International Airport", city: "New York", country: "United States", region: "North America" },
+      { code: "LAX", name: "Los Angeles International Airport", city: "Los Angeles", country: "United States", region: "North America" },
+      { code: "ORD", name: "O'Hare International Airport", city: "Chicago", country: "United States", region: "North America" },
+      { code: "YYZ", name: "Toronto Pearson International Airport", city: "Toronto", country: "Canada", region: "North America" },
+      { code: "MEX", name: "Mexico City International Airport", city: "Mexico City", country: "Mexico", region: "North America" },
+      
+      // Europe
+      { code: "LHR", name: "London Heathrow Airport", city: "London", country: "United Kingdom", region: "Europe" },
+      { code: "CDG", name: "Charles de Gaulle Airport", city: "Paris", country: "France", region: "Europe" },
+      { code: "FRA", name: "Frankfurt Airport", city: "Frankfurt", country: "Germany", region: "Europe" },
+      { code: "AMS", name: "Amsterdam Airport Schiphol", city: "Amsterdam", country: "Netherlands", region: "Europe" },
+      { code: "FCO", name: "Leonardo da Vinci International Airport", city: "Rome", country: "Italy", region: "Europe" },
+      
+      // Middle East
+      { code: "DXB", name: "Dubai International Airport", city: "Dubai", country: "United Arab Emirates", region: "Middle East" },
+      { code: "DOH", name: "Hamad International Airport", city: "Doha", country: "Qatar", region: "Middle East" },
+      { code: "AUH", name: "Abu Dhabi International Airport", city: "Abu Dhabi", country: "United Arab Emirates", region: "Middle East" },
+      
+      // Asia
+      { code: "SIN", name: "Singapore Changi Airport", city: "Singapore", country: "Singapore", region: "Southeast Asia" },
+      { code: "BKK", name: "Suvarnabhumi Airport", city: "Bangkok", country: "Thailand", region: "Southeast Asia" },
+      { code: "HKG", name: "Hong Kong International Airport", city: "Hong Kong", country: "China", region: "Asia" },
+      { code: "PEK", name: "Beijing Capital International Airport", city: "Beijing", country: "China", region: "Asia" },
+      { code: "HND", name: "Tokyo Haneda Airport", city: "Tokyo", country: "Japan", region: "Asia" },
+      
+      // Oceania
+      { code: "SYD", name: "Sydney Airport", city: "Sydney", country: "Australia", region: "Oceania" },
+      { code: "MEL", name: "Melbourne Airport", city: "Melbourne", country: "Australia", region: "Oceania" },
+      { code: "AKL", name: "Auckland Airport", city: "Auckland", country: "New Zealand", region: "Oceania" },
+      
+      // South America
+      { code: "GRU", name: "São Paulo–Guarulhos International Airport", city: "São Paulo", country: "Brazil", region: "South America" },
+      { code: "EZE", name: "Ministro Pistarini International Airport", city: "Buenos Aires", country: "Argentina", region: "South America" },
+      { code: "BOG", name: "El Dorado International Airport", city: "Bogotá", country: "Colombia", region: "South America" },
     ];
 
     airports.forEach(airport => this.createAirport(airport));
 
     // Add airlines
     const airlines: InsertAirline[] = [
-      { code: "AA", name: "American Airlines", logo: "american-airlines" },
-      { code: "DL", name: "Delta Airlines", logo: "delta-airlines" },
-      { code: "BA", name: "British Airways", logo: "british-airways" },
-      { code: "EK", name: "Emirates", logo: "emirates" },
+      // North America
+      { code: "AA", name: "American Airlines", logo: "american-airlines", region: "North America" },
+      { code: "AS", name: "Alaska Airlines", logo: "alaska-airlines", region: "North America" },
+      { code: "B6", name: "JetBlue Airways", logo: "jetblue-airways", region: "North America" },
+      { code: "DL", name: "Delta Air Lines", logo: "delta-airlines", region: "North America" },
+      { code: "F9", name: "Frontier Airlines", logo: "frontier-airlines", region: "North America" },
+      { code: "HA", name: "Hawaiian Airlines", logo: "hawaiian-airlines", region: "North America" },
+      { code: "NK", name: "Spirit Airlines", logo: "spirit-airlines", region: "North America" },
+      { code: "UA", name: "United Airlines", logo: "united-airlines", region: "North America" },
+      { code: "WN", name: "Southwest Airlines", logo: "southwest-airlines", region: "North America" },
+      { code: "AC", name: "Air Canada", logo: "air-canada", region: "North America" },
+      
+      // Europe
+      { code: "AF", name: "Air France", logo: "air-france", region: "Europe" },
+      { code: "LH", name: "Lufthansa", logo: "lufthansa", region: "Europe" },
+      { code: "KL", name: "KLM Royal Dutch Airlines", logo: "klm", region: "Europe" },
+      { code: "BA", name: "British Airways", logo: "british-airways", region: "Europe" },
+      
+      // Middle East
+      { code: "QR", name: "Qatar Airways", logo: "qatar-airways", region: "Middle East" },
+      { code: "SV", name: "Saudia", logo: "saudia-airlines", region: "Middle East" },
+      { code: "TK", name: "Turkish Airlines", logo: "turkish-airlines", region: "Middle East" },
+      { code: "EK", name: "Emirates", logo: "emirates", region: "Middle East" },
+      { code: "EY", name: "Etihad Airways", logo: "etihad-airways", region: "Middle East" },
+      
+      // Asia
+      { code: "BI", name: "Royal Brunei Airlines", logo: "royal-brunei", region: "Asia" },
+      { code: "CX", name: "Cathay Pacific", logo: "cathay-pacific", region: "Asia" },
+      { code: "GA", name: "Garuda Indonesia", logo: "garuda-indonesia", region: "Asia" },
+      { code: "JT", name: "Lion Air", logo: "lion-air", region: "Asia" },
+      { code: "JL", name: "Japan Airlines", logo: "japan-airlines", region: "Asia" },
+      { code: "NH", name: "All Nippon Airways", logo: "ana", region: "Asia" },
+      { code: "AK", name: "AirAsia", logo: "airasia", region: "Asia" },
+      { code: "MH", name: "Malaysia Airlines", logo: "malaysia-airlines", region: "Asia" },
+      { code: "5J", name: "Cebu Pacific", logo: "cebu-pacific", region: "Asia" },
+      { code: "PR", name: "Philippine Airlines", logo: "philippine-airlines", region: "Asia" },
+      { code: "SQ", name: "Singapore Airlines", logo: "singapore-airlines", region: "Asia" },
+      { code: "TR", name: "Scoot", logo: "scoot", region: "Asia" },
+      { code: "KE", name: "Korean Air", logo: "korean-air", region: "Asia" },
+      { code: "FD", name: "Thai AirAsia", logo: "thai-airasia", region: "Asia" },
+      { code: "TG", name: "Thai Airways", logo: "thai-airways", region: "Asia" },
+      { code: "VJ", name: "VietJet Air", logo: "vietjet-air", region: "Asia" },
+      { code: "VN", name: "Vietnam Airlines", logo: "vietnam-airlines", region: "Asia" },
+      
+      // Oceania
+      { code: "JQ", name: "Jetstar Airways", logo: "jetstar", region: "Oceania" },
+      { code: "QF", name: "Qantas Airways", logo: "qantas", region: "Oceania" },
+      { code: "VA", name: "Virgin Australia", logo: "virgin-australia", region: "Oceania" },
+      { code: "NZ", name: "Air New Zealand", logo: "air-new-zealand", region: "Oceania" },
     ];
 
     airlines.forEach(airline => this.createAirline(airline));

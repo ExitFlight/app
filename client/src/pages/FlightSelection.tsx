@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ArrowRight, PlaneIcon } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -12,14 +13,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import ProgressStepper from "@/components/ProgressStepper";
-import { type Airport } from "@shared/schema";
+import AirlineLogo from "@/components/AirlineLogo";
+import { type Airport, type FlightWithDetails } from "@shared/schema";
 import { useFlightContext } from "@/lib/context/FlightContext";
-import { calculateBasicFlightDetails } from "@/lib/flightTimeCalculator";
 
 const FlightSelection = () => {
   const [_, navigate] = useLocation();
   const { toast } = useToast();
-  const { flightDetails, setFlightDetails } = useFlightContext();
+  const { flightDetails, setFlightDetails, setSelectedFlight } = useFlightContext();
   
   // Form State
   const [departureAirport, setDepartureAirport] = useState<string>(flightDetails?.departureAirport || "");
@@ -30,16 +31,12 @@ const FlightSelection = () => {
   const [departureHour, setDepartureHour] = useState<string>("09");
   const [departureMinute, setDepartureMinute] = useState<string>("00");
   
-  // Flight arrival time state
-  const [estimatedArrivalTime, setEstimatedArrivalTime] = useState<string>("");
-  const [estimatedFlightDuration, setEstimatedFlightDuration] = useState<string>("");
-  const [arrivalDateOffset, setArrivalDateOffset] = useState<number>(0);
-  
   // Region and Country Selection State
   const [selectedDepartureRegion, setSelectedDepartureRegion] = useState<string>("all");
   const [selectedArrivalRegion, setSelectedArrivalRegion] = useState<string>("all");
   const [selectedDepartureCountry, setSelectedDepartureCountry] = useState<string>("");
   const [selectedArrivalCountry, setSelectedArrivalCountry] = useState<string>("");
+  const [selectedAirlineRegion, setSelectedAirlineRegion] = useState<string>("");
 
   // Fetch all airports
   const { data: airports, isLoading: isLoadingAirports } = useQuery<Airport[]>({
@@ -86,6 +83,39 @@ const FlightSelection = () => {
     },
     enabled: !!selectedArrivalCountry,
   });
+  
+  // Fetch airline regions
+  const { data: airlineRegions } = useQuery<{region: string, airlines: any[]}[]>({
+    queryKey: ["/api/airlines/regions"],
+  });
+
+  // Fetch flights data for selected airports and date
+  const [selectedFlightId, setSelectedFlightId] = useState<number | null>(flightDetails?.flightId || null);
+  const { data: flights, isLoading: isLoadingFlights } = useQuery<FlightWithDetails[]>({
+    queryKey: ["/api/flights/search", departureAirport, arrivalAirport, departureDate],
+    queryFn: async () => {
+      if (!departureAirport || !arrivalAirport || !departureDate) return [];
+      const params = new URLSearchParams({
+        departureAirportCode: departureAirport,
+        arrivalAirportCode: arrivalAirport,
+        date: departureDate,
+        time: `${departureHour}:${departureMinute}`
+      });
+      return fetch(`/api/flights/search?${params}`).then(res => res.json());
+    },
+    enabled: !!(departureAirport && arrivalAirport && departureDate),
+  });
+  
+  // Function to select a flight
+  const selectFlight = (flightId: number) => {
+    setSelectedFlightId(flightId);
+    
+    // Find the selected flight data
+    const selected = flights?.find(f => f.id === flightId);
+    if (selected) {
+      setSelectedFlight(selected);
+    }
+  };
 
   // Reset country when region changes
   useEffect(() => {
@@ -102,41 +132,6 @@ const FlightSelection = () => {
     document.title = "Select Flight - FlightBack";
   }, []);
 
-  // Effect to calculate estimated arrival time when inputs change
-  useEffect(() => {
-    const calculateFlightEstimates = async () => {
-      // Only calculate if we have both departure and arrival cities
-      if (departureAirport && arrivalAirport) {
-        try {
-          // Get the airports data
-          const originAirport = airports?.find(a => a.code === departureAirport);
-          const destAirport = airports?.find(a => a.code === arrivalAirport);
-          
-          if (originAirport && destAirport) {
-            // Calculate flight details
-            const flightDetails = await calculateBasicFlightDetails(
-              originAirport.city,
-              destAirport.city
-            );
-            
-            // Override the departure time with our selected time
-            flightDetails.departureTimeLocal = `${departureHour}:${departureMinute}`;
-            flightDetails.departureDateLocal = departureDate;
-            
-            // Update state with estimated arrival info
-            setEstimatedArrivalTime(flightDetails.arrivalTimeLocal);
-            setEstimatedFlightDuration(flightDetails.flightDurationFormatted);
-            setArrivalDateOffset(flightDetails.arrivalDateOffset);
-          }
-        } catch (error) {
-          console.error('Error calculating flight estimates:', error);
-        }
-      }
-    };
-    
-    calculateFlightEstimates();
-  }, [departureAirport, arrivalAirport, departureHour, departureMinute, departureDate, airports]);
-  
   const handleContinue = () => {
     if (!departureAirport || !arrivalAirport || !departureDate) {
       toast({
@@ -165,238 +160,354 @@ const FlightSelection = () => {
   return (
     <div className="container mx-auto px-4 py-6 md:py-8">
       <ProgressStepper currentStep={1} />
-      
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">Flight Selection</h1>
-        <p className="text-muted-foreground">Select your departure and arrival airports</p>
-      </div>
-      
-      <Card className="mb-6 border-border bg-card">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-foreground">Departure</h3>
-              
+
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-xl md:text-2xl font-semibold mb-4 md:mb-6 text-foreground">Select Your Flight</h2>
+        
+        <Card className="mb-6 md:mb-8 border-border bg-card">
+          <CardContent className="p-4 md:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              {/* Departure Selection */}
               <div>
-                <label className="block text-foreground font-medium mb-2 text-sm">
-                  Region
-                </label>
-                <div className="relative">
-                  <Select value={selectedDepartureRegion} onValueChange={setSelectedDepartureRegion}>
-                    <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Select a region" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Regions</SelectItem>
-                      {airportRegions && airportRegions.map((region) => (
-                        <SelectItem key={region.region} value={region.region}>
-                          {region.region}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-foreground font-medium mb-2 text-sm">
+                      Departure Region
+                    </label>
+                    <Select
+                      value={selectedDepartureRegion}
+                      onValueChange={setSelectedDepartureRegion}
+                    >
+                      <SelectTrigger className="w-full bg-background">
+                        <SelectValue placeholder="Select region" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Regions</SelectItem>
+                        {airportRegions && airportRegions.map((regionData) => (
+                          <SelectItem key={regionData.region} value={regionData.region}>
+                            {regionData.region}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {selectedDepartureRegion && selectedDepartureRegion !== "all" && (
+                    <div>
+                      <label className="block text-foreground font-medium mb-2 text-sm">
+                        Departure Country
+                      </label>
+                      <Select
+                        value={selectedDepartureCountry}
+                        onValueChange={setSelectedDepartureCountry}
+                      >
+                        <SelectTrigger className="w-full bg-background">
+                          <SelectValue placeholder="Select country" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {departureCountries && departureCountries.map((country) => (
+                            <SelectItem key={country} value={country}>
+                              {country}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <label className="block text-foreground font-medium mb-2 text-sm" htmlFor="departure">
+                      Departure Airport
+                    </label>
+                    <Select
+                      value={departureAirport}
+                      onValueChange={setDepartureAirport}
+                      disabled={isLoadingAirports || (selectedDepartureRegion !== "all" && !selectedDepartureCountry)}
+                    >
+                      <SelectTrigger className="w-full bg-background">
+                        <SelectValue placeholder="Select airport" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {selectedDepartureRegion === "all" && airports && airports.map((airport) => (
+                          <SelectItem key={airport.code} value={airport.code}>
+                            {airport.city}, {airport.country} ({airport.code})
+                          </SelectItem>
+                        ))}
+                        
+                        {selectedDepartureRegion !== "all" && selectedDepartureCountry && departureAirports && 
+                          departureAirports.map((airport) => (
+                            <SelectItem key={airport.code} value={airport.code}>
+                              {airport.city} - {airport.name} ({airport.code})
+                            </SelectItem>
+                          ))
+                        }
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
               
-              {selectedDepartureRegion !== "all" && departureCountries && departureCountries.length > 0 && (
-                <div>
-                  <label className="block text-foreground font-medium mb-2 text-sm">
-                    Country
-                  </label>
-                  <div className="relative">
-                    <Select value={selectedDepartureCountry} onValueChange={setSelectedDepartureCountry}>
+              {/* Arrival Selection */}
+              <div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-foreground font-medium mb-2 text-sm">
+                      Arrival Region
+                    </label>
+                    <Select
+                      value={selectedArrivalRegion}
+                      onValueChange={setSelectedArrivalRegion}
+                    >
                       <SelectTrigger className="w-full bg-background">
-                        <SelectValue placeholder="Select a country" />
+                        <SelectValue placeholder="Select region" />
                       </SelectTrigger>
                       <SelectContent>
-                        {departureCountries.map((country) => (
-                          <SelectItem key={country} value={country}>
-                            {country}
+                        <SelectItem value="all">All Regions</SelectItem>
+                        {airportRegions && airportRegions.map((regionData) => (
+                          <SelectItem key={regionData.region} value={regionData.region}>
+                            {regionData.region}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {selectedArrivalRegion && selectedArrivalRegion !== "all" && (
+                    <div>
+                      <label className="block text-foreground font-medium mb-2 text-sm">
+                        Arrival Country
+                      </label>
+                      <Select
+                        value={selectedArrivalCountry}
+                        onValueChange={setSelectedArrivalCountry}
+                      >
+                        <SelectTrigger className="w-full bg-background">
+                          <SelectValue placeholder="Select country" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {arrivalCountries && arrivalCountries.map((country) => (
+                            <SelectItem key={country} value={country}>
+                              {country}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <label className="block text-foreground font-medium mb-2 text-sm" htmlFor="arrival">
+                      Arrival Airport
+                    </label>
+                    <Select
+                      value={arrivalAirport}
+                      onValueChange={setArrivalAirport}
+                      disabled={isLoadingAirports || (selectedArrivalRegion !== "all" && !selectedArrivalCountry)}
+                    >
+                      <SelectTrigger className="w-full bg-background">
+                        <SelectValue placeholder="Select airport" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {selectedArrivalRegion === "all" && airports && airports.map((airport) => (
+                          <SelectItem key={airport.code} value={airport.code}>
+                            {airport.city}, {airport.country} ({airport.code})
+                          </SelectItem>
+                        ))}
+                        
+                        {selectedArrivalRegion !== "all" && selectedArrivalCountry && arrivalAirports && 
+                          arrivalAirports.map((airport) => (
+                            <SelectItem key={airport.code} value={airport.code}>
+                              {airport.city} - {airport.name} ({airport.code})
+                            </SelectItem>
+                          ))
+                        }
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-foreground font-medium mb-2 text-sm" htmlFor="date">
+                  Departure Date
+                </label>
+                <div className="relative">
+                  <input
+                    type="date"
+                    id="date"
+                    className="w-full p-2 md:p-3 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
+                    value={departureDate}
+                    onChange={(e) => setDepartureDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-foreground font-medium mb-2 text-sm">
+                  Departure Time
+                </label>
+                <div className="flex items-center space-x-2">
+                  {/* Hour Selection (24-hour format) */}
+                  <div className="w-1/2">
+                    <Select value={departureHour} onValueChange={setDepartureHour}>
+                      <SelectTrigger className="bg-background">
+                        <SelectValue placeholder="Hour" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 24 }, (_, i) => i).map(hour => (
+                          <SelectItem key={hour} value={hour.toString().padStart(2, '0')}>
+                            {hour.toString().padStart(2, '0')}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Minute Selection */}
+                  <div className="w-1/2">
+                    <Select value={departureMinute} onValueChange={setDepartureMinute}>
+                      <SelectTrigger className="bg-background">
+                        <SelectValue placeholder="Min" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 12 }, (_, i) => i * 5).map(minute => (
+                          <SelectItem key={minute} value={minute.toString().padStart(2, '0')}>
+                            {minute.toString().padStart(2, '0')}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
-              )}
-              
-              <div>
-                <label className="block text-foreground font-medium mb-2 text-sm">
-                  Airport
-                </label>
-                <div className="relative">
-                  <Select value={departureAirport} onValueChange={setDepartureAirport}>
-                    <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Select departure airport" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {selectedDepartureCountry && departureAirports ? (
-                        departureAirports.map((airport) => (
-                          <SelectItem key={airport.code} value={airport.code}>
-                            {airport.name} ({airport.code}) - {airport.city}
-                          </SelectItem>
-                        ))
-                      ) : airports ? (
-                        airports.map((airport) => (
-                          <SelectItem key={airport.code} value={airport.code}>
-                            {airport.name} ({airport.code}) - {airport.city}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="loading" disabled>
-                          Loading airports...
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
             </div>
-            
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-foreground">Arrival</h3>
-              
-              <div>
-                <label className="block text-foreground font-medium mb-2 text-sm">
-                  Region
-                </label>
-                <div className="relative">
-                  <Select value={selectedArrivalRegion} onValueChange={setSelectedArrivalRegion}>
-                    <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Select a region" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Regions</SelectItem>
-                      {airportRegions && airportRegions.map((region) => (
-                        <SelectItem key={region.region} value={region.region}>
-                          {region.region}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              {selectedArrivalRegion !== "all" && arrivalCountries && arrivalCountries.length > 0 && (
-                <div>
-                  <label className="block text-foreground font-medium mb-2 text-sm">
-                    Country
-                  </label>
-                  <div className="relative">
-                    <Select value={selectedArrivalCountry} onValueChange={setSelectedArrivalCountry}>
-                      <SelectTrigger className="w-full bg-background">
-                        <SelectValue placeholder="Select a country" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {arrivalCountries.map((country) => (
-                          <SelectItem key={country} value={country}>
-                            {country}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
-              
-              <div>
-                <label className="block text-foreground font-medium mb-2 text-sm">
-                  Airport
-                </label>
-                <div className="relative">
-                  <Select value={arrivalAirport} onValueChange={setArrivalAirport}>
-                    <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Select arrival airport" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {selectedArrivalCountry && arrivalAirports ? (
-                        arrivalAirports.map((airport) => (
-                          <SelectItem key={airport.code} value={airport.code}>
-                            {airport.name} ({airport.code}) - {airport.city}
-                          </SelectItem>
-                        ))
-                      ) : airports ? (
-                        airports.map((airport) => (
-                          <SelectItem key={airport.code} value={airport.code}>
-                            {airport.name} ({airport.code}) - {airport.city}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="loading" disabled>
-                          Loading airports...
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-foreground font-medium mb-2 text-sm" htmlFor="date">
-                Departure Date
-              </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  id="date"
-                  className="w-full p-2 border rounded-md bg-background text-foreground"
-                  value={departureDate}
-                  onChange={(e) => setDepartureDate(e.target.value)}
-                  min={new Date().toISOString().split("T")[0]}
-                />
-              </div>
-            </div>
-            
+          </CardContent>
+        </Card>
+        
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3 md:mb-4">
+          <h3 className="text-lg md:text-xl font-semibold text-foreground">Available Flights</h3>
+          
+          {airlineRegions && flights && flights.length > 0 && (
             <div>
               <label className="block text-foreground font-medium mb-2 text-sm">
-                Departure Time
+                Filter by Airline Region
               </label>
-              <div className="flex items-center space-x-2">
-                {/* Hour Selection (24-hour format) */}
-                <div className="w-1/2">
-                  <Select value={departureHour} onValueChange={setDepartureHour}>
-                    <SelectTrigger className="bg-background">
-                      <SelectValue placeholder="Hour" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 24 }, (_, i) => i).map(hour => (
-                        <SelectItem key={hour} value={hour.toString().padStart(2, '0')}>
-                          {hour.toString().padStart(2, '0')}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Minute Selection */}
-                <div className="w-1/2">
-                  <Select value={departureMinute} onValueChange={setDepartureMinute}>
-                    <SelectTrigger className="bg-background">
-                      <SelectValue placeholder="Min" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 12 }, (_, i) => i * 5).map(minute => (
-                        <SelectItem key={minute} value={minute.toString().padStart(2, '0')}>
-                          {minute.toString().padStart(2, '0')}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  variant={selectedAirlineRegion === "" ? "default" : "outline"} 
+                  size="sm" 
+                  onClick={() => setSelectedAirlineRegion("")}
+                  className="text-xs"
+                >
+                  All
+                </Button>
+                {airlineRegions.map((regionData) => (
+                  <Button 
+                    key={regionData.region} 
+                    variant={selectedAirlineRegion === regionData.region ? "default" : "outline"} 
+                    size="sm" 
+                    onClick={() => setSelectedAirlineRegion(regionData.region)}
+                    className="text-xs"
+                  >
+                    {regionData.region}
+                  </Button>
+                ))}
               </div>
             </div>
+          )}
+        </div>
+        
+        {isLoadingFlights ? (
+          <div className="text-center py-8">
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Searching for flights...</p>
           </div>
-        </CardContent>
-      </Card>
-      
-      <div className="flex justify-end mb-8">
-        <Button 
-          onClick={handleContinue}
-          className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-        >
-          Continue to Passenger Details
-        </Button>
+        ) : !flights || flights.length === 0 ? (
+          <Card className="mb-4 border-border bg-card">
+            <CardContent className="p-6">
+              <div className="text-center py-6 md:py-8">
+                <p className="text-foreground mb-2">No flights found for this route and date.</p>
+                <p className="text-muted-foreground">Try changing your search criteria.</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          flights
+            .filter(flight => selectedAirlineRegion ? flight.airline.region === selectedAirlineRegion : true)
+            .map((flight) => (
+            <div key={flight.id} className="mb-4">
+              <Card 
+                className={`overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer border-border bg-card ${
+                  selectedFlightId === flight.id ? "border-2 border-primary" : ""
+                }`}
+                onClick={() => selectFlight(flight.id)}
+              >
+                <CardContent className="p-4 md:p-5">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+                    <div className="flex items-center mb-4 md:mb-0">
+                      <AirlineLogo 
+                        airlineLogo={flight.airline.logo} 
+                        airlineName={flight.airline.name} 
+                        className="mr-3 md:mr-4" 
+                        size={32}
+                      />
+                      <div>
+                        <h4 className="font-semibold text-base md:text-lg text-foreground">
+                          {flight.airline.name}
+                        </h4>
+                        <p className="text-muted-foreground text-sm font-medium">
+                          Flight <span className="font-medium text-primary">{flight.flightNumber}</span>
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-4 md:space-x-16 mt-2 md:mt-0">
+                      <div className="text-center">
+                        <p className="text-lg md:text-xl font-semibold text-foreground">{flight.departure.time}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">{flight.departure.airport.code}</p>
+                      </div>
+                      
+                      <div className="flex flex-col items-center">
+                        <div className="text-muted-foreground text-xs md:text-sm">{flight.duration}</div>
+                        <div className="flex items-center w-16 md:w-32">
+                          <div className="h-0.5 w-full bg-muted relative">
+                            <div className="absolute -top-1.5 right-0">
+                              <PlaneIcon className="text-primary" size={14} />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-muted-foreground text-xs">Direct</div>
+                      </div>
+                      
+                      <div className="text-center">
+                        <p className="text-lg md:text-xl font-semibold text-foreground">{flight.arrival.time}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">{flight.arrival.airport.code}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-3 md:mt-0 md:ml-4 text-right">
+                      <p className="text-accent font-semibold text-base md:text-lg">{flight.price}</p>
+                      <p className="text-muted-foreground text-xs md:text-sm">{flight.class}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ))
+        )}
+        
+        <div className="flex justify-end mt-6 md:mt-8">
+          <Button
+            variant="default"
+            size="lg"
+            onClick={handleContinue}
+            className="w-full md:w-auto"
+          >
+            Continue
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );

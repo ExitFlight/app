@@ -21,7 +21,7 @@ const ProgressStepper = ({ currentStep }: ProgressStepperProps) => {
   const [location] = useLocation();
 
   return (
-    <div className="mb-12 max-w-3xl mx-auto">
+    <div className="mb-8 md:mb-12 max-w-3xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
         {steps.map((step) => (
           <div
@@ -33,19 +33,20 @@ const ProgressStepper = ({ currentStep }: ProgressStepperProps) => {
           >
             <div
               className={cn(
-                "rounded-full w-8 h-8 flex items-center justify-center font-bold mr-2",
+                "rounded-full w-7 h-7 md:w-8 md:h-8 flex items-center justify-center font-bold mr-2",
                 step.id === currentStep || (location === step.path && step.id <= currentStep)
-                  ? "bg-primary text-white"
-                  : "bg-neutral-200 text-neutral-600"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
               )}
             >
               {step.id}
             </div>
             <span
               className={cn(
+                "text-sm md:text-base",
                 step.id === currentStep
-                  ? "font-medium text-neutral-800"
-                  : "text-neutral-500"
+                  ? "font-medium text-foreground"
+                  : "text-muted-foreground"
               )}
             >
               {step.name}

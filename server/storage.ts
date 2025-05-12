@@ -141,8 +141,22 @@ export class MemStorage implements IStorage {
       { code: "MNL", name: "Ninoy Aquino International Airport", city: "Manila", country: "Philippines", region: "Asia" },
       { code: "CEB", name: "Mactan-Cebu International Airport", city: "Cebu", country: "Philippines", region: "Asia" },
       { code: "BWN", name: "Brunei International Airport", city: "Bandar Seri Begawan", country: "Brunei", region: "Asia" },
+      // Vietnam
       { code: "SGN", name: "Tan Son Nhat International Airport", city: "Ho Chi Minh City", country: "Vietnam", region: "Asia" },
       { code: "HAN", name: "Noi Bai International Airport", city: "Hanoi", country: "Vietnam", region: "Asia" },
+      { code: "DAD", name: "Da Nang International Airport", city: "Da Nang", country: "Vietnam", region: "Asia" },
+      { code: "CXR", name: "Cam Ranh International Airport", city: "Nha Trang", country: "Vietnam", region: "Asia" },
+      { code: "PQC", name: "Phu Quoc International Airport", city: "Phu Quoc", country: "Vietnam", region: "Asia" },
+      
+      // Cambodia
+      { code: "PNH", name: "Phnom Penh International Airport", city: "Phnom Penh", country: "Cambodia", region: "Asia" },
+      { code: "REP", name: "Siem Reap International Airport", city: "Siem Reap", country: "Cambodia", region: "Asia" },
+      { code: "KOS", name: "Sihanoukville International Airport", city: "Sihanoukville", country: "Cambodia", region: "Asia" },
+      
+      // Myanmar
+      { code: "RGN", name: "Yangon International Airport", city: "Yangon", country: "Myanmar", region: "Asia" },
+      { code: "MDL", name: "Mandalay International Airport", city: "Mandalay", country: "Myanmar", region: "Asia" },
+      { code: "NYU", name: "Bagan Nyaung U Airport", city: "Bagan", country: "Myanmar", region: "Asia" },
       
       // Australia/NZ
       { code: "SYD", name: "Sydney Airport", city: "Sydney", country: "Australia", region: "Australia/NZ" },

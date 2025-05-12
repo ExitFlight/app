@@ -29,12 +29,12 @@ const FlightSelection = () => {
   const [selectedFlightId, setSelectedFlightId] = useState<number | null>(null);
 
   // Fetch airports
-  const { data: airports, isLoading: isLoadingAirports } = useQuery({
+  const { data: airports, isLoading: isLoadingAirports } = useQuery<Airport[]>({
     queryKey: ["/api/airports"],
   });
 
   // Fetch flights based on search criteria
-  const { data: flights, isLoading: isLoadingFlights } = useQuery({
+  const { data: flights, isLoading: isLoadingFlights } = useQuery<FlightWithDetails[]>({
     queryKey: [
       "/api/flights/search",
       departureAirport,
@@ -59,7 +59,7 @@ const FlightSelection = () => {
       return;
     }
 
-    const selected = flights?.find((flight: FlightWithDetails) => flight.id === selectedFlightId);
+    const selected = flights && flights.find((flight) => flight.id === selectedFlightId);
     if (selected) {
       // Save flight search details
       setFlightDetails({
@@ -105,7 +105,7 @@ const FlightSelection = () => {
                       <SelectValue placeholder="Select departure city" />
                     </SelectTrigger>
                     <SelectContent>
-                      {airports?.map((airport: Airport) => (
+                      {airports && airports.map((airport) => (
                         <SelectItem key={airport.code} value={airport.code}>
                           {airport.city} ({airport.code})
                         </SelectItem>
@@ -129,7 +129,7 @@ const FlightSelection = () => {
                       <SelectValue placeholder="Select destination city" />
                     </SelectTrigger>
                     <SelectContent>
-                      {airports?.map((airport: Airport) => (
+                      {airports && airports.map((airport) => (
                         <SelectItem key={airport.code} value={airport.code}>
                           {airport.city} ({airport.code})
                         </SelectItem>
@@ -193,7 +193,7 @@ const FlightSelection = () => {
             </CardContent>
           </Card>
         ) : (
-          flights.map((flight: FlightWithDetails) => (
+          flights.map((flight) => (
             <div key={flight.id} className="mb-4">
               <Card 
                 className={`overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer border-border bg-card ${

@@ -183,9 +183,9 @@ const EnhancedFlightSelection = () => {
   const { flightDetails, setFlightDetails, setSelectedFlight } = useFlightContext();
   
   // Form State
-  const [originRegion, setOriginRegion] = useState<string>("");
+  const [departureRegion, setDepartureRegion] = useState<string>("");
   const [destinationRegion, setDestinationRegion] = useState<string>("");
-  const [originAirport, setOriginAirport] = useState<string>(flightDetails?.departureAirport || "");
+  const [departureAirport, setDepartureAirport] = useState<string>(flightDetails?.departureAirport || "");
   const [destinationAirport, setDestinationAirport] = useState<string>(flightDetails?.arrivalAirport || "");
   const [departureDate, setDepartureDate] = useState<string>(flightDetails?.departureDate || dateOptions[0].value);
   const [departureTime, setDepartureTime] = useState<string>("09:00");
@@ -210,19 +210,19 @@ const EnhancedFlightSelection = () => {
 
   // Calculate flight details
   const handleGenerateFlight = async () => {
-    if (!originAirport || !destinationAirport) {
+    if (!departureAirport || !destinationAirport) {
       toast({
         title: "Missing information",
-        description: "Please select both origin and destination airports",
+        description: "Please select both departure and destination airports",
         variant: "destructive",
       });
       return;
     }
 
-    if (originAirport === destinationAirport) {
+    if (departureAirport === destinationAirport) {
       toast({
         title: "Invalid selection",
-        description: "Origin and destination airports cannot be the same",
+        description: "Departure and destination airports cannot be the same",
         variant: "destructive",
       });
       return;
@@ -244,7 +244,7 @@ const EnhancedFlightSelection = () => {
     try {
       // Calculate enhanced flight details
       const calculatedData = await calculateEnhancedFlightDetails(
-        originAirport,
+        departureAirport,
         destinationAirport,
         departureDate,
         departureTime
@@ -255,17 +255,17 @@ const EnhancedFlightSelection = () => {
       if (!airlineInfo) throw new Error("Airline information not found");
       
       // Find airport names
-      const originAirportInfo = allAirports.find(a => a.code === originAirport);
+      const departureAirportInfo = allAirports.find(a => a.code === departureAirport);
       const destinationAirportInfo = allAirports.find(a => a.code === destinationAirport);
       
-      if (!originAirportInfo || !destinationAirportInfo) {
+      if (!departureAirportInfo || !destinationAirportInfo) {
         throw new Error("Airport information not found");
       }
       
       // Generate flight data
       const enhancedFlightData: EnhancedFlightDetails = {
-        departureAirport: originAirport,
-        departureAirportName: originAirportInfo.name,
+        departureAirport: departureAirport,
+        departureAirportName: departureAirportInfo.name,
         arrivalAirport: destinationAirport,
         arrivalAirportName: destinationAirportInfo.name,
         departureDate: calculatedData.departureDateLocal,
@@ -376,9 +376,9 @@ const EnhancedFlightSelection = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-foreground font-medium mb-2 text-sm">
-                    Origin Region
+                    Departure Region
                   </label>
-                  <Select value={originRegion} onValueChange={setOriginRegion}>
+                  <Select value={departureRegion} onValueChange={setDepartureRegion}>
                     <SelectTrigger className="w-full bg-background">
                       <SelectValue placeholder="Select region" />
                     </SelectTrigger>
@@ -394,18 +394,18 @@ const EnhancedFlightSelection = () => {
                 
                 <div>
                   <label className="block text-foreground font-medium mb-2 text-sm">
-                    Origin Airport
+                    Departure Airport
                   </label>
                   <Select 
-                    value={originAirport} 
-                    onValueChange={setOriginAirport}
-                    disabled={!originRegion}
+                    value={departureAirport} 
+                    onValueChange={setDepartureAirport}
+                    disabled={!departureRegion}
                   >
                     <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Select origin airport" />
+                      <SelectValue placeholder="Select departure airport" />
                     </SelectTrigger>
                     <SelectContent>
-                      {originRegion && majorAirports[originRegion as keyof typeof majorAirports].map((airport) => (
+                      {departureRegion && majorAirports[departureRegion as keyof typeof majorAirports].map((airport) => (
                         <SelectItem key={airport.code} value={airport.code}>
                           {airport.code} - {airport.name}
                         </SelectItem>
@@ -496,16 +496,40 @@ const EnhancedFlightSelection = () => {
                   <label className="block text-foreground font-medium mb-2 text-sm">
                     Airline
                   </label>
-                  <Select value={selectedAirline} onValueChange={setSelectedAirline}>
+                  <Select 
+                    value={selectedAirline} 
+                    onValueChange={setSelectedAirline}
+                    disabled={!departureAirport}
+                  >
                     <SelectTrigger className="w-full bg-background">
                       <SelectValue placeholder="Select airline" />
                     </SelectTrigger>
                     <SelectContent>
-                      {airlines.map((airline) => (
-                        <SelectItem key={airline.code} value={airline.code}>
-                          {airline.code} - {airline.name}
-                        </SelectItem>
-                      ))}
+                      {departureAirport && (
+                        <>
+                          {/* First show airlines from the departure region */}
+                          <SelectLabel>Based in {getAirportRegion(departureAirport)}</SelectLabel>
+                          {airlines
+                            .filter(airline => airline.region === getAirportRegion(departureAirport))
+                            .map((airline) => (
+                              <SelectItem key={airline.code} value={airline.code}>
+                                {airline.code} - {airline.name}
+                              </SelectItem>
+                            ))
+                          }
+                          
+                          {/* Then show other airlines */}
+                          <SelectLabel className="mt-2">Other Airlines</SelectLabel>
+                          {airlines
+                            .filter(airline => airline.region !== getAirportRegion(departureAirport))
+                            .map((airline) => (
+                              <SelectItem key={airline.code} value={airline.code}>
+                                {airline.code} - {airline.name}
+                              </SelectItem>
+                            ))
+                          }
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -533,7 +557,7 @@ const EnhancedFlightSelection = () => {
             <div className="mt-6 flex justify-center">
               <Button 
                 onClick={handleGenerateFlight}
-                disabled={!originAirport || !destinationAirport || !selectedAirline || isLoading}
+                disabled={!departureAirport || !destinationAirport || !selectedAirline || isLoading}
                 className="w-full md:w-auto"
               >
                 {isLoading ? "Generating Flight..." : "Generate Flight"}

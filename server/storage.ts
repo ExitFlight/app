@@ -131,9 +131,19 @@ export class MemStorage implements IStorage {
       { code: "DMK", name: "Don Mueang International Airport", city: "Bangkok", country: "Thailand", region: "Asia" },
       { code: "HKG", name: "Hong Kong International Airport", city: "Hong Kong", country: "China", region: "Asia" },
       { code: "PEK", name: "Beijing Capital International Airport", city: "Beijing", country: "China", region: "Asia" },
+      // Japan
       { code: "HND", name: "Tokyo Haneda Airport", city: "Tokyo", country: "Japan", region: "Asia" },
       { code: "NRT", name: "Narita International Airport", city: "Tokyo", country: "Japan", region: "Asia" },
       { code: "KIX", name: "Kansai International Airport", city: "Osaka", country: "Japan", region: "Asia" },
+      { code: "ITM", name: "Osaka International Airport", city: "Osaka", country: "Japan", region: "Asia" },
+      { code: "CTS", name: "New Chitose Airport", city: "Sapporo", country: "Japan", region: "Asia" },
+      { code: "FUK", name: "Fukuoka Airport", city: "Fukuoka", country: "Japan", region: "Asia" },
+      { code: "NGO", name: "Chubu Centrair International Airport", city: "Nagoya", country: "Japan", region: "Asia" },
+      { code: "OKA", name: "Naha Airport", city: "Okinawa", country: "Japan", region: "Asia" },
+      { code: "KOJ", name: "Kagoshima Airport", city: "Kagoshima", country: "Japan", region: "Asia" },
+      { code: "HIJ", name: "Hiroshima Airport", city: "Hiroshima", country: "Japan", region: "Asia" },
+      { code: "SDJ", name: "Sendai Airport", city: "Sendai", country: "Japan", region: "Asia" },
+      { code: "KMJ", name: "Kumamoto Airport", city: "Kumamoto", country: "Japan", region: "Asia" },
       { code: "ICN", name: "Incheon International Airport", city: "Seoul", country: "South Korea", region: "Asia" },
       // Indonesia
       { code: "CGK", name: "Soekarno-Hatta International Airport", city: "Jakarta", country: "Indonesia", region: "Asia" },
@@ -267,6 +277,7 @@ export class MemStorage implements IStorage {
     // Add airlines
     const airlines: InsertAirline[] = [
       // North America
+      // USA & Canada
       { code: "AA", name: "American Airlines", logo: "american-airlines", region: "North America" },
       { code: "AS", name: "Alaska Airlines", logo: "alaska-airlines", region: "North America" },
       { code: "B6", name: "JetBlue Airways", logo: "jetblue-airways", region: "North America" },
@@ -277,6 +288,14 @@ export class MemStorage implements IStorage {
       { code: "UA", name: "United Airlines", logo: "united-airlines", region: "North America" },
       { code: "WN", name: "Southwest Airlines", logo: "southwest-airlines", region: "North America" },
       { code: "AC", name: "Air Canada", logo: "air-canada", region: "North America" },
+      
+      // Mexico
+      { code: "AM", name: "Aeroméxico", logo: "aeromexico", region: "North America" },
+      { code: "Y4", name: "Volaris", logo: "volaris", region: "North America" },
+      { code: "VB", name: "VivaAerobus", logo: "vivaaerobus", region: "North America" },
+      { code: "4O", name: "Interjet", logo: "interjet", region: "North America" },
+      { code: "QA", name: "Calafia Airlines", logo: "calafia", region: "North America" },
+      { code: "YQ", name: "TAR Aerolíneas", logo: "tar", region: "North America" },
       
       // Europe
       { code: "AF", name: "Air France", logo: "air-france", region: "Europe" },

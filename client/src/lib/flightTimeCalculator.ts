@@ -1,5 +1,5 @@
 import { format, formatDuration, intervalToDuration, addMinutes } from 'date-fns';
-import { zonedTimeToUtc, utcToZonedTime, getTimezoneOffset } from 'date-fns-tz';
+import { formatInTimeZone, toZonedTime, getTimezoneOffset } from 'date-fns-tz';
 
 // Interfaces for the data structures
 interface Airport {
@@ -217,17 +217,17 @@ export async function calculateBasicFlightDetails(
     const departureDate = new Date(today);
     departureDate.setHours(departureHours, departureMinutes, 0, 0);
     
-    // 5. Convert departure time to UTC
-    const departureTimeUTC = zonedTimeToUtc(
+    // 5. Convert departure time to a zoned time
+    const departureTimeZoned = toZonedTime(
       departureDate,
       originAirport.timezone || 'UTC'
     );
     
-    // 6. Add flight duration to get arrival time in UTC
-    const arrivalTimeUTC = addMinutes(departureTimeUTC, flightDurationMinutes);
+    // 6. Add flight duration to get arrival time
+    const arrivalTimeUTC = addMinutes(departureTimeZoned, flightDurationMinutes);
     
-    // 7. Convert UTC arrival time to destination local time
-    const arrivalTimeLocal = utcToZonedTime(
+    // 7. Convert arrival time to destination local time
+    const arrivalTimeLocal = toZonedTime(
       arrivalTimeUTC,
       destinationAirport.timezone || 'UTC'
     );

@@ -14,6 +14,7 @@ import {
 import ProgressStepper from "@/components/ProgressStepper";
 import { type Airport } from "@shared/schema";
 import { useFlightContext } from "@/lib/context/FlightContext";
+import { calculateBasicFlightDetails } from "@/lib/flightTimeCalculator";
 
 const FlightSelection = () => {
   const [_, navigate] = useLocation();
@@ -28,6 +29,11 @@ const FlightSelection = () => {
   // Custom time selection with 24-hour format
   const [departureHour, setDepartureHour] = useState<string>("09");
   const [departureMinute, setDepartureMinute] = useState<string>("00");
+  
+  // Flight arrival time state
+  const [estimatedArrivalTime, setEstimatedArrivalTime] = useState<string>("");
+  const [estimatedFlightDuration, setEstimatedFlightDuration] = useState<string>("");
+  const [arrivalDateOffset, setArrivalDateOffset] = useState<number>(0);
   
   // Region and Country Selection State
   const [selectedDepartureRegion, setSelectedDepartureRegion] = useState<string>("all");

@@ -73,6 +73,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     res.json(airportsInCountry);
   });
+  
+  // Get airports by city
+  app.get("/api/airports/by-city/:city", async (req: Request, res: Response) => {
+    const { city } = req.params;
+    const airports = await storage.getAllAirports();
+    
+    // Case-insensitive partial match for city names
+    const filteredAirports = airports.filter(airport => 
+      airport.city.toLowerCase().includes(city.toLowerCase())
+    );
+    
+    if (filteredAirports.length === 0) {
+      // If no exact match, try to find airports with similar city names
+      const similarAirports = airports.filter(airport => 
+        airport.city.toLowerCase().includes(city.split(' ')[0].toLowerCase())
+      );
+      
+      if (similarAirports.length > 0) {
+        return res.json(similarAirports);
+      }
+      
+      return res.status(404).json({ error: `No airports found for city: ${city}` });
+    }
+    
+    res.json(filteredAirports);
+  });
 
   // Get all airlines
   app.get("/api/airlines", async (req: Request, res: Response) => {

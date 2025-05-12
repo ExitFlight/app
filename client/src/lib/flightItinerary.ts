@@ -386,24 +386,23 @@ export async function generateFlightItinerary(
       flightNumber: generateFlightNumber(airlineCode),
       origin: {
         city: originCity,
-        code: flightDetails.originAirport.code,
+        code: originCity.substring(0, 3).toUpperCase(), // Simplified code generation
         localDepartureTime: flightDetails.departureTimeLocal,
         localDepartureDate: flightDetails.departureDateLocal,
-        timezone: flightDetails.originAirport.timezone || 'UTC'
+        timezone: 'UTC' // Using UTC as default timezone
       },
       destination: {
         city: destinationCity,
-        code: flightDetails.destinationAirport.code,
+        code: destinationCity.substring(0, 3).toUpperCase(), // Simplified code generation
         localArrivalTime: flightDetails.arrivalTimeLocal,
         localArrivalDate: flightDetails.arrivalDateLocal,
-        timezone: flightDetails.destinationAirport.timezone || 'UTC',
-        dateOffset: flightDetails.arrivalDateOffset
+        timezone: 'UTC', // Using UTC as default timezone
+        dateOffset: flightDetails.departureDateLocal !== flightDetails.arrivalDateLocal ? 1 : 0
       },
       duration: {
-        // Parse the duration string like "7h 45m" into hours and minutes
-        hours: parseInt(flightDetails.flightDurationFormatted.split('h')[0], 10) || 0,
-        minutes: parseInt(flightDetails.flightDurationFormatted.match(/(\d+)m/)?.[1] || '0', 10),
-        formatted: flightDetails.flightDurationFormatted
+        hours: Math.floor(flightDetails.durationMinutes / 60),
+        minutes: flightDetails.durationMinutes % 60,
+        formatted: flightDetails.durationFormatted
       }
     };
 
@@ -413,7 +412,7 @@ export async function generateFlightItinerary(
     const layoverHub = selectLayoverHub(airlineCode, originCity, destinationCity);
     
     // Generate the first segment (origin to layover)
-    const firstSegmentDetails = await calculateBasicFlightDetails(originCity, layoverHub);
+    const firstSegmentDetails = await calculateFlightDetails(originCity, layoverHub);
     
     // Set up the layover duration
     const layoverDurationMinutes = generateLayoverDuration();
@@ -428,7 +427,7 @@ export async function generateFlightItinerary(
     const layoverDepDay = format(layoverDepDate, 'yyyy-MM-dd');
     
     // Generate the second segment (layover to destination)
-    const secondSegmentDetails = await calculateBasicFlightDetails(layoverHub, destinationCity);
+    const secondSegmentDetails = await calculateFlightDetails(layoverHub, destinationCity);
     
     // Override the departure time with our calculated post-layover time
     secondSegmentDetails.departureTimeLocal = layoverDepTime;
@@ -436,10 +435,9 @@ export async function generateFlightItinerary(
     
     // Recalculate the arrival details based on the new departure time
     const layoverDepartureDate = new Date(`${layoverDepDay}T${layoverDepTime}:00`);
-    const secondSegmentDuration = parseInt(secondSegmentDetails.flightDurationFormatted.split('h')[0], 10) * 60 + 
-                                 parseInt(secondSegmentDetails.flightDurationFormatted.match(/(\d+)m/)?.[1] || '0', 10);
+    const secondSegmentDuration = secondSegmentDetails.durationMinutes;
     
-    const destinationTimezone = secondSegmentDetails.destinationAirport.timezone || 'UTC';
+    const destinationTimezone = 'UTC'; // Using UTC as default timezone
     const finalArrivalDate = addMinutes(toZonedTime(layoverDepartureDate, layoverTimezone), secondSegmentDuration);
     const finalArrivalDateZoned = toZonedTime(finalArrivalDate, destinationTimezone);
     
@@ -461,23 +459,23 @@ export async function generateFlightItinerary(
       flightNumber: generateFlightNumber(airlineCode),
       origin: {
         city: originCity,
-        code: firstSegmentDetails.originAirport.code,
+        code: originCity.substring(0, 3).toUpperCase(), // Simplified code generation
         localDepartureTime: firstSegmentDetails.departureTimeLocal,
         localDepartureDate: firstSegmentDetails.departureDateLocal,
-        timezone: firstSegmentDetails.originAirport.timezone || 'UTC'
+        timezone: 'UTC' // Using UTC as default timezone
       },
       destination: {
         city: layoverHub,
-        code: firstSegmentDetails.destinationAirport.code,
+        code: layoverHub.substring(0, 3).toUpperCase(), // Simplified code generation
         localArrivalTime: firstSegmentDetails.arrivalTimeLocal,
         localArrivalDate: firstSegmentDetails.arrivalDateLocal,
-        timezone: firstSegmentDetails.destinationAirport.timezone || 'UTC',
-        dateOffset: firstSegmentDetails.arrivalDateOffset
+        timezone: 'UTC', // Using UTC as default timezone
+        dateOffset: firstSegmentDetails.departureDateLocal !== firstSegmentDetails.arrivalDateLocal ? 1 : 0
       },
       duration: {
-        hours: parseInt(firstSegmentDetails.flightDurationFormatted.split('h')[0], 10) || 0,
-        minutes: parseInt(firstSegmentDetails.flightDurationFormatted.match(/(\d+)m/)?.[1] || '0', 10),
-        formatted: firstSegmentDetails.flightDurationFormatted
+        hours: Math.floor(firstSegmentDetails.durationMinutes / 60),
+        minutes: firstSegmentDetails.durationMinutes % 60,
+        formatted: firstSegmentDetails.durationFormatted
       }
     };
     
@@ -489,23 +487,23 @@ export async function generateFlightItinerary(
       flightNumber: generateFlightNumber(airlineCode),
       origin: {
         city: layoverHub,
-        code: secondSegmentDetails.originAirport.code,
+        code: layoverHub.substring(0, 3).toUpperCase(), // Simplified code generation
         localDepartureTime: layoverDepTime,
         localDepartureDate: layoverDepDay,
-        timezone: secondSegmentDetails.originAirport.timezone || 'UTC'
+        timezone: 'UTC' // Using UTC as default timezone
       },
       destination: {
         city: destinationCity,
-        code: secondSegmentDetails.destinationAirport.code,
+        code: destinationCity.substring(0, 3).toUpperCase(), // Simplified code generation
         localArrivalTime: finalArrivalTime,
         localArrivalDate: finalArrivalDay,
-        timezone: secondSegmentDetails.destinationAirport.timezone || 'UTC',
+        timezone: 'UTC', // Using UTC as default timezone
         dateOffset: dateOffset
       },
       duration: {
-        hours: parseInt(secondSegmentDetails.flightDurationFormatted.split('h')[0], 10) || 0,
-        minutes: parseInt(secondSegmentDetails.flightDurationFormatted.match(/(\d+)m/)?.[1] || '0', 10),
-        formatted: secondSegmentDetails.flightDurationFormatted
+        hours: Math.floor(secondSegmentDetails.durationMinutes / 60),
+        minutes: secondSegmentDetails.durationMinutes % 60,
+        formatted: secondSegmentDetails.durationFormatted
       }
     };
 

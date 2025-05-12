@@ -1,274 +1,268 @@
-import { useState } from 'react';
-import { useLocation } from 'wouter';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import ProgressTracker from '@/components/ProgressTracker';
-import FlightCard from '@/components/FlightCard';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { AlertCircle, Plane } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowRight, PlaneIcon } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import ProgressStepper from "@/components/ProgressStepper";
+import AirlineLogo from "@/components/AirlineLogo";
+import { type Airport, type FlightWithDetails } from "@shared/schema";
+import { useFlightContext } from "@/lib/context/FlightContext";
 
-// Define the form schema
-const searchFormSchema = z.object({
-  departureAirportCode: z.string().min(3, "Please select a departure airport"),
-  arrivalAirportCode: z.string().min(3, "Please select an arrival airport").refine(
-    (val, ctx) => {
-      if (ctx.data && val === ctx.data.departureAirportCode) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Departure and arrival airports cannot be the same",
-    }
-  ),
-  departureDate: z.string().min(1, "Please select a departure date"),
-});
-
-type SearchFormValues = z.infer<typeof searchFormSchema>;
-
-export default function FlightSelection() {
-  const [, setLocation] = useLocation();
+const FlightSelection = () => {
+  const [_, navigate] = useLocation();
   const { toast } = useToast();
-  const [flights, setFlights] = useState<any[]>([]);
+  const { flightDetails, setFlightDetails, setSelectedFlight } = useFlightContext();
+  
+  const [departureAirport, setDepartureAirport] = useState<string>(flightDetails?.departureAirport || "");
+  const [arrivalAirport, setArrivalAirport] = useState<string>(flightDetails?.arrivalAirport || "");
+  const [departureDate, setDepartureDate] = useState<string>(flightDetails?.departureDate || new Date().toISOString().split('T')[0]);
+  const [departureTime, setDepartureTime] = useState<string>(flightDetails?.departureTime || "");
   const [selectedFlightId, setSelectedFlightId] = useState<number | null>(null);
 
   // Fetch airports
   const { data: airports, isLoading: isLoadingAirports } = useQuery({
-    queryKey: ['/api/airports'],
+    queryKey: ["/api/airports"],
   });
 
-  // Setup form
-  const form = useForm<SearchFormValues>({
-    resolver: zodResolver(searchFormSchema),
-    defaultValues: {
-      departureAirportCode: '',
-      arrivalAirportCode: '',
-      departureDate: new Date().toISOString().split('T')[0], // Default to today
-    },
+  // Fetch flights based on search criteria
+  const { data: flights, isLoading: isLoadingFlights } = useQuery({
+    queryKey: [
+      "/api/flights/search",
+      departureAirport,
+      arrivalAirport,
+      departureDate,
+      departureTime,
+    ],
+    enabled: !!(departureAirport && arrivalAirport && departureDate),
   });
 
-  // Search flights mutation
-  const searchMutation = useMutation({
-    mutationFn: async (data: SearchFormValues) => {
-      const res = await apiRequest('POST', '/api/flights/search', data);
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setFlights(data);
-      if (data.length === 0) {
-        toast({
-          title: "No flights found",
-          description: "Try different airports or dates",
-          variant: "destructive",
-        });
-      }
-    },
-    onError: (error) => {
-      toast({
-        title: "Error searching flights",
-        description: error.message || "Please try again later",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const onSubmit = (data: SearchFormValues) => {
-    // Reset selected flight when search criteria changes
-    setSelectedFlightId(null);
-    searchMutation.mutate(data);
-  };
-
-  const handleFlightSelect = (flightId: number) => {
-    setSelectedFlightId(flightId);
-  };
+  useEffect(() => {
+    document.title = "Select Flight - FlightBack";
+  }, []);
 
   const handleContinue = () => {
-    if (selectedFlightId) {
-      setLocation(`/passenger-details/${selectedFlightId}`);
-    } else {
+    if (!selectedFlightId) {
       toast({
         title: "No flight selected",
         description: "Please select a flight to continue",
         variant: "destructive",
       });
+      return;
+    }
+
+    const selected = flights?.find((flight: FlightWithDetails) => flight.id === selectedFlightId);
+    if (selected) {
+      // Save flight search details
+      setFlightDetails({
+        departureAirport,
+        arrivalAirport,
+        departureDate,
+        departureTime,
+      });
+      
+      // Save selected flight
+      setSelectedFlight(selected);
+      
+      // Navigate to passenger details
+      navigate("/passenger-details");
     }
   };
 
+  const selectFlight = (flightId: number) => {
+    setSelectedFlightId(flightId);
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Hero Section */}
-      <section className="mb-12">
-        <div className="relative rounded-xl overflow-hidden shadow-lg h-64 sm:h-80 md:h-96 mb-6">
-          <img 
-            src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=600&q=80" 
-            alt="Airplane flying above clouds" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-900/80 to-primary-800/60 flex flex-col justify-center px-6 sm:px-12">
-            <h2 className="font-heading text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-4 max-w-2xl">
-              Generate realistic flight tickets for your school project
-            </h2>
-            <p className="text-white text-sm sm:text-base md:text-lg max-w-xl">
-              Select your details, generate a PDF, and receive it via email in seconds
-            </p>
-          </div>
-        </div>
-      </section>
+    <div className="container mx-auto px-4 py-8">
+      <ProgressStepper currentStep={1} />
 
-      {/* Progress Tracker */}
-      <ProgressTracker currentStep={1} />
-
-      {/* Flight Search Form */}
-      <section className="mb-12">
-        <div className="bg-white rounded-xl shadow-md p-6 mb-8">
-          <h2 className="font-heading text-2xl font-semibold text-primary-800 mb-6">Select Your Flight</h2>
-          
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="departureAirportCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Departure Airport</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                        disabled={isLoadingAirports}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full py-3">
-                            <SelectValue placeholder="Select departure airport" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {airports?.map((airport: any) => (
-                            <SelectItem key={airport.code} value={airport.code}>
-                              {airport.city} ({airport.code})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="arrivalAirportCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Arrival Airport</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                        disabled={isLoadingAirports}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full py-3">
-                            <SelectValue placeholder="Select arrival airport" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {airports?.map((airport: any) => (
-                            <SelectItem key={airport.code} value={airport.code}>
-                              {airport.city} ({airport.code})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-2xl font-semibold mb-6 text-neutral-800">Select Your Flight</h2>
+        
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-neutral-700 font-medium mb-2" htmlFor="departure">
+                  Departure City
+                </label>
+                <div className="relative">
+                  <Select
+                    value={departureAirport}
+                    onValueChange={setDepartureAirport}
+                    disabled={isLoadingAirports}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select departure city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {airports?.map((airport: Airport) => (
+                        <SelectItem key={airport.code} value={airport.code}>
+                          {airport.city} ({airport.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
-              <FormField
-                control={form.control}
-                name="departureDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Departure Date</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        className="py-3"
-                        min={new Date().toISOString().split('T')[0]}
-                        max={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <Button 
-                type="submit" 
-                className="w-full md:w-auto"
-                disabled={searchMutation.isPending}
-              >
-                <Plane className="mr-2 h-4 w-4" />
-                Search Flights
-              </Button>
-            </form>
-          </Form>
-        </div>
-        
-        {/* Available Flights */}
-        {searchMutation.isPending ? (
-          <div className="flex justify-center p-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-700"></div>
-          </div>
-        ) : (
-          <>
-            {flights.length > 0 && (
-              <>
-                <h3 className="font-heading text-xl font-semibold text-primary-800 mb-4">Available Flights</h3>
-                
-                {flights.map((flight) => (
-                  <FlightCard
-                    key={flight.id}
-                    flight={flight}
-                    isSelected={selectedFlightId === flight.id}
-                    onSelect={() => handleFlightSelect(flight.id)}
-                  />
-                ))}
-                
-                <div className="flex justify-end mt-6">
-                  <Button 
-                    onClick={handleContinue}
-                    disabled={!selectedFlightId}
-                    className="bg-primary-600 hover:bg-primary-700"
+              <div>
+                <label className="block text-neutral-700 font-medium mb-2" htmlFor="destination">
+                  Destination City
+                </label>
+                <div className="relative">
+                  <Select
+                    value={arrivalAirport}
+                    onValueChange={setArrivalAirport}
+                    disabled={isLoadingAirports}
                   >
-                    Continue
-                  </Button>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select destination city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {airports?.map((airport: Airport) => (
+                        <SelectItem key={airport.code} value={airport.code}>
+                          {airport.city} ({airport.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </>
-            )}
-            
-            {searchMutation.isSuccess && flights.length === 0 && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>No flights found</AlertTitle>
-                <AlertDescription>
-                  Try selecting different departure and arrival airports, or a different date.
-                </AlertDescription>
-              </Alert>
-            )}
-          </>
+              </div>
+              
+              <div>
+                <label className="block text-neutral-700 font-medium mb-2" htmlFor="date">
+                  Departure Date
+                </label>
+                <div className="relative">
+                  <input
+                    type="date"
+                    id="date"
+                    className="w-full p-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                    value={departureDate}
+                    onChange={(e) => setDepartureDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-neutral-700 font-medium mb-2" htmlFor="time">
+                  Departure Time
+                </label>
+                <div className="relative">
+                  <Select value={departureTime} onValueChange={setDepartureTime}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select departure time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="morning">Morning (6 AM - 12 PM)</SelectItem>
+                      <SelectItem value="afternoon">Afternoon (12 PM - 6 PM)</SelectItem>
+                      <SelectItem value="evening">Evening (6 PM - 12 AM)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <h3 className="text-xl font-semibold mb-4 text-neutral-800">Available Flights</h3>
+        
+        {isLoadingFlights ? (
+          <div className="text-center py-8">
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-neutral-600">Searching for flights...</p>
+          </div>
+        ) : !flights || flights.length === 0 ? (
+          <Card className="shadow-md mb-4">
+            <CardContent className="p-6">
+              <div className="text-center py-8">
+                <p className="text-neutral-600 mb-2">No flights found for this route and date.</p>
+                <p className="text-neutral-500">Try changing your search criteria.</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          flights.map((flight: FlightWithDetails) => (
+            <div key={flight.id} className="mb-4">
+              <Card 
+                className={`overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer ${
+                  selectedFlightId === flight.id ? "border-2 border-primary" : ""
+                }`}
+                onClick={() => selectFlight(flight.id)}
+              >
+                <CardContent className="p-5">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+                    <div className="flex items-center mb-4 md:mb-0">
+                      <AirlineLogo 
+                        airlineLogo={flight.airline.logo} 
+                        airlineName={flight.airline.name} 
+                        className="mr-4" 
+                      />
+                      <div>
+                        <h4 className="font-semibold text-lg text-neutral-800">
+                          {flight.airline.name}
+                        </h4>
+                        <p className="text-neutral-500 font-medium">
+                          Flight <span className="font-medium text-primary">{flight.flightNumber}</span>
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-8 md:space-x-16">
+                      <div className="text-center">
+                        <p className="text-xl font-semibold text-neutral-800">{flight.departure.time}</p>
+                        <p className="text-sm text-neutral-500">{flight.departure.airport.code}</p>
+                      </div>
+                      
+                      <div className="flex flex-col items-center">
+                        <div className="text-neutral-400 text-sm">{flight.duration}</div>
+                        <div className="flex items-center w-24 md:w-32">
+                          <div className="h-0.5 w-full bg-neutral-300 relative">
+                            <div className="absolute -top-1.5 right-0">
+                              <PlaneIcon className="text-primary" size={16} />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-neutral-400 text-xs">Direct</div>
+                      </div>
+                      
+                      <div className="text-center">
+                        <p className="text-xl font-semibold text-neutral-800">{flight.arrival.time}</p>
+                        <p className="text-sm text-neutral-500">{flight.arrival.airport.code}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 md:mt-0 md:ml-4 text-right">
+                      <p className="text-accent font-semibold text-lg">{flight.price}</p>
+                      <p className="text-neutral-500 text-sm">{flight.class}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ))
         )}
-      </section>
+        
+        <div className="mt-8 flex justify-end">
+          <Button onClick={handleContinue} className="px-6">
+            Continue
+            <ArrowRight className="ml-2" size={16} />
+          </Button>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default FlightSelection;

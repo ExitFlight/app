@@ -27,7 +27,9 @@ function Router() {
           <Route path="/passenger-details" component={PassengerDetails} />
           <Route path="/preview" component={TicketPreview} />
           <Route path="/confirmation" component={Confirmation} />
-
+          <Route path="/about" component={About} />
+          <Route path="/help" component={Help} />
+          
           <Route component={NotFound} />
         </Switch>
       </main>

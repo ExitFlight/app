@@ -145,6 +145,7 @@ export type FlightWithDetails = {
     code: string;
     name: string;
     logo: string;
+    region: string;
   };
   departure: {
     airport: {

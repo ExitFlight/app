@@ -27,8 +27,8 @@ const FlightSelection = () => {
   const [departureDate, setDepartureDate] = useState<string>(flightDetails?.departureDate || new Date().toISOString().split('T')[0]);
   const [departureTime, setDepartureTime] = useState<string>(flightDetails?.departureTime || "");
   const [selectedFlightId, setSelectedFlightId] = useState<number | null>(null);
-  const [selectedDepartureRegion, setSelectedDepartureRegion] = useState<string>("");
-  const [selectedArrivalRegion, setSelectedArrivalRegion] = useState<string>("");
+  const [selectedDepartureRegion, setSelectedDepartureRegion] = useState<string>("all");
+  const [selectedArrivalRegion, setSelectedArrivalRegion] = useState<string>("all");
   const [selectedAirlineRegion, setSelectedAirlineRegion] = useState<string>("");
 
   // Fetch airports
@@ -131,7 +131,7 @@ const FlightSelection = () => {
                       <SelectValue placeholder="All Regions" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Regions</SelectItem>
+                      <SelectItem value="all">All Regions</SelectItem>
                       {airportRegions && airportRegions.map((regionData) => (
                         <SelectItem key={regionData.region} value={regionData.region}>
                           {regionData.region}
@@ -155,7 +155,7 @@ const FlightSelection = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {airports && airports
-                        .filter(airport => selectedDepartureRegion ? airport.region === selectedDepartureRegion : true)
+                        .filter(airport => selectedDepartureRegion === "all" ? true : airport.region === selectedDepartureRegion)
                         .map((airport) => (
                           <SelectItem key={airport.code} value={airport.code}>
                             {airport.city} ({airport.code})
@@ -180,7 +180,7 @@ const FlightSelection = () => {
                       <SelectValue placeholder="All Regions" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Regions</SelectItem>
+                      <SelectItem value="all">All Regions</SelectItem>
                       {airportRegions && airportRegions.map((regionData) => (
                         <SelectItem key={regionData.region} value={regionData.region}>
                           {regionData.region}
@@ -204,7 +204,7 @@ const FlightSelection = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {airports && airports
-                        .filter(airport => selectedArrivalRegion ? airport.region === selectedArrivalRegion : true)
+                        .filter(airport => selectedArrivalRegion === "all" ? true : airport.region === selectedArrivalRegion)
                         .map((airport) => (
                           <SelectItem key={airport.code} value={airport.code}>
                             {airport.city} ({airport.code})
@@ -364,10 +364,16 @@ const FlightSelection = () => {
           ))
         )}
         
-        <div className="mt-6 md:mt-8 flex justify-end">
-          <Button onClick={handleContinue} className="px-4 md:px-6">
+        <div className="flex justify-end mt-6 md:mt-8">
+          <Button
+            variant="default"
+            size="lg"
+            onClick={handleContinue}
+            disabled={!selectedFlightId}
+            className="w-full md:w-auto"
+          >
             Continue
-            <ArrowRight className="ml-2" size={16} />
+            <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </div>

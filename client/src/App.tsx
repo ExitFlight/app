@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { FlightProvider } from "./lib/context/FlightContext";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
-import FlightSelection from "@/pages/FlightSelection";
+import EnhancedFlightSelection from "@/pages/EnhancedFlightSelection";
 import PassengerDetails from "@/pages/PassengerDetails";
 import TicketPreview from "@/pages/TicketPreview";
 import Confirmation from "@/pages/Confirmation";
@@ -21,7 +21,7 @@ function Router() {
       <main className="flex-grow">
         <Switch>
           <Route path="/" component={Home} />
-          <Route path="/select-flight" component={FlightSelection} />
+          <Route path="/select-flight" component={EnhancedFlightSelection} />
           <Route path="/passenger-details" component={PassengerDetails} />
           <Route path="/preview" component={TicketPreview} />
           <Route path="/confirmation" component={Confirmation} />

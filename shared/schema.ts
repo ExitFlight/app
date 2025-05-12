@@ -190,6 +190,7 @@ export const flightSearchSchema = z.object({
   departureDate: z.string().min(10, "Please select a date"),
   departureTime: z.string().min(1, "Please select a time"),
   flightId: z.number().optional(),
+  calculatedFlightData: z.any().optional(),
 });
 
 export type FlightSearchForm = z.infer<typeof flightSearchSchema>;

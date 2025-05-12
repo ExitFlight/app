@@ -26,6 +26,7 @@ const FlightSelection = () => {
   const [departureAirport, setDepartureAirport] = useState<string>(flightDetails?.departureAirport || "");
   const [arrivalAirport, setArrivalAirport] = useState<string>(flightDetails?.arrivalAirport || "");
   const [departureDate, setDepartureDate] = useState<string>(flightDetails?.departureDate || new Date().toISOString().split('T')[0]);
+  const [selectedAirline, setSelectedAirline] = useState<string>("");
   
   // Custom time selection with 24-hour format
   const [departureHour, setDepartureHour] = useState<string>("09");
@@ -87,6 +88,11 @@ const FlightSelection = () => {
   // Fetch airline regions
   const { data: airlineRegions } = useQuery<{region: string, airlines: any[]}[]>({
     queryKey: ["/api/airlines/regions"],
+  });
+  
+  // Fetch all airlines
+  const { data: airlines } = useQuery<any[]>({
+    queryKey: ["/api/airlines"],
   });
 
   // Fetch flights data for selected airports and date
@@ -387,6 +393,26 @@ const FlightSelection = () => {
                     </Select>
                   </div>
                 </div>
+              </div>
+              
+              <div>
+                <label className="block text-foreground font-medium mb-2 text-sm">
+                  Select Airline
+                </label>
+                <Select value={selectedAirline} onValueChange={setSelectedAirline}>
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue placeholder="Select an airline" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {airlines && 
+                      [...airlines].sort((a, b) => a.code.localeCompare(b.code)).map((airline) => (
+                        <SelectItem key={airline.code} value={airline.code}>
+                          {airline.code} - {airline.name}
+                        </SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardContent>

@@ -129,6 +129,11 @@ export class MemStorage implements IStorage {
       { code: "SIN", name: "Singapore Changi Airport", city: "Singapore", country: "Singapore", region: "Asia" },
       { code: "BKK", name: "Suvarnabhumi Airport", city: "Bangkok", country: "Thailand", region: "Asia" },
       { code: "DMK", name: "Don Mueang International Airport", city: "Bangkok", country: "Thailand", region: "Asia" },
+      { code: "HKT", name: "Phuket International Airport", city: "Phuket", country: "Thailand", region: "Asia" },
+      { code: "CNX", name: "Chiang Mai International Airport", city: "Chiang Mai", country: "Thailand", region: "Asia" },
+      { code: "USM", name: "Samui International Airport", city: "Koh Samui", country: "Thailand", region: "Asia" },
+      { code: "KBV", name: "Krabi International Airport", city: "Krabi", country: "Thailand", region: "Asia" },
+      { code: "CEI", name: "Chiang Rai International Airport", city: "Chiang Rai", country: "Thailand", region: "Asia" },
       { code: "HKG", name: "Hong Kong International Airport", city: "Hong Kong", country: "China", region: "Asia" },
       { code: "PEK", name: "Beijing Capital International Airport", city: "Beijing", country: "China", region: "Asia" },
       // Japan

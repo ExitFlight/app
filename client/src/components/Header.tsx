@@ -13,8 +13,13 @@ const Header = () => {
             </h1>
           </div>
         </Link>
-        <div className="block">
+        <div className="flex items-center space-x-4">
           <p className="text-muted-foreground">Ticket Generator</p>
+          <Link href="/itinerary-demo">
+            <span className="text-primary hover:text-primary/80 cursor-pointer text-sm">
+              Itinerary Demo
+            </span>
+          </Link>
         </div>
       </div>
     </header>

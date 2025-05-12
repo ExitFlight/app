@@ -1,0 +1,423 @@
+import {
+  type User,
+  type InsertUser,
+  type Airport,
+  type InsertAirport,
+  type Airline,
+  type InsertAirline,
+  type Flight,
+  type InsertFlight,
+  type Passenger,
+  type InsertPassenger,
+  type Ticket,
+  type InsertTicket,
+  type FlightWithDetails,
+  type TicketWithDetails
+} from "@shared/schema";
+
+export interface IStorage {
+  // User methods
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+
+  // Airport methods
+  getAirport(id: number): Promise<Airport | undefined>;
+  getAirportByCode(code: string): Promise<Airport | undefined>;
+  getAllAirports(): Promise<Airport[]>;
+  createAirport(airport: InsertAirport): Promise<Airport>;
+
+  // Airline methods
+  getAirline(id: number): Promise<Airline | undefined>;
+  getAirlineByCode(code: string): Promise<Airline | undefined>;
+  getAllAirlines(): Promise<Airline[]>;
+  createAirline(airline: InsertAirline): Promise<Airline>;
+
+  // Flight methods
+  getFlight(id: number): Promise<Flight | undefined>;
+  getFlightWithDetails(id: number): Promise<FlightWithDetails | undefined>;
+  searchFlights(params: { 
+    departureAirportCode: string;
+    arrivalAirportCode: string;
+    date: string;
+    time?: string;
+  }): Promise<FlightWithDetails[]>;
+  createFlight(flight: InsertFlight): Promise<Flight>;
+
+  // Passenger methods
+  getPassenger(id: number): Promise<Passenger | undefined>;
+  createPassenger(passenger: InsertPassenger): Promise<Passenger>;
+
+  // Ticket methods
+  getTicket(id: number): Promise<Ticket | undefined>;
+  getTicketWithDetails(id: number): Promise<TicketWithDetails | undefined>;
+  createTicket(ticket: InsertTicket): Promise<Ticket>;
+}
+
+export class MemStorage implements IStorage {
+  private users: Map<number, User>;
+  private airports: Map<number, Airport>;
+  private airlines: Map<number, Airline>;
+  private flights: Map<number, Flight>;
+  private passengers: Map<number, Passenger>;
+  private tickets: Map<number, Ticket>;
+  
+  private currentUserId: number;
+  private currentAirportId: number;
+  private currentAirlineId: number;
+  private currentFlightId: number;
+  private currentPassengerId: number;
+  private currentTicketId: number;
+
+  constructor() {
+    this.users = new Map();
+    this.airports = new Map();
+    this.airlines = new Map();
+    this.flights = new Map();
+    this.passengers = new Map();
+    this.tickets = new Map();
+    
+    this.currentUserId = 1;
+    this.currentAirportId = 1;
+    this.currentAirlineId = 1;
+    this.currentFlightId = 1;
+    this.currentPassengerId = 1;
+    this.currentTicketId = 1;
+
+    // Initialize with some sample data
+    this.initializeSampleData();
+  }
+
+  private initializeSampleData() {
+    // Add airports
+    const airports: InsertAirport[] = [
+      { code: "JFK", name: "John F. Kennedy International Airport", city: "New York", country: "United States" },
+      { code: "LAX", name: "Los Angeles International Airport", city: "Los Angeles", country: "United States" },
+      { code: "LHR", name: "London Heathrow Airport", city: "London", country: "United Kingdom" },
+      { code: "CDG", name: "Charles de Gaulle Airport", city: "Paris", country: "France" },
+      { code: "DXB", name: "Dubai International Airport", city: "Dubai", country: "United Arab Emirates" },
+      { code: "SIN", name: "Singapore Changi Airport", city: "Singapore", country: "Singapore" },
+      { code: "HND", name: "Tokyo Haneda Airport", city: "Tokyo", country: "Japan" },
+      { code: "SYD", name: "Sydney Airport", city: "Sydney", country: "Australia" },
+    ];
+
+    airports.forEach(airport => this.createAirport(airport));
+
+    // Add airlines
+    const airlines: InsertAirline[] = [
+      { code: "AA", name: "American Airlines", logo: "american-airlines" },
+      { code: "DL", name: "Delta Airlines", logo: "delta-airlines" },
+      { code: "BA", name: "British Airways", logo: "british-airways" },
+      { code: "EK", name: "Emirates", logo: "emirates" },
+    ];
+
+    airlines.forEach(airline => this.createAirline(airline));
+
+    // Add some flights
+    const flights: Array<InsertFlight & { departureAirportCode: string; arrivalAirportCode: string }> = [
+      { 
+        flightNumber: "AA-2347", 
+        airlineId: 1, 
+        departureAirportCode: "JFK", 
+        departureAirportId: 1, 
+        arrivalAirportCode: "CDG", 
+        arrivalAirportId: 4, 
+        departureTime: "08:45", 
+        arrivalTime: "12:10", 
+        duration: "3h 25m", 
+        price: "$249", 
+        class: "Economy" 
+      },
+      { 
+        flightNumber: "DL-4522", 
+        airlineId: 2, 
+        departureAirportCode: "JFK", 
+        departureAirportId: 1, 
+        arrivalAirportCode: "CDG", 
+        arrivalAirportId: 4, 
+        departureTime: "11:20", 
+        arrivalTime: "15:10", 
+        duration: "3h 50m", 
+        price: "$289", 
+        class: "Economy" 
+      },
+      { 
+        flightNumber: "BA-1775", 
+        airlineId: 3, 
+        departureAirportCode: "JFK", 
+        departureAirportId: 1, 
+        arrivalAirportCode: "CDG", 
+        arrivalAirportId: 4, 
+        departureTime: "16:35", 
+        arrivalTime: "20:15", 
+        duration: "3h 40m", 
+        price: "$319", 
+        class: "Economy" 
+      },
+      { 
+        flightNumber: "AA-1121", 
+        airlineId: 1, 
+        departureAirportCode: "LAX", 
+        departureAirportId: 2, 
+        arrivalAirportCode: "JFK", 
+        arrivalAirportId: 1, 
+        departureTime: "09:15", 
+        arrivalTime: "17:40", 
+        duration: "5h 25m", 
+        price: "$329", 
+        class: "Economy" 
+      },
+      { 
+        flightNumber: "EK-202", 
+        airlineId: 4, 
+        departureAirportCode: "JFK", 
+        departureAirportId: 1, 
+        arrivalAirportCode: "DXB", 
+        arrivalAirportId: 5, 
+        departureTime: "22:15", 
+        arrivalTime: "19:10", 
+        duration: "12h 55m", 
+        price: "$899", 
+        class: "Economy" 
+      },
+    ];
+
+    flights.forEach(flightData => {
+      const { departureAirportCode, arrivalAirportCode, ...flight } = flightData;
+      this.createFlight(flight);
+    });
+  }
+
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username,
+    );
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = this.currentUserId++;
+    const user: User = { ...insertUser, id };
+    this.users.set(id, user);
+    return user;
+  }
+
+  // Airport methods
+  async getAirport(id: number): Promise<Airport | undefined> {
+    return this.airports.get(id);
+  }
+
+  async getAirportByCode(code: string): Promise<Airport | undefined> {
+    return Array.from(this.airports.values()).find(
+      (airport) => airport.code === code,
+    );
+  }
+
+  async getAllAirports(): Promise<Airport[]> {
+    return Array.from(this.airports.values());
+  }
+
+  async createAirport(insertAirport: InsertAirport): Promise<Airport> {
+    const id = this.currentAirportId++;
+    const airport: Airport = { ...insertAirport, id };
+    this.airports.set(id, airport);
+    return airport;
+  }
+
+  // Airline methods
+  async getAirline(id: number): Promise<Airline | undefined> {
+    return this.airlines.get(id);
+  }
+
+  async getAirlineByCode(code: string): Promise<Airline | undefined> {
+    return Array.from(this.airlines.values()).find(
+      (airline) => airline.code === code,
+    );
+  }
+
+  async getAllAirlines(): Promise<Airline[]> {
+    return Array.from(this.airlines.values());
+  }
+
+  async createAirline(insertAirline: InsertAirline): Promise<Airline> {
+    const id = this.currentAirlineId++;
+    const airline: Airline = { ...insertAirline, id };
+    this.airlines.set(id, airline);
+    return airline;
+  }
+
+  // Flight methods
+  async getFlight(id: number): Promise<Flight | undefined> {
+    return this.flights.get(id);
+  }
+
+  async getFlightWithDetails(id: number): Promise<FlightWithDetails | undefined> {
+    const flight = this.flights.get(id);
+    if (!flight) return undefined;
+
+    const airline = await this.getAirline(flight.airlineId);
+    const departureAirport = await this.getAirport(flight.departureAirportId);
+    const arrivalAirport = await this.getAirport(flight.arrivalAirportId);
+
+    if (!airline || !departureAirport || !arrivalAirport) return undefined;
+
+    return {
+      id: flight.id,
+      flightNumber: flight.flightNumber,
+      airline: {
+        id: airline.id,
+        code: airline.code,
+        name: airline.name,
+        logo: airline.logo
+      },
+      departure: {
+        airport: {
+          id: departureAirport.id,
+          code: departureAirport.code,
+          name: departureAirport.name,
+          city: departureAirport.city,
+          country: departureAirport.country
+        },
+        time: flight.departureTime
+      },
+      arrival: {
+        airport: {
+          id: arrivalAirport.id,
+          code: arrivalAirport.code,
+          name: arrivalAirport.name,
+          city: arrivalAirport.city,
+          country: arrivalAirport.country
+        },
+        time: flight.arrivalTime
+      },
+      duration: flight.duration,
+      price: flight.price,
+      class: flight.class
+    };
+  }
+
+  async searchFlights(params: { 
+    departureAirportCode: string;
+    arrivalAirportCode: string;
+    date: string;
+    time?: string;
+  }): Promise<FlightWithDetails[]> {
+    const { departureAirportCode, arrivalAirportCode, date, time } = params;
+    
+    const departureAirport = await this.getAirportByCode(departureAirportCode);
+    const arrivalAirport = await this.getAirportByCode(arrivalAirportCode);
+    
+    if (!departureAirport || !arrivalAirport) return [];
+    
+    const flights = Array.from(this.flights.values()).filter(flight => 
+      flight.departureAirportId === departureAirport.id && 
+      flight.arrivalAirportId === arrivalAirport.id
+    );
+    
+    // Create flight details for each flight
+    const flightDetails: FlightWithDetails[] = [];
+    
+    for (const flight of flights) {
+      const airline = await this.getAirline(flight.airlineId);
+      if (!airline) continue;
+      
+      flightDetails.push({
+        id: flight.id,
+        flightNumber: flight.flightNumber,
+        airline: {
+          id: airline.id,
+          code: airline.code,
+          name: airline.name,
+          logo: airline.logo
+        },
+        departure: {
+          airport: {
+            id: departureAirport.id,
+            code: departureAirport.code,
+            name: departureAirport.name,
+            city: departureAirport.city,
+            country: departureAirport.country
+          },
+          time: flight.departureTime
+        },
+        arrival: {
+          airport: {
+            id: arrivalAirport.id,
+            code: arrivalAirport.code,
+            name: arrivalAirport.name,
+            city: arrivalAirport.city,
+            country: arrivalAirport.country
+          },
+          time: flight.arrivalTime
+        },
+        duration: flight.duration,
+        price: flight.price,
+        class: flight.class
+      });
+    }
+    
+    return flightDetails;
+  }
+
+  async createFlight(insertFlight: InsertFlight): Promise<Flight> {
+    const id = this.currentFlightId++;
+    const flight: Flight = { ...insertFlight, id };
+    this.flights.set(id, flight);
+    return flight;
+  }
+
+  // Passenger methods
+  async getPassenger(id: number): Promise<Passenger | undefined> {
+    return this.passengers.get(id);
+  }
+
+  async createPassenger(insertPassenger: InsertPassenger): Promise<Passenger> {
+    const id = this.currentPassengerId++;
+    const passenger: Passenger = { ...insertPassenger, id };
+    this.passengers.set(id, passenger);
+    return passenger;
+  }
+
+  // Ticket methods
+  async getTicket(id: number): Promise<Ticket | undefined> {
+    return this.tickets.get(id);
+  }
+
+  async getTicketWithDetails(id: number): Promise<TicketWithDetails | undefined> {
+    const ticket = this.tickets.get(id);
+    if (!ticket) return undefined;
+
+    const flightDetails = await this.getFlightWithDetails(ticket.flightId);
+    const passenger = await this.getPassenger(ticket.passengerId);
+
+    if (!flightDetails || !passenger) return undefined;
+
+    return {
+      id: ticket.id,
+      flight: flightDetails,
+      passenger,
+      seatNumber: ticket.seatNumber,
+      bookingReference: ticket.bookingReference,
+      gate: ticket.gate,
+      boardingTime: ticket.boardingTime,
+      createdAt: ticket.createdAt
+    };
+  }
+
+  async createTicket(insertTicket: InsertTicket): Promise<Ticket> {
+    const id = this.currentTicketId++;
+    const ticket: Ticket = { 
+      ...insertTicket, 
+      id,
+      createdAt: new Date() 
+    };
+    this.tickets.set(id, ticket);
+    return ticket;
+  }
+}
+
+export const storage = new MemStorage();

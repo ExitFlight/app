@@ -22,41 +22,69 @@ const FlightSelection = () => {
   const { toast } = useToast();
   const { flightDetails, setFlightDetails, setSelectedFlight } = useFlightContext();
   
+  // Form State
   const [departureAirport, setDepartureAirport] = useState<string>(flightDetails?.departureAirport || "");
   const [arrivalAirport, setArrivalAirport] = useState<string>(flightDetails?.arrivalAirport || "");
   const [departureDate, setDepartureDate] = useState<string>(flightDetails?.departureDate || new Date().toISOString().split('T')[0]);
   const [departureTime, setDepartureTime] = useState<string>(flightDetails?.departureTime || "");
   const [selectedFlightId, setSelectedFlightId] = useState<number | null>(null);
+  
+  // Region and Country Selection State
   const [selectedDepartureRegion, setSelectedDepartureRegion] = useState<string>("all");
   const [selectedArrivalRegion, setSelectedArrivalRegion] = useState<string>("all");
+  const [selectedDepartureCountry, setSelectedDepartureCountry] = useState<string>("");
+  const [selectedArrivalCountry, setSelectedArrivalCountry] = useState<string>("");
   const [selectedAirlineRegion, setSelectedAirlineRegion] = useState<string>("");
 
-  // Fetch airports
+  // Fetch all airports
   const { data: airports, isLoading: isLoadingAirports } = useQuery<Airport[]>({
-    queryKey: ["/api/airports", selectedDepartureRegion, selectedArrivalRegion],
-    queryFn: async () => {
-      let url = "/api/airports";
-      if (selectedDepartureRegion || selectedArrivalRegion) {
-        return fetch(`${url}`).then(res => res.json());
-      }
-      return fetch(url).then(res => res.json());
-    },
+    queryKey: ["/api/airports"],
   });
   
   // Fetch airport regions
   const { data: airportRegions } = useQuery<{region: string, airports: Airport[]}[]>({
     queryKey: ["/api/airports/regions"],
+  });
+  
+  // Fetch departure countries based on selected region
+  const { data: departureCountries } = useQuery<string[]>({
+    queryKey: ["/api/countries/by-region", selectedDepartureRegion],
     queryFn: async () => {
-      return fetch("/api/airports/regions").then(res => res.json());
+      return fetch(`/api/countries/by-region/${selectedDepartureRegion}`).then(res => res.json());
     },
+    enabled: !!selectedDepartureRegion,
+  });
+  
+  // Fetch arrival countries based on selected region
+  const { data: arrivalCountries } = useQuery<string[]>({
+    queryKey: ["/api/countries/by-region", selectedArrivalRegion],
+    queryFn: async () => {
+      return fetch(`/api/countries/by-region/${selectedArrivalRegion}`).then(res => res.json());
+    },
+    enabled: !!selectedArrivalRegion,
+  });
+  
+  // Fetch departure airports based on selected country
+  const { data: departureAirports } = useQuery<Airport[]>({
+    queryKey: ["/api/airports/by-country", selectedDepartureCountry],
+    queryFn: async () => {
+      return fetch(`/api/airports/by-country/${encodeURIComponent(selectedDepartureCountry)}`).then(res => res.json());
+    },
+    enabled: !!selectedDepartureCountry,
+  });
+  
+  // Fetch arrival airports based on selected country
+  const { data: arrivalAirports } = useQuery<Airport[]>({
+    queryKey: ["/api/airports/by-country", selectedArrivalCountry],
+    queryFn: async () => {
+      return fetch(`/api/airports/by-country/${encodeURIComponent(selectedArrivalCountry)}`).then(res => res.json());
+    },
+    enabled: !!selectedArrivalCountry,
   });
   
   // Fetch airline regions
   const { data: airlineRegions } = useQuery<{region: string, airlines: any[]}[]>({
     queryKey: ["/api/airlines/regions"],
-    queryFn: async () => {
-      return fetch("/api/airlines/regions").then(res => res.json());
-    },
   });
 
   // Fetch flights based on search criteria
@@ -70,6 +98,17 @@ const FlightSelection = () => {
     ],
     enabled: !!(departureAirport && arrivalAirport && departureDate),
   });
+
+  // Reset country when region changes
+  useEffect(() => {
+    setSelectedDepartureCountry("");
+    setDepartureAirport("");
+  }, [selectedDepartureRegion]);
+
+  useEffect(() => {
+    setSelectedArrivalCountry("");
+    setArrivalAirport("");
+  }, [selectedArrivalRegion]);
 
   useEffect(() => {
     document.title = "Select Flight - FlightBack";
@@ -117,9 +156,9 @@ const FlightSelection = () => {
         <Card className="mb-6 md:mb-8 border-border bg-card">
           <CardContent className="p-4 md:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              {/* Departure Region and City Selection */}
+              {/* Departure Selection */}
               <div>
-                <div>
+                <div className="mb-4">
                   <label className="block text-foreground font-medium mb-2 text-sm">
                     Departure Region
                   </label>
@@ -127,8 +166,8 @@ const FlightSelection = () => {
                     value={selectedDepartureRegion}
                     onValueChange={setSelectedDepartureRegion}
                   >
-                    <SelectTrigger className="w-full bg-background mb-3">
-                      <SelectValue placeholder="All Regions" />
+                    <SelectTrigger className="w-full bg-background">
+                      <SelectValue placeholder="Select region" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Regions</SelectItem>
@@ -141,34 +180,63 @@ const FlightSelection = () => {
                   </Select>
                 </div>
                 
-                <label className="block text-foreground font-medium mb-2 text-sm" htmlFor="departure">
-                  Departure City
-                </label>
-                <div className="relative">
+                {selectedDepartureRegion && selectedDepartureRegion !== "all" && (
+                  <div className="mb-4">
+                    <label className="block text-foreground font-medium mb-2 text-sm">
+                      Departure Country
+                    </label>
+                    <Select
+                      value={selectedDepartureCountry}
+                      onValueChange={setSelectedDepartureCountry}
+                    >
+                      <SelectTrigger className="w-full bg-background">
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departureCountries && departureCountries.map((country) => (
+                          <SelectItem key={country} value={country}>
+                            {country}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                <div>
+                  <label className="block text-foreground font-medium mb-2 text-sm" htmlFor="departure">
+                    Departure Airport
+                  </label>
                   <Select
                     value={departureAirport}
                     onValueChange={setDepartureAirport}
-                    disabled={isLoadingAirports}
+                    disabled={isLoadingAirports || (selectedDepartureRegion !== "all" && !selectedDepartureCountry)}
                   >
                     <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Select departure city" />
+                      <SelectValue placeholder="Select airport" />
                     </SelectTrigger>
                     <SelectContent>
-                      {airports && airports
-                        .filter(airport => selectedDepartureRegion === "all" ? true : airport.region === selectedDepartureRegion)
-                        .map((airport) => (
+                      {selectedDepartureRegion === "all" && airports && airports.map((airport) => (
+                        <SelectItem key={airport.code} value={airport.code}>
+                          {airport.city} - {airport.name} ({airport.code})
+                        </SelectItem>
+                      ))}
+                      
+                      {selectedDepartureRegion !== "all" && selectedDepartureCountry && departureAirports && 
+                        departureAirports.map((airport) => (
                           <SelectItem key={airport.code} value={airport.code}>
-                            {airport.city} ({airport.code})
+                            {airport.city} - {airport.name} ({airport.code})
                           </SelectItem>
-                        ))}
+                        ))
+                      }
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               
-              {/* Arrival Region and City Selection */}
+              {/* Arrival Selection */}
               <div>
-                <div>
+                <div className="mb-4">
                   <label className="block text-foreground font-medium mb-2 text-sm">
                     Arrival Region
                   </label>
@@ -176,8 +244,8 @@ const FlightSelection = () => {
                     value={selectedArrivalRegion}
                     onValueChange={setSelectedArrivalRegion}
                   >
-                    <SelectTrigger className="w-full bg-background mb-3">
-                      <SelectValue placeholder="All Regions" />
+                    <SelectTrigger className="w-full bg-background">
+                      <SelectValue placeholder="Select region" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Regions</SelectItem>
@@ -190,26 +258,55 @@ const FlightSelection = () => {
                   </Select>
                 </div>
                 
-                <label className="block text-foreground font-medium mb-2 text-sm" htmlFor="destination">
-                  Destination City
-                </label>
-                <div className="relative">
+                {selectedArrivalRegion && selectedArrivalRegion !== "all" && (
+                  <div className="mb-4">
+                    <label className="block text-foreground font-medium mb-2 text-sm">
+                      Arrival Country
+                    </label>
+                    <Select
+                      value={selectedArrivalCountry}
+                      onValueChange={setSelectedArrivalCountry}
+                    >
+                      <SelectTrigger className="w-full bg-background">
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {arrivalCountries && arrivalCountries.map((country) => (
+                          <SelectItem key={country} value={country}>
+                            {country}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                <div>
+                  <label className="block text-foreground font-medium mb-2 text-sm" htmlFor="arrival">
+                    Arrival Airport
+                  </label>
                   <Select
                     value={arrivalAirport}
                     onValueChange={setArrivalAirport}
-                    disabled={isLoadingAirports}
+                    disabled={isLoadingAirports || (selectedArrivalRegion !== "all" && !selectedArrivalCountry)}
                   >
                     <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Select destination city" />
+                      <SelectValue placeholder="Select airport" />
                     </SelectTrigger>
                     <SelectContent>
-                      {airports && airports
-                        .filter(airport => selectedArrivalRegion === "all" ? true : airport.region === selectedArrivalRegion)
-                        .map((airport) => (
+                      {selectedArrivalRegion === "all" && airports && airports.map((airport) => (
+                        <SelectItem key={airport.code} value={airport.code}>
+                          {airport.city} - {airport.name} ({airport.code})
+                        </SelectItem>
+                      ))}
+                      
+                      {selectedArrivalRegion !== "all" && selectedArrivalCountry && arrivalAirports && 
+                        arrivalAirports.map((airport) => (
                           <SelectItem key={airport.code} value={airport.code}>
-                            {airport.city} ({airport.code})
+                            {airport.city} - {airport.name} ({airport.code})
                           </SelectItem>
-                        ))}
+                        ))
+                      }
                     </SelectContent>
                   </Select>
                 </div>

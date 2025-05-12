@@ -376,7 +376,8 @@ export class MemStorage implements IStorage {
         id: airline.id,
         code: airline.code,
         name: airline.name,
-        logo: airline.logo
+        logo: airline.logo,
+        region: airline.region
       },
       departure: {
         airport: {
@@ -436,7 +437,8 @@ export class MemStorage implements IStorage {
           id: airline.id,
           code: airline.code,
           name: airline.name,
-          logo: airline.logo
+          logo: airline.logo,
+          region: airline.region
         },
         departure: {
           airport: {

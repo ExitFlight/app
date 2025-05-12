@@ -44,6 +44,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     res.json(airportsByRegion);
   });
+  
+  // Get countries by region
+  app.get("/api/countries/by-region/:region", async (req: Request, res: Response) => {
+    const { region } = req.params;
+    const airports = await storage.getAllAirports();
+    
+    // Filter airports by the selected region
+    const airportsInRegion = airports.filter(airport => 
+      region === "all" ? true : airport.region === region
+    );
+    
+    // Get unique countries from the filtered airports
+    const countries = Array.from(
+      new Set(airportsInRegion.map(airport => airport.country))
+    ).sort();
+    
+    res.json(countries);
+  });
+  
+  // Get airports by country
+  app.get("/api/airports/by-country/:country", async (req: Request, res: Response) => {
+    const { country } = req.params;
+    const airports = await storage.getAllAirports();
+    
+    // Filter airports by the selected country
+    const airportsInCountry = airports.filter(airport => airport.country === country);
+    
+    res.json(airportsInCountry);
+  });
 
   // Get all airlines
   app.get("/api/airlines", async (req: Request, res: Response) => {

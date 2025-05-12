@@ -12,15 +12,15 @@ const AirlineLogo = ({ airlineLogo, airlineName, className = "", size = 40 }: Ai
   const renderLogo = () => {
     switch (airlineLogo) {
       case "american-airlines":
-        return <FaPlane size={size} color="#0078D2" />;
+        return <FaPlane size={size} className="text-primary" />;
       case "delta-airlines":
-        return <MdFlight size={size} color="#E51937" />;
+        return <MdFlight size={size} className="text-primary" />;
       case "british-airways":
-        return <FaPlaneDeparture size={size} color="#125CA9" />;
+        return <FaPlaneDeparture size={size} className="text-primary" />;
       case "emirates":
-        return <MdFlightTakeoff size={size} color="#D71A21" />;
+        return <MdFlightTakeoff size={size} className="text-primary" />;
       default:
-        return <FaPlane size={size} color="#0078D2" />;
+        return <FaPlane size={size} className="text-primary" />;
     }
   };
 

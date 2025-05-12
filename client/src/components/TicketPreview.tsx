@@ -1,4 +1,6 @@
 import { Card } from "@/components/ui/card";
+import AirlineLogo from "./AirlineLogo";
+import { Plane } from "lucide-react";
 
 interface TicketPreviewProps {
   booking: any;
@@ -15,16 +17,28 @@ export default function TicketPreview({ booking, flight }: TicketPreviewProps) {
     day: 'numeric'
   });
 
+  // Map airline code to logo name for the AirlineLogo component
+  const getAirlineLogoName = (code: string) => {
+    const codeMap: {[key: string]: string} = {
+      'AA': 'american-airlines',
+      'DL': 'delta-airlines',
+      'BA': 'british-airways',
+      'UA': 'emirates'
+    };
+    return codeMap[code] || 'american-airlines';
+  };
+
   return (
     <Card className="rounded-xl shadow-lg overflow-hidden">
       <div className="p-6 relative">
         {/* Header section with airline logo and name */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
-            <img 
-              src={flight.airline.logoUrl} 
-              alt={`${flight.airline.name} Logo`} 
-              className="w-12 h-12 object-contain"
+            <AirlineLogo 
+              airlineLogo={getAirlineLogoName(flight.airline.code)}
+              airlineName={flight.airline.name}
+              size={40}
+              className="w-12 h-12 flex items-center justify-center"
             />
             <div>
               <span className="font-heading font-bold text-xl text-primary-800">{flight.airline.name}</span>
@@ -71,18 +85,7 @@ export default function TicketPreview({ booking, flight }: TicketPreviewProps) {
               <div className="absolute w-3 h-3 rounded-full bg-primary-600 right-0 -mr-1.5"></div>
             </div>
             <div className="text-xs text-gray-500 mt-1 flex items-center">
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className="text-primary-600 mr-1 w-3 h-3"
-              >
-                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"></path>
-              </svg>
+              <Plane className="text-primary-600 mr-1 w-3 h-3" />
               Direct
             </div>
           </div>

@@ -369,19 +369,38 @@ const EnhancedFlightSelection = () => {
   const { toast } = useToast();
   const { flightDetails, setFlightDetails, setSelectedFlight } = useFlightContext();
   
+  // Load cached values from local storage
+  const loadCachedValue = (key: string, defaultValue: string): string => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(`flightCache_${key}`) || defaultValue;
+    }
+    return defaultValue;
+  };
+  
+  // Save values to local storage cache
+  const saveToCache = (key: string, value: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`flightCache_${key}`, value);
+    }
+  };
+  
   // Form State
-  const [departureRegion, setDepartureRegion] = useState<string>("");
-  const [destinationRegion, setDestinationRegion] = useState<string>("");
-  const [departureAirport, setDepartureAirport] = useState<string>(flightDetails?.departureAirport || "");
-  const [destinationAirport, setDestinationAirport] = useState<string>(flightDetails?.arrivalAirport || "");
+  const [departureRegion, setDepartureRegion] = useState<string>(loadCachedValue("departureRegion", ""));
+  const [destinationRegion, setDestinationRegion] = useState<string>(loadCachedValue("destinationRegion", ""));
+  const [departureAirport, setDepartureAirport] = useState<string>(
+    flightDetails?.departureAirport || loadCachedValue("departureAirport", "")
+  );
+  const [destinationAirport, setDestinationAirport] = useState<string>(
+    flightDetails?.arrivalAirport || loadCachedValue("destinationAirport", "")
+  );
   const [departureDate, setDepartureDate] = useState<Date | undefined>(
     flightDetails?.departureDate ? new Date(flightDetails.departureDate) : new Date()
   );
-  const [departureHour, setDepartureHour] = useState<string>("09");
-  const [departureMinute, setDepartureMinute] = useState<string>("00");
-  const [selectedAirline, setSelectedAirline] = useState<string>("");
-  const [selectedCabin, setSelectedCabin] = useState<string>("economy");
-  const [airlineRegionFilter, setAirlineRegionFilter] = useState<string>("All Regions");
+  const [departureHour, setDepartureHour] = useState<string>(loadCachedValue("departureHour", "09"));
+  const [departureMinute, setDepartureMinute] = useState<string>(loadCachedValue("departureMinute", "00"));
+  const [selectedAirline, setSelectedAirline] = useState<string>(loadCachedValue("selectedAirline", ""));
+  const [selectedCabin, setSelectedCabin] = useState<string>(loadCachedValue("selectedCabin", "economy"));
+  const [airlineRegionFilter, setAirlineRegionFilter] = useState<string>(loadCachedValue("airlineRegionFilter", "All Regions"));
   const [filteredAirlines, setFilteredAirlines] = useState(allAirlines);
   
   // Search functionality
@@ -406,6 +425,72 @@ const EnhancedFlightSelection = () => {
   useEffect(() => {
     document.title = "Select Flight - FlightBack";
   }, []);
+  
+  // Create wrapper functions for setters to save to cache
+  const setCachedDepartureRegion = (value: string) => {
+    saveToCache("departureRegion", value);
+    setDepartureRegion(value);
+  };
+  
+  const setCachedDestinationRegion = (value: string) => {
+    saveToCache("destinationRegion", value);
+    setDestinationRegion(value);
+  };
+  
+  const setCachedDepartureAirport = (value: string) => {
+    saveToCache("departureAirport", value);
+    setDepartureAirport(value);
+  };
+  
+  const setCachedDestinationAirport = (value: string) => {
+    saveToCache("destinationAirport", value);
+    setDestinationAirport(value);
+  };
+  
+  const setCachedDepartureHour = (value: string) => {
+    saveToCache("departureHour", value);
+    setDepartureHour(value);
+  };
+  
+  const setCachedDepartureMinute = (value: string) => {
+    saveToCache("departureMinute", value);
+    setDepartureMinute(value);
+  };
+  
+  const setCachedSelectedAirline = (value: string) => {
+    saveToCache("selectedAirline", value);
+    setSelectedAirline(value);
+  };
+  
+  const setCachedSelectedCabin = (value: string) => {
+    saveToCache("selectedCabin", value);
+    setSelectedCabin(value);
+  };
+  
+  const setCachedAirlineRegionFilter = (value: string) => {
+    saveToCache("airlineRegionFilter", value);
+    setAirlineRegionFilter(value);
+  };
+  
+  // Reset all form data and cache
+  const resetAll = () => {
+    // Clear cache
+    ["departureRegion", "destinationRegion", "departureAirport", "destinationAirport", 
+     "departureHour", "departureMinute", "selectedAirline", "selectedCabin", "airlineRegionFilter"]
+      .forEach(key => localStorage.removeItem(`flightCache_${key}`));
+    
+    // Reset state
+    setDepartureRegion("");
+    setDestinationRegion("");
+    setDepartureAirport("");
+    setDestinationAirport("");
+    setDepartureHour("09");
+    setDepartureMinute("00");
+    setSelectedAirline("");
+    setSelectedCabin("economy");
+    setAirlineRegionFilter("All Regions");
+    setFlightData(null);
+  };
   
   // Effect to filter airlines by region
   useEffect(() => {
@@ -803,6 +888,16 @@ const EnhancedFlightSelection = () => {
                 )}
               </div>
               
+              <div className="mt-2 flex justify-end">
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  onClick={resetAll}
+                >
+                  Reset Form
+                </Button>
+              </div>
+              
               {isSearching && (
                 <div className="absolute z-10 mt-1 w-full bg-background border border-border rounded-md shadow-lg">
                   <Command>
@@ -869,7 +964,7 @@ const EnhancedFlightSelection = () => {
                   <label className="block text-foreground font-medium mb-2 text-sm">
                     Departure Region
                   </label>
-                  <Select value={departureRegion} onValueChange={setDepartureRegion}>
+                  <Select value={departureRegion} onValueChange={setCachedDepartureRegion}>
                     <SelectTrigger className="w-full bg-background">
                       <SelectValue placeholder="Select region" />
                     </SelectTrigger>
@@ -890,7 +985,7 @@ const EnhancedFlightSelection = () => {
                   </label>
                   <Select 
                     value={departureAirport} 
-                    onValueChange={setDepartureAirport}
+                    onValueChange={setCachedDepartureAirport}
                     disabled={!departureRegion}
                   >
                     <SelectTrigger className="w-full bg-background">

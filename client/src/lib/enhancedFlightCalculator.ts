@@ -16,6 +16,12 @@ const airportCoordinates: { [code: string]: { lat: number; lon: number } } = {
   'YYC': { lat: 51.1215, lon: -114.0076 }, // Calgary
   'ANC': { lat: 61.1743, lon: -149.9962 }, // Anchorage
   'MEX': { lat: 19.4363, lon: -99.0721 }, // Mexico City
+  'HNL': { lat: 21.3245, lon: -157.9251 }, // Honolulu, Hawaii
+  'LAS': { lat: 36.0840, lon: -115.1536 }, // Las Vegas
+  'DEN': { lat: 39.8561, lon: -104.6737 }, // Denver
+  'OGG': { lat: 20.8968, lon: -156.4329 }, // Maui, Hawaii
+  'LIH': { lat: 21.9761, lon: -159.3389 }, // Kauai, Hawaii
+  'KOA': { lat: 19.7388, lon: -156.0456 }, // Kona, Hawaii
   
   // Europe
   'LHR': { lat: 51.4700, lon: -0.4543 }, // London
@@ -102,6 +108,12 @@ const airportTimezones: { [code: string]: string } = {
   'YVR': 'America/Vancouver',
   'YYC': 'America/Edmonton',
   'MEX': 'America/Mexico_City',
+  'HNL': 'Pacific/Honolulu',
+  'OGG': 'Pacific/Honolulu',
+  'LIH': 'Pacific/Honolulu',
+  'KOA': 'Pacific/Honolulu',
+  'LAS': 'America/Los_Angeles',
+  'DEN': 'America/Denver',
   
   // Europe
   'LHR': 'Europe/London',

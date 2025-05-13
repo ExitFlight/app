@@ -1205,13 +1205,13 @@ const EnhancedFlightSelection = () => {
                     Time Zone Difference: {flightData.calculatedData.timezoneDifference}
                   </div>
                 )}
-                {flightData.calculatedData?.dayChange > 0 && (
+                {typeof flightData.calculatedData?.dayChange === 'number' && flightData.calculatedData.dayChange > 0 && (
                   <div className="bg-primary/20 rounded-md px-3 py-1.5 text-xs flex items-center text-primary">
                     <Calendar className="h-3.5 w-3.5 mr-1.5" />
                     Arrives {flightData.calculatedData.dayChange} day{flightData.calculatedData.dayChange > 1 ? 's' : ''} later
                   </div>
                 )}
-                {flightData.calculatedData?.exitDay && flightData.calculatedData?.dayChange === 0 && (
+                {flightData.calculatedData?.exitDay && typeof flightData.calculatedData?.dayChange === 'number' && flightData.calculatedData.dayChange === 0 && (
                   <div className="bg-muted/40 rounded-md px-3 py-1.5 text-xs flex items-center">
                     <Calendar className="h-3.5 w-3.5 mr-1.5" />
                     Arrives same day ({flightData.calculatedData.exitDay})

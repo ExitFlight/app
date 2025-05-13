@@ -107,10 +107,12 @@ const airportToRegion: { [airport: string]: string } = {
   'TUN': 'Africa', 'MRU': 'Africa', 'SEZ': 'Africa',
 
   // South America
-  'GRU': 'South America', 'SCL': 'South America', 'BOG': 'South America',
-  'EZE': 'South America', 'LIM': 'South America', 'GIG': 'South America',
-  'UIO': 'South America', 'CCS': 'South America', 'MVD': 'South America',
-  'ASU': 'South America', 'VVI': 'South America', 'CUN': 'South America'
+  'GRU': 'South America', 'CGH': 'South America', 'GIG': 'South America', 'SDU': 'South America',
+  'EZE': 'South America', 'AEP': 'South America', 'SCL': 'South America', 'BOG': 'South America',
+  'LIM': 'South America', 'CCS': 'South America', 'UIO': 'South America', 'GYE': 'South America',
+  'MVD': 'South America', 'ASU': 'South America', 'VVI': 'South America', 'LPB': 'South America',
+  'CUZ': 'South America', 'CTG': 'South America', 'CNF': 'South America', 'FLN': 'South America',
+  'CUN': 'South America'
 };
 
 // Threshold for long-haul flights that might require a layover (in minutes)

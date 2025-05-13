@@ -625,50 +625,54 @@ const EnhancedFlightSelection = () => {
                   </Select>
                 </div>
                 
-                <div>
-                  <label className="block text-foreground font-medium mb-2 text-sm">
-                    Airline
-                  </label>
-                  <Select 
-                    value={selectedAirline} 
-                    onValueChange={setSelectedAirline}
-                    disabled={!departureAirport}
-                  >
-                    <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Select airline" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {departureAirport && (
-                        <>
-                          {/* First show airlines from the departure region */}
-                          <div className="px-2 py-1.5 text-sm font-medium text-muted-foreground">
-                            Based in {getAirportRegion(departureAirport)}
-                          </div>
-                          {airlines
-                            .filter(airline => airline.region === getAirportRegion(departureAirport))
-                            .map((airline) => (
-                              <SelectItem key={airline.code} value={airline.code}>
-                                {airline.code} - {airline.name}
-                              </SelectItem>
-                            ))
-                          }
-                          
-                          {/* Then show other airlines */}
-                          <div className="px-2 py-1.5 mt-2 text-sm font-medium text-muted-foreground">
-                            Other Airlines
-                          </div>
-                          {airlines
-                            .filter(airline => airline.region !== getAirportRegion(departureAirport))
-                            .map((airline) => (
-                              <SelectItem key={airline.code} value={airline.code}>
-                                {airline.code} - {airline.name}
-                              </SelectItem>
-                            ))
-                          }
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-foreground font-medium mb-2 text-sm">
+                      Airline Region Filter (Optional)
+                    </label>
+                    <Select 
+                      value={airlineRegionFilter} 
+                      onValueChange={setAirlineRegionFilter}
+                    >
+                      <SelectTrigger className="w-full bg-background">
+                        <SelectValue placeholder="All Regions" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="All Regions">All Regions</SelectItem>
+                        {Object.keys(majorAirports).map((region) => (
+                          <SelectItem key={region} value={region}>
+                            {region}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {departureAirport && airlineRegionFilter !== getAirportRegion(departureAirport) && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Tip: Airlines from {getAirportRegion(departureAirport)} are common for flights from {departureAirport}
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-foreground font-medium mb-2 text-sm">
+                      Airline
+                    </label>
+                    <Select 
+                      value={selectedAirline} 
+                      onValueChange={setSelectedAirline}
+                    >
+                      <SelectTrigger className="w-full bg-background">
+                        <SelectValue placeholder="Select airline" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredAirlines.map((airline) => (
+                          <SelectItem key={airline.code} value={airline.code}>
+                            {airline.code} - {airline.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 
                 <div>

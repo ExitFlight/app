@@ -80,17 +80,22 @@
   position: relative;
 }
 
-.step-indicator::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 100%;
-  height: 2px;
-  width: 100%;
-  background-color: hsl(var(--muted));
-  z-index: -1;
-}
-
-.step-indicator:last-child::after {
-  display: none;
+/* Only apply lines to desktop view to avoid weird mobile alignment issues */
+@media (min-width: 768px) {
+  .step-indicator::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 2.5rem; /* Adjusted to start after the circle */
+    height: 2px;
+    width: calc(100% - 3rem); /* Subtract circle width and some padding */
+    background-color: hsl(var(--muted));
+    transform: translateY(-50%);
+    z-index: -1;
+  }
+  
+  /* No line after the last step */
+  .step-indicator:last-child::after {
+    display: none;
+  }
 }

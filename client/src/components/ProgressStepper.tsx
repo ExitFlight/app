@@ -28,12 +28,14 @@ const ProgressStepper = ({ currentStep }: ProgressStepperProps) => {
             key={step.id}
             className={cn(
               "flex items-center mb-4 md:mb-0 relative step-indicator",
-              step.id < steps.length ? "w-full" : ""
+              step.id < steps.length ? "md:flex-1" : "", // Use flex-1 for proper spacing on desktop
+              step.id === currentStep ? "z-10" : "" // Add z-index to current step to show over connector line
             )}
           >
             <div
               className={cn(
                 "rounded-full w-7 h-7 md:w-8 md:h-8 flex items-center justify-center font-bold mr-2",
+                "bg-background", // Always use background color behind the circle
                 step.id === currentStep || (location === step.path && step.id <= currentStep)
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground"

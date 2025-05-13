@@ -92,10 +92,16 @@ export class MemStorage implements IStorage {
     // Add airports
     const airports: InsertAirport[] = [
       // North America
+      // United States
       { code: "JFK", name: "John F. Kennedy International Airport", city: "New York", country: "United States", region: "North America" },
       { code: "LAX", name: "Los Angeles International Airport", city: "Los Angeles", country: "United States", region: "North America" },
       { code: "ORD", name: "O'Hare International Airport", city: "Chicago", country: "United States", region: "North America" },
+      { code: "ANC", name: "Ted Stevens Anchorage International Airport", city: "Anchorage", country: "United States", region: "North America" },
+      
+      // Canada
       { code: "YYZ", name: "Toronto Pearson International Airport", city: "Toronto", country: "Canada", region: "North America" },
+      { code: "YVR", name: "Vancouver International Airport", city: "Vancouver", country: "Canada", region: "North America" },
+      { code: "YYC", name: "Calgary International Airport", city: "Calgary", country: "Canada", region: "North America" },
       
       // Mexico
       { code: "MEX", name: "Mexico City International Airport", city: "Mexico City", country: "Mexico", region: "North America" },

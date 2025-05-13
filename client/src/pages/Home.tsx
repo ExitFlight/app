@@ -78,8 +78,8 @@ const Home = () => {
             className="rounded-lg w-full h-28 md:h-48 object-cover" 
           />
           <img 
-            src="https://images.unsplash.com/photo-1546647071-676cd5256667?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300" 
-            alt="Mount Fuji in Japan" 
+            src="https://images.unsplash.com/photo-1455156218388-5e61b526818b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300" 
+            alt="Snow-capped mountain peak" 
             className="rounded-lg w-full h-28 md:h-48 object-cover" 
           />
           <img 

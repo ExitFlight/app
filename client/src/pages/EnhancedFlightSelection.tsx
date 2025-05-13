@@ -177,6 +177,28 @@ const majorAirports = {
     { code: "AUH", name: "Abu Dhabi" },
     { code: "RUH", name: "Riyadh" }
   ],
+  "Central America": [
+    { code: "PTY", name: "Panama City Tocumen" },
+    { code: "PAC", name: "Panama City Albrook" },
+    { code: "SJO", name: "San José, Costa Rica" },
+    { code: "LIR", name: "Liberia, Costa Rica" },
+    { code: "SAL", name: "San Salvador, El Salvador" },
+    { code: "GUA", name: "Guatemala City" },
+    { code: "TGU", name: "Tegucigalpa, Honduras" },
+    { code: "SAP", name: "San Pedro Sula, Honduras" },
+    { code: "RTB", name: "Roatán, Honduras" },
+    { code: "MGA", name: "Managua, Nicaragua" },
+    { code: "BZE", name: "Belize City" },
+    { code: "SDQ", name: "Santo Domingo, Dominican Republic" },
+    { code: "PUJ", name: "Punta Cana, Dominican Republic" },
+    { code: "HAV", name: "Havana, Cuba" },
+    { code: "VRA", name: "Varadero, Cuba" },
+    { code: "GCM", name: "Grand Cayman" },
+    { code: "MBJ", name: "Montego Bay, Jamaica" },
+    { code: "KIN", name: "Kingston, Jamaica" },
+    { code: "ANU", name: "Antigua" },
+    { code: "SJU", name: "San Juan, Puerto Rico" }
+  ],
   "South America": [
     { code: "GRU", name: "São Paulo Guarulhos" },
     { code: "CGH", name: "São Paulo Congonhas" },

@@ -138,6 +138,31 @@ export const airlinesGroupedByRegion = [
     ].sort((a, b) => a.name.localeCompare(b.name)),
   },
   {
+    regionName: "Central America & Caribbean",
+    airlines: [
+      // Panama
+      { code: "CM", name: "Copa Airlines" },
+      // Costa Rica
+      { code: "LR", name: "LACSA (Avianca Costa Rica)" },
+      // El Salvador
+      { code: "TA", name: "TACA (Avianca El Salvador)" },
+      // Dominican Republic
+      { code: "7I", name: "Aerolínea Mas" },
+      // Cuba
+      { code: "CU", name: "Cubana de Aviación" },
+      // Jamaica
+      { code: "BW", name: "Caribbean Airlines" },
+      // Puerto Rico
+      { code: "BB", name: "Seaborne Airlines" },
+      // Bahamas
+      { code: "UP", name: "Bahamasair" },
+      // Mexico (often grouped with Central America)
+      { code: "AM", name: "Aeroméxico" },
+      { code: "Y4", name: "Volaris" },
+      { code: "4O", name: "Interjet" }
+    ].sort((a, b) => a.name.localeCompare(b.name)),
+  },
+  {
     regionName: "South America",
     airlines: [
       // Brazil

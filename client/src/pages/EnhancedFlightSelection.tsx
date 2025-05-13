@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowRight, Plane, Clock, CalendarIcon } from "lucide-react";
+import { ArrowRight, Plane, Clock, CalendarIcon, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDistance } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -22,6 +22,16 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
 import ProgressStepper from "@/components/ProgressStepper";
 import AirlineLogo from "@/components/AirlineLogo";
 import { type Airport } from "@shared/schema";
@@ -288,6 +298,19 @@ const EnhancedFlightSelection = () => {
   const [airlineRegionFilter, setAirlineRegionFilter] = useState<string>("All Regions");
   const [filteredAirlines, setFilteredAirlines] = useState(allAirlines);
   
+  // Search functionality
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [searchResults, setSearchResults] = useState<{airports: any[], airlines: any[]}>({
+    airports: [], 
+    airlines: []
+  });
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  
+  // Flattened list of all airports
+  const allAirportsList = Object.entries(majorAirports).flatMap(([region, airports]) => 
+    airports.map(airport => ({...airport, region}))
+  ).sort((a, b) => a.code.localeCompare(b.code));
+  
   // Generated flight state
   const [flightData, setFlightData] = useState<EnhancedFlightDetails | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -321,6 +344,67 @@ const EnhancedFlightSelection = () => {
       }
     }
   }, [departureAirport]);
+  
+  // Search functionality
+  const handleSearch = (search: string) => {
+    setSearchTerm(search);
+    
+    if (!search || search.length < 2) {
+      setSearchResults({ airports: [], airlines: [] });
+      setIsSearching(false);
+      return;
+    }
+    
+    setIsSearching(true);
+    const searchLower = search.toLowerCase();
+    
+    // Search airports
+    const airportResults = allAirportsList.filter(airport => 
+      airport.code.toLowerCase().includes(searchLower) || 
+      airport.name.toLowerCase().includes(searchLower)
+    ).slice(0, 10); // Limit results
+    
+    // Search airlines
+    const airlineResults = allAirlines.filter(airline => 
+      airline.code.toLowerCase().includes(searchLower) || 
+      airline.name.toLowerCase().includes(searchLower)
+    ).slice(0, 10); // Limit results
+    
+    setSearchResults({
+      airports: airportResults,
+      airlines: airlineResults
+    });
+  };
+  
+  // Handle selecting an airport from search
+  const handleSelectAirportFromSearch = (airport: any) => {
+    // Set region first
+    const selectedRegion = airport.region;
+    
+    // Then set airport - we need to manage both departure and destination
+    if (!departureAirport) {
+      setDepartureRegion(selectedRegion);
+      setDepartureAirport(airport.code);
+    } else if (!destinationAirport) {
+      setDestinationRegion(selectedRegion);
+      setDestinationAirport(airport.code);
+    } else {
+      // Both are filled, replace departure
+      setDepartureRegion(selectedRegion);
+      setDepartureAirport(airport.code);
+    }
+    
+    // Clear search
+    setSearchTerm("");
+    setIsSearching(false);
+  };
+  
+  // Handle selecting an airline from search
+  const handleSelectAirlineFromSearch = (airline: any) => {
+    setSelectedAirline(airline.code);
+    setSearchTerm("");
+    setIsSearching(false);
+  };
   
   // Generate flight number
   const generateFlightNumber = (airlineCode: string): string => {
@@ -503,6 +587,66 @@ const EnhancedFlightSelection = () => {
       <div className="max-w-4xl mx-auto">
         <h2 className="text-xl md:text-2xl font-semibold mb-4 md:mb-6 text-foreground">Select Your Flight</h2>
         
+        {/* Search Bar */}
+        <Card className="mb-6 md:mb-6 border-border bg-card">
+          <CardContent className="p-4 md:p-6">
+            <div className="relative">
+              <div className="flex">
+                <Input
+                  type="text"
+                  placeholder="Search for airports or airlines..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="flex-1 pr-10"
+                />
+                <Button variant="ghost" className="absolute right-2 top-1/2 transform -translate-y-1/2" disabled>
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              {isSearching && (searchResults.airports.length > 0 || searchResults.airlines.length > 0) && (
+                <div className="absolute z-10 mt-1 w-full bg-background border border-border rounded-md shadow-lg">
+                  <Command>
+                    <CommandList>
+                      {searchResults.airports.length > 0 && (
+                        <CommandGroup heading="Airports">
+                          {searchResults.airports.map((airport) => (
+                            <CommandItem 
+                              key={airport.code}
+                              onSelect={() => handleSelectAirportFromSearch(airport)}
+                              className="cursor-pointer"
+                            >
+                              <span className="font-medium">{airport.code}</span> - {airport.name} ({airport.region})
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      )}
+                      
+                      {searchResults.airlines.length > 0 && (
+                        <CommandGroup heading="Airlines">
+                          {searchResults.airlines.map((airline) => (
+                            <CommandItem 
+                              key={airline.code}
+                              onSelect={() => handleSelectAirlineFromSearch(airline)}
+                              className="cursor-pointer"
+                            >
+                              {airline.name} ({airline.code})
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      )}
+                      
+                      {searchResults.airports.length === 0 && searchResults.airlines.length === 0 && (
+                        <CommandEmpty>No results found</CommandEmpty>
+                      )}
+                    </CommandList>
+                  </Command>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
         <Card className="mb-6 md:mb-8 border-border bg-card">
           <CardContent className="p-4 md:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -516,6 +660,7 @@ const EnhancedFlightSelection = () => {
                       <SelectValue placeholder="Select region" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem key="all-regions" value="All Regions">All Regions</SelectItem>
                       {Object.keys(majorAirports).map((region) => (
                         <SelectItem key={region} value={region}>
                           {region}
@@ -538,11 +683,21 @@ const EnhancedFlightSelection = () => {
                       <SelectValue placeholder="Select departure airport" />
                     </SelectTrigger>
                     <SelectContent>
-                      {departureRegion && majorAirports[departureRegion as keyof typeof majorAirports].map((airport) => (
-                        <SelectItem key={airport.code} value={airport.code}>
-                          {airport.code} - {airport.name}
-                        </SelectItem>
-                      ))}
+                      {departureRegion === "All Regions" ? (
+                        // Show all airports sorted by code when "All Regions" is selected
+                        allAirportsList.map((airport) => (
+                          <SelectItem key={airport.code} value={airport.code}>
+                            {airport.code} - {airport.name}
+                          </SelectItem>
+                        ))
+                      ) : departureRegion && (
+                        // Show airports for the selected region
+                        majorAirports[departureRegion as keyof typeof majorAirports].map((airport) => (
+                          <SelectItem key={airport.code} value={airport.code}>
+                            {airport.code} - {airport.name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>

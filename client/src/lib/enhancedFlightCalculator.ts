@@ -1,5 +1,5 @@
-import { format, addMinutes, differenceInDays } from 'date-fns';
-import { toZonedTime, formatInTimeZone, getTimezoneOffset } from 'date-fns-tz';
+import { format, addMinutes, differenceInDays, differenceInHours } from 'date-fns';
+import { toZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 // Airport coordinates with latitude and longitude
 const airportCoordinates: { [code: string]: { lat: number; lon: number } } = {
@@ -311,19 +311,16 @@ export function formatDuration(minutes: number): string {
  */
 export function calculateTimezoneDifference(timezone1: string, timezone2: string): number {
   // Create a reference date for comparison
-  const date = new Date();
+  const referenceDate = new Date();
   
-  // Get offset in minutes for both timezones by converting to zoned time
-  // and checking the difference to UTC
-  const zone1Date = toZonedTime(date, timezone1);
-  const zone2Date = toZonedTime(date, timezone2);
+  // Convert the reference date to both timezones
+  const time1 = toZonedTime(referenceDate, timezone1);
+  const time2 = toZonedTime(referenceDate, timezone2);
   
-  const offset1 = zone1Date.getTimezoneOffset();
-  const offset2 = zone2Date.getTimezoneOffset();
+  // Calculate the difference in hours
+  const diffHours = differenceInHours(time2, time1);
   
-  // Calculate difference in hours (offset is in minutes)
-  // getTimezoneOffset returns the difference in minutes between UTC and local time
-  return (offset1 - offset2) / 60;
+  return diffHours;
 }
 
 /**

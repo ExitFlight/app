@@ -11,9 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowRight, Plane, Clock, Calendar } from "lucide-react";
+import { ArrowRight, Plane, Clock, CalendarIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDistance } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import ProgressStepper from "@/components/ProgressStepper";
 import AirlineLogo from "@/components/AirlineLogo";
@@ -195,7 +202,9 @@ const EnhancedFlightSelection = () => {
   const [destinationRegion, setDestinationRegion] = useState<string>("");
   const [departureAirport, setDepartureAirport] = useState<string>(flightDetails?.departureAirport || "");
   const [destinationAirport, setDestinationAirport] = useState<string>(flightDetails?.arrivalAirport || "");
-  const [departureDate, setDepartureDate] = useState<string>(flightDetails?.departureDate || dateOptions[0].value);
+  const [departureDate, setDepartureDate] = useState<Date | undefined>(
+    flightDetails?.departureDate ? new Date(flightDetails.departureDate) : new Date()
+  );
   const [departureHour, setDepartureHour] = useState<string>("09");
   const [departureMinute, setDepartureMinute] = useState<string>("00");
   const [selectedAirline, setSelectedAirline] = useState<string>("");
@@ -251,6 +260,9 @@ const EnhancedFlightSelection = () => {
     setFlightData(null);
 
     try {
+      // Format date to YYYY-MM-DD
+      const formattedDate = departureDate ? format(departureDate, "yyyy-MM-dd") : "";
+      
       // Combine hour and minute for departure time
       const departureTime = `${departureHour}:${departureMinute}`;
       
@@ -258,7 +270,7 @@ const EnhancedFlightSelection = () => {
       const calculatedData = await calculateEnhancedFlightDetails(
         departureAirport,
         destinationAirport,
-        departureDate,
+        formattedDate,
         departureTime
       );
       
@@ -314,6 +326,9 @@ const EnhancedFlightSelection = () => {
       return;
     }
     
+    // Format date to YYYY-MM-DD
+    const formattedDate = departureDate ? format(departureDate, "yyyy-MM-dd") : "";
+    
     // Combine hour and minute for departure time
     const departureTime = `${departureHour}:${departureMinute}`;
     
@@ -321,7 +336,7 @@ const EnhancedFlightSelection = () => {
     setFlightDetails({
       departureAirport: flightData.departureAirport,
       arrivalAirport: flightData.arrivalAirport,
-      departureDate: flightData.departureDate,
+      departureDate: formattedDate,
       departureTime: flightData.departureTime,
       calculatedFlightData: flightData
     });
@@ -433,18 +448,30 @@ const EnhancedFlightSelection = () => {
                   <label className="block text-foreground font-medium mb-2 text-sm">
                     Departure Date
                   </label>
-                  <Select value={departureDate} onValueChange={setDepartureDate}>
-                    <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Select date" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {dateOptions.map((date) => (
-                        <SelectItem key={date.value} value={date.value}>
-                          {date.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal bg-background"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {departureDate ? (
+                          format(departureDate, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={departureDate}
+                        onSelect={setDepartureDate}
+                        initialFocus
+                        disabled={(date) => date < new Date()}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 
                 <div>

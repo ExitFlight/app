@@ -359,16 +359,53 @@ const EnhancedFlightSelection = () => {
     const searchLower = search.toLowerCase();
     
     // Search airports
-    const airportResults = allAirportsList.filter(airport => 
+    let airportResults = allAirportsList.filter(airport => 
       airport.code.toLowerCase().includes(searchLower) || 
       airport.name.toLowerCase().includes(searchLower)
-    ).slice(0, 10); // Limit results
+    );
     
-    // Search airlines
-    const airlineResults = allAirlines.filter(airline => 
+    // Prioritize exact code matches (move them to the top)
+    airportResults.sort((a, b) => {
+      // Exact code match gets top priority
+      if (a.code.toLowerCase() === searchLower) return -1;
+      if (b.code.toLowerCase() === searchLower) return 1;
+      
+      // Then prioritize codes that start with the search term
+      const aCodeStarts = a.code.toLowerCase().startsWith(searchLower);
+      const bCodeStarts = b.code.toLowerCase().startsWith(searchLower);
+      
+      if (aCodeStarts && !bCodeStarts) return -1;
+      if (!aCodeStarts && bCodeStarts) return 1;
+      
+      // Default sort by code
+      return a.code.localeCompare(b.code);
+    });
+    
+    // Limit results
+    airportResults = airportResults.slice(0, 10);
+    
+    // Search airlines and prioritize exact code matches
+    let airlineResults = allAirlines.filter(airline => 
       airline.code.toLowerCase().includes(searchLower) || 
       airline.name.toLowerCase().includes(searchLower)
-    ).slice(0, 10); // Limit results
+    );
+    
+    // Prioritize exact airline code matches
+    airlineResults.sort((a, b) => {
+      if (a.code.toLowerCase() === searchLower) return -1;
+      if (b.code.toLowerCase() === searchLower) return 1;
+      
+      const aCodeStarts = a.code.toLowerCase().startsWith(searchLower);
+      const bCodeStarts = b.code.toLowerCase().startsWith(searchLower);
+      
+      if (aCodeStarts && !bCodeStarts) return -1;
+      if (!aCodeStarts && bCodeStarts) return 1;
+      
+      return a.name.localeCompare(b.name);
+    });
+    
+    // Limit results
+    airlineResults = airlineResults.slice(0, 10);
     
     setSearchResults({
       airports: airportResults,

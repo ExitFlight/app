@@ -435,13 +435,22 @@ const EnhancedFlightSelection = () => {
   const handleSearch = (search: string) => {
     setSearchTerm(search);
     
+    // Always stay in searching mode once the user has clicked the search bar
+    setIsSearching(true);
+    
     if (!search || search.length < 1) {
-      setSearchResults({ airports: [], airlines: [] });
-      setIsSearching(false);
+      // Show a default set of popular airports when no search term
+      const popularAirports = allAirportsList
+        .filter(a => ['JFK', 'LAX', 'SFO', 'LHR', 'CDG', 'SIN', 'HKG', 'DXB', 'SYD'].includes(a.code))
+        .sort((a, b) => a.code.localeCompare(b.code));
+      
+      setSearchResults({ 
+        airports: popularAirports, 
+        airlines: [] 
+      });
       return;
     }
     
-    setIsSearching(true);
     const searchLower = search.toLowerCase().trim();
     
     // Log all airports for debugging
@@ -545,16 +554,16 @@ const EnhancedFlightSelection = () => {
       setDepartureAirport(airport.code);
     }
     
-    // Clear search
+    // Don't hide search results, just clear the search term
+    // This allows users to immediately search for something else
     setSearchTerm("");
-    setIsSearching(false);
   };
   
   // Handle selecting an airline from search
   const handleSelectAirlineFromSearch = (airline: any) => {
     setSelectedAirline(airline.code);
     setSearchTerm("");
-    setIsSearching(false);
+    // Keep search box open for further selections
   };
   
   // Generate flight number
@@ -748,11 +757,26 @@ const EnhancedFlightSelection = () => {
                   placeholder="Search for airports or airlines..."
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
+                  onFocus={() => setIsSearching(true)}
                   className="flex-1 pr-10"
                 />
-                <Button variant="ghost" className="absolute right-2 top-1/2 transform -translate-y-1/2" disabled>
-                  <Search className="h-4 w-4" />
-                </Button>
+                {isSearching ? (
+                  <Button 
+                    variant="ghost" 
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                    onClick={() => setIsSearching(false)}
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="ghost" 
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                    onClick={() => setIsSearching(true)}
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
               
               {isSearching && (searchResults.airports.length > 0 || searchResults.airlines.length > 0) && (

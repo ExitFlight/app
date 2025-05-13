@@ -9,7 +9,12 @@ const airportCoordinates: { [code: string]: { lat: number; lon: number } } = {
   'ORD': { lat: 41.9742, lon: -87.9073 }, // Chicago
   'DFW': { lat: 32.8998, lon: -97.0403 }, // Dallas
   'MIA': { lat: 25.7932, lon: -80.2906 }, // Miami
+  'SFO': { lat: 37.6213, lon: -122.3790 }, // San Francisco
+  'SEA': { lat: 47.4502, lon: -122.3088 }, // Seattle
   'YYZ': { lat: 43.6777, lon: -79.6248 }, // Toronto
+  'YVR': { lat: 49.1967, lon: -123.1815 }, // Vancouver
+  'YYC': { lat: 51.1215, lon: -114.0076 }, // Calgary
+  'ANC': { lat: 61.1743, lon: -149.9962 }, // Anchorage
   'MEX': { lat: 19.4363, lon: -99.0721 }, // Mexico City
   
   // Europe
@@ -20,6 +25,16 @@ const airportCoordinates: { [code: string]: { lat: number; lon: number } } = {
   'MAD': { lat: 40.4983, lon: -3.5676 }, // Madrid
   'FCO': { lat: 41.8003, lon: 12.2389 }, // Rome
   'ZRH': { lat: 47.4582, lon: 8.5555 }, // Zurich
+  
+  // Northern Europe
+  'DUB': { lat: 53.4264, lon: -6.2499 }, // Dublin
+  'ARN': { lat: 59.6498, lon: 17.9237 }, // Stockholm
+  'CPH': { lat: 55.6180, lon: 12.6508 }, // Copenhagen
+  'OSL': { lat: 60.1975, lon: 11.1004 }, // Oslo
+  'HEL': { lat: 60.3172, lon: 24.9633 }, // Helsinki
+  'KEF': { lat: 63.9850, lon: -22.6056 }, // Reykjavík
+  'TLL': { lat: 59.4133, lon: 24.8327 }, // Tallinn
+  'RIX': { lat: 56.9236, lon: 23.9711 }, // Riga
   
   // Asia
   'HND': { lat: 35.5494, lon: 139.7798 }, // Tokyo Haneda

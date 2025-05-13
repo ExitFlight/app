@@ -1029,7 +1029,7 @@ const EnhancedFlightSelection = () => {
                 disabled={!departureAirport || !destinationAirport || !selectedAirline || isLoading}
                 className="w-full md:w-auto"
               >
-                {isLoading ? "Generating Flight..." : "Generate Flight"}
+                {isLoading ? "Processing..." : "Go to Passenger Details"}
               </Button>
             </div>
             

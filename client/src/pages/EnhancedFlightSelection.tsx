@@ -114,12 +114,33 @@ const majorAirports = {
     { code: "FLN", name: "Florianópolis" }
   ],
   "Africa": [
-    { code: "JNB", name: "Johannesburg" },
+    // South Africa
+    { code: "JNB", name: "Johannesburg O.R. Tambo" },
+    { code: "DUR", name: "Durban King Shaka" },
     { code: "CPT", name: "Cape Town" },
+    { code: "PLZ", name: "Port Elizabeth" },
+    // Morocco
+    { code: "CMN", name: "Casablanca Mohammed V" },
+    { code: "RAK", name: "Marrakesh Menara" },
+    { code: "FEZ", name: "Fez" },
+    { code: "AGA", name: "Agadir" },
+    { code: "TNG", name: "Tangier Ibn Battouta" },
+    // North Africa
     { code: "CAI", name: "Cairo" },
+    { code: "ALG", name: "Algiers" },
+    { code: "TUN", name: "Tunis Carthage" },
+    // West Africa
     { code: "NBO", name: "Nairobi" },
     { code: "LOS", name: "Lagos" },
-    { code: "ACC", name: "Accra" }
+    { code: "ACC", name: "Accra" },
+    { code: "DKR", name: "Dakar" },
+    // East Africa
+    { code: "ADD", name: "Addis Ababa" },
+    { code: "DAR", name: "Dar es Salaam" },
+    { code: "EBB", name: "Entebbe" },
+    // Islands
+    { code: "SEZ", name: "Seychelles" },
+    { code: "MRU", name: "Mauritius" }
   ]
 };
 

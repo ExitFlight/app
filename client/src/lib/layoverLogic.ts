@@ -101,10 +101,17 @@ const airportToRegion: { [airport: string]: string } = {
   'NAN': 'Oceania', 'PPT': 'Oceania', 'APW': 'Oceania',
 
   // Africa
-  'JNB': 'Africa', 'CAI': 'Africa', 'CPT': 'Africa', 'LOS': 'Africa',
-  'ADD': 'Africa', 'NBO': 'Africa', 'ACC': 'Africa', 'DKR': 'Africa',
-  'DAR': 'Africa', 'RAK': 'Africa', 'CMN': 'Africa', 'ALG': 'Africa',
-  'TUN': 'Africa', 'MRU': 'Africa', 'SEZ': 'Africa',
+  // South Africa
+  'JNB': 'Africa', 'DUR': 'Africa', 'CPT': 'Africa', 'PLZ': 'Africa',
+  // Morocco
+  'CMN': 'Africa', 'RAK': 'Africa', 'FEZ': 'Africa', 'AGA': 'Africa', 'TNG': 'Africa', 
+  // North Africa
+  'CAI': 'Africa', 'ALG': 'Africa', 'TUN': 'Africa',
+  // East and West Africa
+  'LOS': 'Africa', 'ADD': 'Africa', 'NBO': 'Africa', 'ACC': 'Africa', 'DKR': 'Africa',
+  'DAR': 'Africa', 'EBB': 'Africa',
+  // Islands
+  'MRU': 'Africa', 'SEZ': 'Africa',
 
   // South America
   'GRU': 'South America', 'CGH': 'South America', 'GIG': 'South America', 'SDU': 'South America',
@@ -143,8 +150,14 @@ export function determineFlightPath(
   const routeKey = `${originCode}-${destCode}`;
   
   // Default result structure
-  const result = {
-    segments: [] as Array<{ origin: string; destination: string; durationMinutes: number }>,
+  const result: {
+    segments: Array<{ origin: string; destination: string; durationMinutes: number }>;
+    requiresLayover: boolean;
+    layoverAirport?: string;
+    layoverDurationMinutes?: number;
+    totalDurationMinutes: number;
+  } = {
+    segments: [],
     requiresLayover: false,
     totalDurationMinutes: baseDurationMinutes
   };

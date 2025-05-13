@@ -116,6 +116,44 @@ export class MemStorage implements IStorage {
       { code: "AMS", name: "Amsterdam Airport Schiphol", city: "Amsterdam", country: "Netherlands", region: "Europe" },
       { code: "FCO", name: "Leonardo da Vinci International Airport", city: "Rome", country: "Italy", region: "Europe" },
       
+      // Northern Europe
+      // Sweden
+      { code: "ARN", name: "Stockholm Arlanda Airport", city: "Stockholm", country: "Sweden", region: "Europe" },
+      { code: "BMA", name: "Stockholm Bromma Airport", city: "Stockholm", country: "Sweden", region: "Europe" },
+      { code: "GOT", name: "Göteborg Landvetter Airport", city: "Gothenburg", country: "Sweden", region: "Europe" },
+      { code: "MMX", name: "Malmö Airport", city: "Malmö", country: "Sweden", region: "Europe" },
+      
+      // Denmark
+      { code: "CPH", name: "Copenhagen Airport", city: "Copenhagen", country: "Denmark", region: "Europe" },
+      { code: "BLL", name: "Billund Airport", city: "Billund", country: "Denmark", region: "Europe" },
+      { code: "AAL", name: "Aalborg Airport", city: "Aalborg", country: "Denmark", region: "Europe" },
+      
+      // Norway
+      { code: "OSL", name: "Oslo Airport, Gardermoen", city: "Oslo", country: "Norway", region: "Europe" },
+      { code: "BGO", name: "Bergen Airport, Flesland", city: "Bergen", country: "Norway", region: "Europe" },
+      { code: "TRD", name: "Trondheim Airport, Værnes", city: "Trondheim", country: "Norway", region: "Europe" },
+      { code: "SVG", name: "Stavanger Airport, Sola", city: "Stavanger", country: "Norway", region: "Europe" },
+      { code: "TOS", name: "Tromsø Airport", city: "Tromsø", country: "Norway", region: "Europe" },
+      
+      // Finland
+      { code: "HEL", name: "Helsinki Airport", city: "Helsinki", country: "Finland", region: "Europe" },
+      { code: "TMP", name: "Tampere-Pirkkala Airport", city: "Tampere", country: "Finland", region: "Europe" },
+      { code: "TKU", name: "Turku Airport", city: "Turku", country: "Finland", region: "Europe" },
+      { code: "OUL", name: "Oulu Airport", city: "Oulu", country: "Finland", region: "Europe" },
+      
+      // Iceland
+      { code: "KEF", name: "Keflavík International Airport", city: "Reykjavík", country: "Iceland", region: "Europe" },
+      { code: "RKV", name: "Reykjavík Airport", city: "Reykjavík", country: "Iceland", region: "Europe" },
+      
+      // Baltic States
+      // Estonia
+      { code: "TLL", name: "Tallinn Airport", city: "Tallinn", country: "Estonia", region: "Europe" },
+      // Latvia
+      { code: "RIX", name: "Riga International Airport", city: "Riga", country: "Latvia", region: "Europe" },
+      // Lithuania
+      { code: "VNO", name: "Vilnius Airport", city: "Vilnius", country: "Lithuania", region: "Europe" },
+      { code: "KUN", name: "Kaunas Airport", city: "Kaunas", country: "Lithuania", region: "Europe" },
+      
       // Middle East
       { code: "DXB", name: "Dubai International Airport", city: "Dubai", country: "United Arab Emirates", region: "Middle East" },
       { code: "DOH", name: "Hamad International Airport", city: "Doha", country: "Qatar", region: "Middle East" },

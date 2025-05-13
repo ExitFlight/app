@@ -1,5 +1,5 @@
-import { format, addMinutes } from 'date-fns';
-import { toZonedTime, formatInTimeZone } from 'date-fns-tz';
+import { format, addMinutes, differenceInDays } from 'date-fns';
+import { toZonedTime, formatInTimeZone, getTimezoneOffset } from 'date-fns-tz';
 
 // Airport coordinates with latitude and longitude
 const airportCoordinates: { [code: string]: { lat: number; lon: number } } = {
@@ -303,6 +303,47 @@ export function formatDuration(minutes: number): string {
  * @param departureTimeStr Optional departure time string
  * @returns Promise resolving to formatted flight details
  */
+/**
+ * Calculate the time difference between two timezones
+ * @param timezone1 First timezone
+ * @param timezone2 Second timezone
+ * @returns Time difference in hours (can be negative)
+ */
+export function calculateTimezoneDifference(timezone1: string, timezone2: string): number {
+  // Create a reference date for comparison
+  const date = new Date();
+  
+  // Get offset in minutes for both timezones by converting to zoned time
+  // and checking the difference to UTC
+  const zone1Date = toZonedTime(date, timezone1);
+  const zone2Date = toZonedTime(date, timezone2);
+  
+  const offset1 = zone1Date.getTimezoneOffset();
+  const offset2 = zone2Date.getTimezoneOffset();
+  
+  // Calculate difference in hours (offset is in minutes)
+  // getTimezoneOffset returns the difference in minutes between UTC and local time
+  return (offset1 - offset2) / 60;
+}
+
+/**
+ * Format a timezone difference as a string like "+3h" or "-5h30m"
+ * @param hoursDiff Time difference in hours
+ * @returns Formatted string with sign
+ */
+export function formatTimezoneDifference(hoursDiff: number): string {
+  const sign = hoursDiff >= 0 ? '+' : '-';
+  const absDiff = Math.abs(hoursDiff);
+  const hours = Math.floor(absDiff);
+  const minutes = Math.round((absDiff - hours) * 60);
+  
+  if (minutes === 0) {
+    return `${sign}${hours}h`;
+  } else {
+    return `${sign}${hours}h${minutes}m`;
+  }
+}
+
 export async function calculateEnhancedFlightDetails(
   originCode: string,
   destCode: string,
@@ -318,6 +359,9 @@ export async function calculateEnhancedFlightDetails(
   departureUTC: Date;
   arrivalUTC: Date;
   distanceKm: number;
+  timezoneDifference: string;
+  dayChange: number;
+  exitDay: string;
 }> {
   // Calculate the realistic flight times
   const {
@@ -344,6 +388,18 @@ export async function calculateEnhancedFlightDetails(
   const arrivalTimeLocal = formatInTimeZone(arrivalUTC, destTimezone, 'HH:mm');
   const arrivalDateLocal = formatInTimeZone(arrivalUTC, destTimezone, 'yyyy-MM-dd');
   
+  // Calculate timezone difference
+  const tzDiffHours = calculateTimezoneDifference(originTimezone, destTimezone);
+  const timezoneDifference = formatTimezoneDifference(tzDiffHours);
+  
+  // Calculate day change (if arrival is on a different day than departure)
+  const departureDateObj = new Date(departureDateLocal);
+  const arrivalDateObj = new Date(arrivalDateLocal);
+  const dayChange = differenceInDays(arrivalDateObj, departureDateObj);
+  
+  // Calculate exit day (based on local time at destination)
+  const exitDay = formatInTimeZone(arrivalUTC, destTimezone, 'EEEE');
+  
   // Format the duration
   const durationFormatted = formatDuration(durationMinutes);
   
@@ -356,6 +412,9 @@ export async function calculateEnhancedFlightDetails(
     durationMinutes,
     departureUTC,
     arrivalUTC,
-    distanceKm
+    distanceKm,
+    timezoneDifference,
+    dayChange,
+    exitDay
   };
 }

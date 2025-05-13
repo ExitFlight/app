@@ -450,8 +450,18 @@ const EnhancedFlightSelection = () => {
     let airlineResults = allAirlines.filter(airline => {
       const codeMatch = airline.code.toLowerCase().includes(searchLower);
       const nameMatch = airline.name.toLowerCase().includes(searchLower);
-      return codeMatch || nameMatch;
+      
+      // Special case for Qantas - also match "Quantas" (common misspelling)
+      const isQantasSearch = searchLower.includes("quant") && airline.code === "QF";
+      
+      return codeMatch || nameMatch || isQantasSearch;
     });
+    
+    // Debug search for airlines
+    console.log(`Search for '${searchLower}' found ${airlineResults.length} airlines`);
+    if (airlineResults.length > 0) {
+      console.log("Airline results:", airlineResults.map(a => `${a.name} (${a.code})`));
+    }
     
     // Prioritize exact airline code matches
     airlineResults.sort((a, b) => {

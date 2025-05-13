@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowRight, Plane, Clock, CalendarIcon, Search } from "lucide-react";
+import { ArrowRight, Plane, Clock, CalendarIcon, Search, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDistance } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -22,6 +22,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
 import {
   Command,
   CommandDialog,
@@ -38,6 +43,7 @@ import { type Airport } from "@shared/schema";
 import { useFlightContext } from "@/lib/context/FlightContext";
 import { calculateEnhancedFlightDetails } from "@/lib/enhancedFlightCalculator";
 import { allAirlines, getAirlinesForRegion, getAirlinesForAirport } from "@/lib/airlineUtil";
+import { directFlightExists } from "@/lib/flightData";
 
 // Major international airports by region
 const majorAirports = {
@@ -382,6 +388,7 @@ const EnhancedFlightSelection = () => {
   const [flightData, setFlightData] = useState<EnhancedFlightDetails | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [hasDirectFlight, setHasDirectFlight] = useState<boolean>(true);
 
   useEffect(() => {
     document.title = "Select Flight - FlightBack";
@@ -411,6 +418,18 @@ const EnhancedFlightSelection = () => {
       }
     }
   }, [departureAirport]);
+  
+  // Effect to check direct flight availability when both airports are selected
+  useEffect(() => {
+    if (departureAirport && destinationAirport) {
+      // Check if a direct flight exists between the two airports
+      const directFlightAvailable = directFlightExists(departureAirport, destinationAirport);
+      setHasDirectFlight(directFlightAvailable);
+    } else {
+      // Reset when airports are not selected
+      setHasDirectFlight(true);
+    }
+  }, [departureAirport, destinationAirport]);
   
   // Search functionality
   const handleSearch = (search: string) => {
@@ -952,6 +971,18 @@ const EnhancedFlightSelection = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                
+                {departureAirport && destinationAirport && !hasDirectFlight && (
+                  <Alert variant="destructive" className="bg-destructive/10 text-destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>No Direct Flights Available</AlertTitle>
+                    <AlertDescription>
+                      There are no direct flights between {departureAirport} and {destinationAirport}. 
+                      In real-world travel, this route would require a connecting flight.
+                      You can still generate a theoretical direct flight for this route.
+                    </AlertDescription>
+                  </Alert>
+                )}
                 
                 <div className="space-y-4">
                   <div>

@@ -112,6 +112,9 @@ const majorAirports = {
     { code: "USM", name: "Koh Samui" },
     { code: "KBV", name: "Krabi" },
     { code: "CEI", name: "Chiang Rai" },
+    { code: "DPS", name: "Denpasar, Bali" },
+    { code: "CGK", name: "Jakarta" },
+    { code: "SUB", name: "Surabaya" },
     { code: "ICN", name: "Seoul Incheon" },
     { code: "DEL", name: "Delhi" },
     { code: "BOM", name: "Mumbai" }
@@ -349,24 +352,34 @@ const EnhancedFlightSelection = () => {
   const handleSearch = (search: string) => {
     setSearchTerm(search);
     
-    if (!search || search.length < 2) {
+    if (!search || search.length < 1) {
       setSearchResults({ airports: [], airlines: [] });
       setIsSearching(false);
       return;
     }
     
     setIsSearching(true);
-    const searchLower = search.toLowerCase();
+    const searchLower = search.toLowerCase().trim();
     
-    // Search airports
-    let airportResults = allAirportsList.filter(airport => 
-      airport.code.toLowerCase().includes(searchLower) || 
-      airport.name.toLowerCase().includes(searchLower)
-    );
+    // Log all airports for debugging
+    console.log("Available airports:", allAirportsList.map(a => a.code));
+    
+    // Search airports (more permissive - even with 1 character)
+    let airportResults = allAirportsList.filter(airport => {
+      const codeMatch = airport.code.toLowerCase().includes(searchLower);
+      const nameMatch = airport.name.toLowerCase().includes(searchLower);
+      return codeMatch || nameMatch;
+    });
+    
+    // Log found results for debugging
+    console.log(`Search for '${searchLower}' found ${airportResults.length} airports`);
+    if (airportResults.length > 0) {
+      console.log("First few results:", airportResults.slice(0, 3).map(a => `${a.code} - ${a.name}`));
+    }
     
     // Prioritize exact code matches (move them to the top)
     airportResults.sort((a, b) => {
-      // Exact code match gets top priority
+      // Exact code match gets top priority (case insensitive)
       if (a.code.toLowerCase() === searchLower) return -1;
       if (b.code.toLowerCase() === searchLower) return 1;
       
@@ -377,18 +390,26 @@ const EnhancedFlightSelection = () => {
       if (aCodeStarts && !bCodeStarts) return -1;
       if (!aCodeStarts && bCodeStarts) return 1;
       
+      // Next priority: names that start with the search term
+      const aNameStarts = a.name.toLowerCase().startsWith(searchLower);
+      const bNameStarts = b.name.toLowerCase().startsWith(searchLower);
+      
+      if (aNameStarts && !bNameStarts) return -1;
+      if (!aNameStarts && bNameStarts) return 1;
+      
       // Default sort by code
       return a.code.localeCompare(b.code);
     });
     
     // Limit results
-    airportResults = airportResults.slice(0, 10);
+    airportResults = airportResults.slice(0, 15);
     
     // Search airlines and prioritize exact code matches
-    let airlineResults = allAirlines.filter(airline => 
-      airline.code.toLowerCase().includes(searchLower) || 
-      airline.name.toLowerCase().includes(searchLower)
-    );
+    let airlineResults = allAirlines.filter(airline => {
+      const codeMatch = airline.code.toLowerCase().includes(searchLower);
+      const nameMatch = airline.name.toLowerCase().includes(searchLower);
+      return codeMatch || nameMatch;
+    });
     
     // Prioritize exact airline code matches
     airlineResults.sort((a, b) => {
@@ -816,6 +837,7 @@ const EnhancedFlightSelection = () => {
                       <SelectValue placeholder="Select region" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem key="all-regions" value="All Regions">All Regions</SelectItem>
                       {Object.keys(majorAirports).map((region) => (
                         <SelectItem key={region} value={region}>
                           {region}
@@ -838,11 +860,21 @@ const EnhancedFlightSelection = () => {
                       <SelectValue placeholder="Select destination airport" />
                     </SelectTrigger>
                     <SelectContent>
-                      {destinationRegion && majorAirports[destinationRegion as keyof typeof majorAirports].map((airport) => (
-                        <SelectItem key={airport.code} value={airport.code}>
-                          {airport.code} - {airport.name}
-                        </SelectItem>
-                      ))}
+                      {destinationRegion === "All Regions" ? (
+                        // Show all airports sorted by code when "All Regions" is selected
+                        allAirportsList.map((airport) => (
+                          <SelectItem key={airport.code} value={airport.code}>
+                            {airport.code} - {airport.name}
+                          </SelectItem>
+                        ))
+                      ) : destinationRegion && (
+                        // Show airports for the selected region
+                        majorAirports[destinationRegion as keyof typeof majorAirports].map((airport) => (
+                          <SelectItem key={airport.code} value={airport.code}>
+                            {airport.code} - {airport.name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>

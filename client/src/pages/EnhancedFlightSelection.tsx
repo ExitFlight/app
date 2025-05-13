@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowRight, Plane, Clock, CalendarIcon, Search, AlertTriangle } from "lucide-react";
+import { ArrowRight, Plane, Clock, CalendarIcon, Search, AlertTriangle, RefreshCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDistance } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -1175,7 +1175,7 @@ const EnhancedFlightSelection = () => {
                     </label>
                     <Select 
                       value={selectedAirline} 
-                      onValueChange={setSelectedAirline}
+                      onValueChange={setCachedSelectedAirline}
                     >
                       <SelectTrigger className="w-full bg-background">
                         <SelectValue placeholder="Select airline" />
@@ -1195,7 +1195,7 @@ const EnhancedFlightSelection = () => {
                   <label className="block text-foreground font-medium mb-2 text-sm">
                     Cabin Class
                   </label>
-                  <Select value={selectedCabin} onValueChange={setSelectedCabin}>
+                  <Select value={selectedCabin} onValueChange={setCachedSelectedCabin}>
                     <SelectTrigger className="w-full bg-background">
                       <SelectValue placeholder="Select cabin class" />
                     </SelectTrigger>
@@ -1211,7 +1211,15 @@ const EnhancedFlightSelection = () => {
               </div>
             </div>
             
-            <div className="mt-6 flex justify-center">
+            <div className="mt-6 flex justify-between items-center flex-wrap gap-4">
+              <Button 
+                variant="outline"
+                onClick={resetAll}
+                className="text-muted-foreground hover:text-destructive border-muted-foreground"
+              >
+                <RefreshCcw className="mr-2 h-4 w-4" /> Reset All Selections
+              </Button>
+              
               <Button 
                 onClick={handleGenerateFlight}
                 disabled={!departureAirport || !destinationAirport || !selectedAirline || isLoading}

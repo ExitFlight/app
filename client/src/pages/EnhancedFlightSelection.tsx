@@ -1047,7 +1047,7 @@ const EnhancedFlightSelection = () => {
                   </label>
                   <div className="flex space-x-2">
                     <div className="w-1/2">
-                      <Select value={departureHour} onValueChange={setDepartureHour}>
+                      <Select value={departureHour} onValueChange={setCachedDepartureHour}>
                         <SelectTrigger className="w-full bg-background">
                           <SelectValue placeholder="Hour" />
                         </SelectTrigger>
@@ -1061,7 +1061,7 @@ const EnhancedFlightSelection = () => {
                       </Select>
                     </div>
                     <div className="w-1/2">
-                      <Select value={departureMinute} onValueChange={setDepartureMinute}>
+                      <Select value={departureMinute} onValueChange={setCachedDepartureMinute}>
                         <SelectTrigger className="w-full bg-background">
                           <SelectValue placeholder="Minute" />
                         </SelectTrigger>
@@ -1083,7 +1083,7 @@ const EnhancedFlightSelection = () => {
                   <label className="block text-foreground font-medium mb-2 text-sm">
                     Destination Region
                   </label>
-                  <Select value={destinationRegion} onValueChange={setDestinationRegion}>
+                  <Select value={destinationRegion} onValueChange={setCachedDestinationRegion}>
                     <SelectTrigger className="w-full bg-background">
                       <SelectValue placeholder="Select region" />
                     </SelectTrigger>
@@ -1104,7 +1104,7 @@ const EnhancedFlightSelection = () => {
                   </label>
                   <Select 
                     value={destinationAirport} 
-                    onValueChange={setDestinationAirport}
+                    onValueChange={setCachedDestinationAirport}
                   >
                     <SelectTrigger className="w-full bg-background">
                       <SelectValue placeholder="Select destination airport" />
@@ -1148,7 +1148,7 @@ const EnhancedFlightSelection = () => {
                     </label>
                     <Select 
                       value={airlineRegionFilter} 
-                      onValueChange={setAirlineRegionFilter}
+                      onValueChange={setCachedAirlineRegionFilter}
                     >
                       <SelectTrigger className="w-full bg-background">
                         <SelectValue placeholder="All Regions" />

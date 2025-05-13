@@ -95,7 +95,12 @@ const airportTimezones: { [code: string]: string } = {
   'ORD': 'America/Chicago',
   'DFW': 'America/Chicago',
   'MIA': 'America/New_York',
+  'SFO': 'America/Los_Angeles',
+  'SEA': 'America/Los_Angeles',
+  'ANC': 'America/Anchorage',
   'YYZ': 'America/Toronto',
+  'YVR': 'America/Vancouver',
+  'YYC': 'America/Edmonton',
   'MEX': 'America/Mexico_City',
   
   // Europe
@@ -106,6 +111,17 @@ const airportTimezones: { [code: string]: string } = {
   'MAD': 'Europe/Madrid',
   'FCO': 'Europe/Rome',
   'ZRH': 'Europe/Zurich',
+  
+  // Northern Europe
+  'DUB': 'Europe/Dublin',
+  'ARN': 'Europe/Stockholm',
+  'CPH': 'Europe/Copenhagen',
+  'OSL': 'Europe/Oslo',
+  'HEL': 'Europe/Helsinki',
+  'KEF': 'Atlantic/Reykjavik',
+  'TLL': 'Europe/Tallinn',
+  'RIX': 'Europe/Riga',
+  'VNO': 'Europe/Vilnius',
   
   // Asia
   'HND': 'Asia/Tokyo',

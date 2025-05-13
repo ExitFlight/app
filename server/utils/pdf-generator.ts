@@ -1,7 +1,128 @@
 import PDFDocument from 'pdfkit';
 import { TicketWithDetails } from '@shared/schema';
 
+// Define different airline template styles
+interface AirlineTemplate {
+  primaryColor: string;
+  secondaryColor: string;
+  fontFamily: string;
+  logoPosition: 'left' | 'center' | 'right';
+  paperSize: [number, number]; // [width, height] in points
+  usesQrCode: boolean;
+}
+
+// Airline-specific template configurations
+const airlineTemplates: Record<string, AirlineTemplate> = {
+  // North American airlines
+  'AA': { // American Airlines
+    primaryColor: '#0078D2',
+    secondaryColor: '#C4002B',
+    fontFamily: 'Helvetica',
+    logoPosition: 'left',
+    paperSize: [595.28, 841.89], // A4
+    usesQrCode: true
+  },
+  'DL': { // Delta Airlines
+    primaryColor: '#003366',
+    secondaryColor: '#E01933',
+    fontFamily: 'Helvetica-Bold',
+    logoPosition: 'center',
+    paperSize: [595.28, 841.89], // A4
+    usesQrCode: true
+  },
+  'UA': { // United Airlines
+    primaryColor: '#002244',
+    secondaryColor: '#4B92DB',
+    fontFamily: 'Helvetica',
+    logoPosition: 'left',
+    paperSize: [595.28, 841.89], // A4
+    usesQrCode: true
+  },
+  
+  // European airlines
+  'BA': { // British Airways
+    primaryColor: '#075AAA',
+    secondaryColor: '#EB2226',
+    fontFamily: 'Helvetica',
+    logoPosition: 'center',
+    paperSize: [595.28, 841.89], // A4
+    usesQrCode: true
+  },
+  'LH': { // Lufthansa
+    primaryColor: '#05164D',
+    secondaryColor: '#FFAD00',
+    fontFamily: 'Helvetica',
+    logoPosition: 'left',
+    paperSize: [595.28, 841.89], // A4
+    usesQrCode: true
+  },
+  'AF': { // Air France
+    primaryColor: '#002157',
+    secondaryColor: '#FF0000',
+    fontFamily: 'Helvetica',
+    logoPosition: 'center',
+    paperSize: [595.28, 841.89], // A4
+    usesQrCode: true
+  },
+  
+  // Asian airlines
+  'SQ': { // Singapore Airlines
+    primaryColor: '#0F4287',
+    secondaryColor: '#F4F4F4',
+    fontFamily: 'Helvetica',
+    logoPosition: 'left',
+    paperSize: [595.28, 841.89], // A4
+    usesQrCode: false
+  },
+  'CX': { // Cathay Pacific
+    primaryColor: '#006564',
+    secondaryColor: '#676767',
+    fontFamily: 'Helvetica',
+    logoPosition: 'center',
+    paperSize: [595.28, 841.89], // A4
+    usesQrCode: true
+  },
+  
+  // Middle Eastern airlines
+  'EK': { // Emirates
+    primaryColor: '#D71A21',
+    secondaryColor: '#231F20',
+    fontFamily: 'Helvetica-Bold',
+    logoPosition: 'center',
+    paperSize: [595.28, 841.89], // A4
+    usesQrCode: true
+  },
+  'QR': { // Qatar Airways
+    primaryColor: '#5C0632',
+    secondaryColor: '#FFFFFF',
+    fontFamily: 'Helvetica',
+    logoPosition: 'left',
+    paperSize: [595.28, 841.89], // A4
+    usesQrCode: true
+  },
+  
+  // Default template
+  'default': {
+    primaryColor: '#3366CC',
+    secondaryColor: '#333333',
+    fontFamily: 'Helvetica',
+    logoPosition: 'center',
+    paperSize: [595.28, 841.89], // A4
+    usesQrCode: false
+  }
+};
+
+// Helper function to get the airline template based on the airline code
+function getAirlineTemplate(airlineCode: string): AirlineTemplate {
+  // Extract the airline code from flight number if it contains it (e.g., "AA123" -> "AA")
+  const code = airlineCode.length > 2 ? airlineCode.substring(0, 2) : airlineCode;
+  return airlineTemplates[code] || airlineTemplates.default;
+}
+
 export async function generateTicketPdf(ticket: TicketWithDetails): Promise<Buffer> {
+  // Get airline-specific template
+  const airlineCode = ticket.flight.flightNumber.substring(0, 2);
+  const template = getAirlineTemplate(airlineCode);
   return new Promise((resolve, reject) => {
     try {
       const buffers: Buffer[] = [];

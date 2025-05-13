@@ -348,7 +348,20 @@ interface EnhancedFlightDetails {
   duration: string;
   cabin: string;
   distanceKm: number;
-  calculatedData: any;
+  calculatedData: {
+    timezoneDifference?: string;
+    dayChange?: number;
+    exitDay?: string;
+    durationFormatted?: string;
+    departureTimeLocal?: string;
+    arrivalTimeLocal?: string;
+    departureDateLocal?: string;
+    arrivalDateLocal?: string;
+    durationMinutes?: number;
+    departureUTC?: Date;
+    arrivalUTC?: Date;
+    distanceKm?: number;
+  };
 }
 
 const EnhancedFlightSelection = () => {
@@ -760,7 +773,12 @@ const EnhancedFlightSelection = () => {
               <div className="flex">
                 <Input
                   type="text"
-                  placeholder="Search for airports or airlines..."
+                  placeholder={
+                    !departureAirport ? "Search for departure airport by code or name..." : 
+                    !destinationAirport ? "Search for destination airport by code or name..." : 
+                    !selectedAirline ? "Search for airline by code or name..." :
+                    "Search for airports or airlines..."
+                  }
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
                   onFocus={() => setIsSearching(true)}
@@ -789,7 +807,11 @@ const EnhancedFlightSelection = () => {
                 <div className="absolute z-10 mt-1 w-full bg-background border border-border rounded-md shadow-lg">
                   <Command>
                     <div className="flex justify-between items-center p-2 border-b border-border">
-                      <span className="text-sm font-medium">Search Results</span>
+                      <span className="text-sm font-medium">
+                        {!departureAirport ? "Search Departure Airports" : 
+                         !destinationAirport ? "Search Destination Airports" : 
+                         !selectedAirline ? "Search Airlines" : "Search Results"}
+                      </span>
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -988,20 +1010,19 @@ const EnhancedFlightSelection = () => {
                   <Select 
                     value={destinationAirport} 
                     onValueChange={setDestinationAirport}
-                    disabled={!destinationRegion}
                   >
                     <SelectTrigger className="w-full bg-background">
                       <SelectValue placeholder="Select destination airport" />
                     </SelectTrigger>
                     <SelectContent>
-                      {destinationRegion === "All Regions" ? (
-                        // Show all airports sorted by code when "All Regions" is selected
+                      {!destinationRegion || destinationRegion === "All Regions" ? (
+                        // Show all airports sorted by code when "All Regions" or no region is selected
                         allAirportsList.map((airport) => (
                           <SelectItem key={airport.code} value={airport.code}>
                             {airport.code} - {airport.name}
                           </SelectItem>
                         ))
-                      ) : destinationRegion && (
+                      ) : (
                         // Show airports for the selected region
                         majorAirports[destinationRegion as keyof typeof majorAirports].map((airport) => (
                           <SelectItem key={airport.code} value={airport.code}>
@@ -1178,6 +1199,24 @@ const EnhancedFlightSelection = () => {
                   <Calendar className="h-3.5 w-3.5 mr-1.5" />
                   {flightData.departureDate}
                 </div>
+                {flightData.calculatedData?.timezoneDifference && (
+                  <div className="bg-muted/40 rounded-md px-3 py-1.5 text-xs flex items-center">
+                    <Clock className="h-3.5 w-3.5 mr-1.5" />
+                    Time Zone Difference: {flightData.calculatedData.timezoneDifference}
+                  </div>
+                )}
+                {flightData.calculatedData?.dayChange > 0 && (
+                  <div className="bg-primary/20 rounded-md px-3 py-1.5 text-xs flex items-center text-primary">
+                    <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                    Arrives {flightData.calculatedData.dayChange} day{flightData.calculatedData.dayChange > 1 ? 's' : ''} later
+                  </div>
+                )}
+                {flightData.calculatedData?.exitDay && flightData.calculatedData?.dayChange === 0 && (
+                  <div className="bg-muted/40 rounded-md px-3 py-1.5 text-xs flex items-center">
+                    <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                    Arrives same day ({flightData.calculatedData.exitDay})
+                  </div>
+                )}
               </div>
               
               <div className="mt-6 flex justify-end">

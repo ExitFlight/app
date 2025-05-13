@@ -78,8 +78,8 @@ const Home = () => {
             className="rounded-lg w-full h-28 md:h-48 object-cover" 
           />
           <img 
-            src="https://images.unsplash.com/photo-1582530072481-9be23de5a771?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300" 
-            alt="Tropical villa in Bali, Indonesia" 
+            src="https://images.unsplash.com/photo-1578645510447-e20b4311e3ce?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300" 
+            alt="Luxury tropical villa with pool in Bali, Indonesia" 
             className="rounded-lg w-full h-28 md:h-48 object-cover" 
           />
           <img 

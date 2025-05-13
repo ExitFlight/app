@@ -113,20 +113,28 @@ const airlines = [
   { code: "MH", name: "Malaysia Airlines", region: "Asia", logo: "https://www.malaysiaairlines.com/favicon.ico" }
 ];
 
-// Generate time options in 5-minute increments, 24-hour format
-const generateTimeOptions = () => {
-  const times = [];
+// Generate hour options in 24-hour format
+const generateHourOptions = () => {
+  const hours = [];
   for (let hour = 0; hour < 24; hour++) {
-    for (let minute = 0; minute < 60; minute += 5) {
-      const formattedHour = hour.toString().padStart(2, '0');
-      const formattedMinute = minute.toString().padStart(2, '0');
-      times.push(`${formattedHour}:${formattedMinute}`);
-    }
+    const formattedHour = hour.toString().padStart(2, '0');
+    hours.push(formattedHour);
   }
-  return times;
+  return hours;
 };
 
-const timeOptions = generateTimeOptions();
+// Generate minute options in 5-minute increments
+const generateMinuteOptions = () => {
+  const minutes = [];
+  for (let minute = 0; minute < 60; minute += 5) {
+    const formattedMinute = minute.toString().padStart(2, '0');
+    minutes.push(formattedMinute);
+  }
+  return minutes;
+};
+
+const hourOptions = generateHourOptions();
+const minuteOptions = generateMinuteOptions();
 
 // Generate date options (next 365 days)
 const generateDateOptions = () => {
@@ -188,7 +196,8 @@ const EnhancedFlightSelection = () => {
   const [departureAirport, setDepartureAirport] = useState<string>(flightDetails?.departureAirport || "");
   const [destinationAirport, setDestinationAirport] = useState<string>(flightDetails?.arrivalAirport || "");
   const [departureDate, setDepartureDate] = useState<string>(flightDetails?.departureDate || dateOptions[0].value);
-  const [departureTime, setDepartureTime] = useState<string>("09:00");
+  const [departureHour, setDepartureHour] = useState<string>("09");
+  const [departureMinute, setDepartureMinute] = useState<string>("00");
   const [selectedAirline, setSelectedAirline] = useState<string>("");
   const [selectedCabin, setSelectedCabin] = useState<string>("economy");
   
@@ -242,6 +251,9 @@ const EnhancedFlightSelection = () => {
     setFlightData(null);
 
     try {
+      // Combine hour and minute for departure time
+      const departureTime = `${departureHour}:${departureMinute}`;
+      
       // Calculate enhanced flight details
       const calculatedData = await calculateEnhancedFlightDetails(
         departureAirport,
@@ -301,6 +313,9 @@ const EnhancedFlightSelection = () => {
       });
       return;
     }
+    
+    // Combine hour and minute for departure time
+    const departureTime = `${departureHour}:${departureMinute}`;
     
     // Save flight details to context
     setFlightDetails({
@@ -436,18 +451,36 @@ const EnhancedFlightSelection = () => {
                   <label className="block text-foreground font-medium mb-2 text-sm">
                     Departure Time
                   </label>
-                  <Select value={departureTime} onValueChange={setDepartureTime}>
-                    <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Select time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeOptions.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex space-x-2">
+                    <div className="w-1/2">
+                      <Select value={departureHour} onValueChange={setDepartureHour}>
+                        <SelectTrigger className="w-full bg-background">
+                          <SelectValue placeholder="Hour" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {hourOptions.map((hour) => (
+                            <SelectItem key={hour} value={hour}>
+                              {hour}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="w-1/2">
+                      <Select value={departureMinute} onValueChange={setDepartureMinute}>
+                        <SelectTrigger className="w-full bg-background">
+                          <SelectValue placeholder="Minute" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {minuteOptions.map((minute) => (
+                            <SelectItem key={minute} value={minute}>
+                              {minute}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
               </div>
               

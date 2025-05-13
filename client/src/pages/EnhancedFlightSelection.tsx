@@ -27,6 +27,7 @@ import AirlineLogo from "@/components/AirlineLogo";
 import { type Airport } from "@shared/schema";
 import { useFlightContext } from "@/lib/context/FlightContext";
 import { calculateEnhancedFlightDetails } from "@/lib/enhancedFlightCalculator";
+import { allAirlines, getAirlinesForRegion, getAirlinesForAirport } from "@/lib/airlineUtil";
 
 // Major international airports by region
 const majorAirports = {
@@ -254,6 +255,8 @@ const EnhancedFlightSelection = () => {
   const [departureMinute, setDepartureMinute] = useState<string>("00");
   const [selectedAirline, setSelectedAirline] = useState<string>("");
   const [selectedCabin, setSelectedCabin] = useState<string>("economy");
+  const [airlineRegionFilter, setAirlineRegionFilter] = useState<string>("All Regions");
+  const [filteredAirlines, setFilteredAirlines] = useState(allAirlines);
   
   // Generated flight state
   const [flightData, setFlightData] = useState<EnhancedFlightDetails | null>(null);
@@ -263,6 +266,31 @@ const EnhancedFlightSelection = () => {
   useEffect(() => {
     document.title = "Select Flight - FlightBack";
   }, []);
+  
+  // Effect to filter airlines by region
+  useEffect(() => {
+    if (airlineRegionFilter === "All Regions") {
+      setFilteredAirlines(allAirlines);
+    } else {
+      setFilteredAirlines(getAirlinesForRegion(airlineRegionFilter));
+    }
+  }, [airlineRegionFilter]);
+  
+  // Effect to update airline filter when departure airport changes (optional suggestion feature)
+  useEffect(() => {
+    if (departureAirport) {
+      // Find the region of the selected departure airport
+      const region = Object.entries(majorAirports).find(([_, airports]) => 
+        airports.some(airport => airport.code === departureAirport)
+      )?.[0];
+      
+      if (region) {
+        // Just set a suggested region but don't force filtering
+        // User can still select "All Regions" if they want
+        setAirlineRegionFilter(region);
+      }
+    }
+  }, [departureAirport]);
   
   // Generate flight number
   const generateFlightNumber = (airlineCode: string): string => {

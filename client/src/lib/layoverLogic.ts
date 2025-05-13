@@ -76,11 +76,18 @@ const airportToRegion: { [airport: string]: string } = {
   'KOA': 'North America', 'OGG': 'North America', 'LIH': 'North America',
 
   // Europe
-  'LHR': 'Europe', 'CDG': 'Europe', 'FRA': 'Europe', 'AMS': 'Europe', 'MAD': 'Europe',
-  'FCO': 'Europe', 'MUC': 'Europe', 'ZRH': 'Europe', 'BCN': 'Europe', 'LGW': 'Europe',
-  'CPH': 'Europe', 'VIE': 'Europe', 'DUB': 'Europe', 'BRU': 'Europe', 'ARN': 'Europe',
-  'IST': 'Europe', 'DME': 'Europe', 'ATH': 'Europe', 'LIS': 'Europe', 'OSL': 'Europe',
-  'HEL': 'Europe', 'PRG': 'Europe', 'MXP': 'Europe', 'WAW': 'Europe',
+  // UK & Ireland
+  'LHR': 'Europe', 'LGW': 'Europe', 'MAN': 'Europe', 'DUB': 'Europe',
+  // Western Europe
+  'CDG': 'Europe', 'ORY': 'Europe', 'FRA': 'Europe', 'MUC': 'Europe', 'AMS': 'Europe', 'BRU': 'Europe',
+  // Southern Europe
+  'MAD': 'Europe', 'BCN': 'Europe', 'LIS': 'Europe', 'FCO': 'Europe', 'MXP': 'Europe', 'ATH': 'Europe', 'IST': 'Europe',
+  // Northern Europe
+  'CPH': 'Europe', 'ARN': 'Europe', 'OSL': 'Europe', 'HEL': 'Europe',
+  // Central/Eastern Europe
+  'VIE': 'Europe', 'ZRH': 'Europe', 'WAW': 'Europe', 'BUD': 'Europe', 'PRG': 'Europe',
+  // Russia
+  'SVO': 'Europe', 'DME': 'Europe', 'LED': 'Europe', 'KZN': 'Europe', 'AER': 'Europe',
 
   // Asia
   'HKG': 'Asia', 'SIN': 'Asia', 'BKK': 'Asia', 'NRT': 'Asia', 'ICN': 'Asia',

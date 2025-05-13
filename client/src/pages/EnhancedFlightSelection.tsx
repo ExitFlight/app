@@ -50,13 +50,43 @@ const majorAirports = {
     { code: "MEX", name: "Mexico City" }
   ],
   "Europe": [
+    // UK and Ireland
     { code: "LHR", name: "London Heathrow" },
+    { code: "LGW", name: "London Gatwick" },
+    { code: "MAN", name: "Manchester" },
+    { code: "DUB", name: "Dublin" },
+    // Western Europe
     { code: "CDG", name: "Paris Charles de Gaulle" },
+    { code: "ORY", name: "Paris Orly" },
     { code: "FRA", name: "Frankfurt" },
+    { code: "MUC", name: "Munich" },
     { code: "AMS", name: "Amsterdam Schiphol" },
+    { code: "BRU", name: "Brussels" },
+    // Southern Europe
     { code: "MAD", name: "Madrid Barajas" },
+    { code: "BCN", name: "Barcelona El Prat" },
+    { code: "LIS", name: "Lisbon" },
     { code: "FCO", name: "Rome Fiumicino" },
-    { code: "ZRH", name: "Zurich" }
+    { code: "MXP", name: "Milan Malpensa" },
+    { code: "ATH", name: "Athens" },
+    { code: "IST", name: "Istanbul" },
+    // Northern Europe
+    { code: "CPH", name: "Copenhagen" },
+    { code: "ARN", name: "Stockholm Arlanda" },
+    { code: "OSL", name: "Oslo" },
+    { code: "HEL", name: "Helsinki" },
+    // Central/Eastern Europe
+    { code: "VIE", name: "Vienna" },
+    { code: "ZRH", name: "Zurich" },
+    { code: "WAW", name: "Warsaw" },
+    { code: "BUD", name: "Budapest" },
+    { code: "PRG", name: "Prague" },
+    // Russia
+    { code: "SVO", name: "Moscow Sheremetyevo" },
+    { code: "DME", name: "Moscow Domodedovo" },
+    { code: "LED", name: "St. Petersburg" },
+    { code: "KZN", name: "Kazan" },
+    { code: "AER", name: "Sochi" }
   ],
   "Asia": [
     { code: "HND", name: "Tokyo Haneda" },

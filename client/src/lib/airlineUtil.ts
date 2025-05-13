@@ -118,7 +118,7 @@ export const airlinesGroupedByRegion = [
     airlines: [
       // South Africa
       { code: "SA", name: "South African Airways" },
-      { code: "BA", name: "British Airways (Comair)" },
+      { code: "CAW", name: "Comair (South Africa)" },
       // Ethiopia
       { code: "ET", name: "Ethiopian Airlines" },
       // Kenya

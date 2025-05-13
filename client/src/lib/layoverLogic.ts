@@ -72,7 +72,8 @@ const airportToRegion: { [airport: string]: string } = {
   'SEA': 'North America', 'MIA': 'North America', 'BOS': 'North America', 'IAD': 'North America',
   'YUL': 'North America', 'DEN': 'North America', 'IAH': 'North America', 'PHX': 'North America',
   'LAS': 'North America', 'MCO': 'North America', 'MSP': 'North America', 'DTW': 'North America',
-  'EWR': 'North America', 'CLT': 'North America', 'PHL': 'North America',
+  'EWR': 'North America', 'CLT': 'North America', 'PHL': 'North America', 'HNL': 'North America',
+  'KOA': 'North America', 'OGG': 'North America', 'LIH': 'North America',
 
   // Europe
   'LHR': 'Europe', 'CDG': 'Europe', 'FRA': 'Europe', 'AMS': 'Europe', 'MAD': 'Europe',

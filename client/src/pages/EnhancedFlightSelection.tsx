@@ -33,9 +33,18 @@ const majorAirports = {
   "North America": [
     { code: "JFK", name: "New York JFK" },
     { code: "LAX", name: "Los Angeles" },
+    { code: "SFO", name: "San Francisco" },
+    { code: "SEA", name: "Seattle-Tacoma" },
     { code: "ORD", name: "Chicago O'Hare" },
     { code: "DFW", name: "Dallas/Fort Worth" },
     { code: "MIA", name: "Miami" },
+    { code: "ATL", name: "Atlanta" },
+    { code: "DEN", name: "Denver" },
+    { code: "LAS", name: "Las Vegas" },
+    { code: "HNL", name: "Honolulu, Oahu" },
+    { code: "KOA", name: "Kailua-Kona, Big Island" },
+    { code: "OGG", name: "Kahului, Maui" },
+    { code: "LIH", name: "Lihue, Kauai" },
     { code: "YYZ", name: "Toronto Pearson" },
     { code: "MEX", name: "Mexico City" }
   ],
@@ -83,11 +92,26 @@ const majorAirports = {
     { code: "RUH", name: "Riyadh" }
   ],
   "South America": [
-    { code: "GRU", name: "São Paulo" },
-    { code: "EZE", name: "Buenos Aires" },
+    { code: "GRU", name: "São Paulo Guarulhos" },
+    { code: "CGH", name: "São Paulo Congonhas" },
+    { code: "GIG", name: "Rio de Janeiro Galeão" },
+    { code: "SDU", name: "Rio de Janeiro Santos Dumont" },
+    { code: "EZE", name: "Buenos Aires Ezeiza" },
+    { code: "AEP", name: "Buenos Aires Aeroparque" },
     { code: "BOG", name: "Bogotá" },
     { code: "SCL", name: "Santiago" },
-    { code: "LIM", name: "Lima" }
+    { code: "LIM", name: "Lima" },
+    { code: "CCS", name: "Caracas" },
+    { code: "UIO", name: "Quito" },
+    { code: "GYE", name: "Guayaquil" },
+    { code: "MVD", name: "Montevideo" },
+    { code: "ASU", name: "Asunción" },
+    { code: "VVI", name: "Santa Cruz" },
+    { code: "LPB", name: "La Paz" },
+    { code: "CUZ", name: "Cusco" },
+    { code: "CTG", name: "Cartagena" },
+    { code: "CNF", name: "Belo Horizonte" },
+    { code: "FLN", name: "Florianópolis" }
   ],
   "Africa": [
     { code: "JNB", name: "Johannesburg" },

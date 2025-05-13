@@ -545,17 +545,22 @@ const EnhancedFlightSelection = () => {
     if (!departureAirport) {
       setDepartureRegion(selectedRegion);
       setDepartureAirport(airport.code);
+      // Close search after selecting departure airport to let user
+      // interact with regular dropdowns
+      setIsSearching(false);
     } else if (!destinationAirport) {
       setDestinationRegion(selectedRegion);
       setDestinationAirport(airport.code);
+      // Close search after both airports are selected
+      setIsSearching(false);
     } else {
       // Both are filled, replace departure
       setDepartureRegion(selectedRegion);
       setDepartureAirport(airport.code);
+      // Leave search open so they can select destination next
     }
     
-    // Don't hide search results, just clear the search term
-    // This allows users to immediately search for something else
+    // Clear search term in any case
     setSearchTerm("");
   };
   
@@ -563,7 +568,8 @@ const EnhancedFlightSelection = () => {
   const handleSelectAirlineFromSearch = (airline: any) => {
     setSelectedAirline(airline.code);
     setSearchTerm("");
-    // Keep search box open for further selections
+    // Close search after selecting an airline
+    setIsSearching(false);
   };
   
   // Generate flight number
@@ -779,9 +785,20 @@ const EnhancedFlightSelection = () => {
                 )}
               </div>
               
-              {isSearching && (searchResults.airports.length > 0 || searchResults.airlines.length > 0) && (
+              {isSearching && (
                 <div className="absolute z-10 mt-1 w-full bg-background border border-border rounded-md shadow-lg">
                   <Command>
+                    <div className="flex justify-between items-center p-2 border-b border-border">
+                      <span className="text-sm font-medium">Search Results</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 px-2"
+                        onClick={() => setIsSearching(false)}
+                      >
+                        Close
+                      </Button>
+                    </div>
                     <CommandList>
                       {searchResults.airports.length > 0 && (
                         <CommandGroup heading="Airports">

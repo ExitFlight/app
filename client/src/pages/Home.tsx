@@ -78,13 +78,13 @@ const Home = () => {
             className="rounded-lg w-full h-28 md:h-48 object-cover" 
           />
           <img 
-            src="https://images.unsplash.com/photo-1506012787146-f92b2d7d6d96?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300" 
-            alt="Airplane taking off at sunset" 
+            src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300" 
+            alt="Uluwatu surf break in Bali, Indonesia" 
             className="rounded-lg w-full h-28 md:h-48 object-cover" 
           />
           <img 
-            src="https://images.unsplash.com/photo-1540339832862-474599807836?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300" 
-            alt="Airplane interior cabin" 
+            src="https://images.unsplash.com/photo-1573790387438-4da905039392?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300" 
+            alt="Tropical island in Indonesia" 
             className="rounded-lg w-full h-28 md:h-48 object-cover" 
           />
         </div>

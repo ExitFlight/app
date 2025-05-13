@@ -127,13 +127,13 @@ export async function generateTicketPdf(ticket: TicketWithDetails): Promise<Buff
     try {
       const buffers: Buffer[] = [];
       const doc = new PDFDocument({
-        size: 'A4',
+        size: template.paperSize,
         margin: 30,
         info: {
-          Title: `Flight Ticket - ${ticket.bookingReference}`,
-          Author: 'FlightBack Ticket Generator',
+          Title: `${ticket.flight.airline.name} - Flight Ticket ${ticket.flight.flightNumber}`,
+          Author: `${ticket.flight.airline.name} Ticket Service`,
           Subject: 'Flight Ticket',
-          Keywords: 'flight, ticket, travel',
+          Keywords: 'flight, ticket, travel, airline',
         }
       });
 
@@ -146,13 +146,20 @@ export async function generateTicketPdf(ticket: TicketWithDetails): Promise<Buff
         resolve(pdfData);
       });
 
-      // Header with logo and title
+      // Set default fill color to primary airline color
+      doc.fillColor(template.primaryColor);
+
+      // Header with airline logo and name
+      const headerAlignment = template.logoPosition;
+      
+      // Draw airline name/header based on the template style
       doc.fontSize(24)
-         .font('Helvetica-Bold')
-         .text('FlightBack', { align: 'center' })
+         .font(`${template.fontFamily}-Bold`)
+         .text(ticket.flight.airline.name, { align: headerAlignment })
          .fontSize(14)
-         .font('Helvetica')
-         .text('Fake Flight Ticket Generator', { align: 'center' })
+         .font(template.fontFamily)
+         .fillColor(template.secondaryColor)
+         .text(`E-Ticket Receipt`, { align: headerAlignment })
          .moveDown(1);
 
       // Draw a line

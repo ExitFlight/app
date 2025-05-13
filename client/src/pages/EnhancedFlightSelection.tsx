@@ -99,12 +99,24 @@ const majorAirports = {
     { code: "AER", name: "Sochi" }
   ],
   "Asia": [
+    // Japan
     { code: "HND", name: "Tokyo Haneda" },
     { code: "NRT", name: "Tokyo Narita" },
-    { code: "PEK", name: "Beijing" },
+    { code: "KIX", name: "Osaka Kansai" },
+    // Greater China
+    { code: "PEK", name: "Beijing Capital" },
+    { code: "PKX", name: "Beijing Daxing" },
     { code: "PVG", name: "Shanghai Pudong" },
     { code: "HKG", name: "Hong Kong" },
+    { code: "TPE", name: "Taipei Taoyuan" },
+    { code: "TSA", name: "Taipei Songshan" },
+    { code: "KHH", name: "Kaohsiung" },
+    // South Korea
+    { code: "ICN", name: "Seoul Incheon" },
+    { code: "GMP", name: "Seoul Gimpo" },
+    // Singapore
     { code: "SIN", name: "Singapore Changi" },
+    // Thailand
     { code: "BKK", name: "Bangkok Suvarnabhumi" },
     { code: "DMK", name: "Bangkok Don Mueang" },
     { code: "HKT", name: "Phuket" },
@@ -112,12 +124,42 @@ const majorAirports = {
     { code: "USM", name: "Koh Samui" },
     { code: "KBV", name: "Krabi" },
     { code: "CEI", name: "Chiang Rai" },
+    // Vietnam
+    { code: "SGN", name: "Ho Chi Minh City" },
+    { code: "HAN", name: "Hanoi" },
+    { code: "DAD", name: "Da Nang" },
+    { code: "PQC", name: "Phu Quoc" },
+    { code: "CXR", name: "Nha Trang" },
+    // Cambodia
+    { code: "REP", name: "Siem Reap" },
+    { code: "PNH", name: "Phnom Penh" },
+    { code: "KOS", name: "Sihanoukville" },
+    // Laos
+    { code: "VTE", name: "Vientiane" },
+    { code: "LPQ", name: "Luang Prabang" },
+    // Myanmar
+    { code: "RGN", name: "Yangon" },
+    { code: "MDL", name: "Mandalay" },
+    // Indonesia
     { code: "DPS", name: "Denpasar, Bali" },
     { code: "CGK", name: "Jakarta" },
     { code: "SUB", name: "Surabaya" },
-    { code: "ICN", name: "Seoul Incheon" },
+    { code: "UPG", name: "Makassar" },
+    { code: "DJJ", name: "Jayapura" },
+    // Malaysia
+    { code: "KUL", name: "Kuala Lumpur" },
+    { code: "PEN", name: "Penang" },
+    { code: "BKI", name: "Kota Kinabalu" },
+    // Philippines
+    { code: "MNL", name: "Manila" },
+    { code: "CEB", name: "Cebu" },
+    // India
     { code: "DEL", name: "Delhi" },
-    { code: "BOM", name: "Mumbai" }
+    { code: "BOM", name: "Mumbai" },
+    { code: "MAA", name: "Chennai" },
+    // Maldives
+    { code: "MLE", name: "Malé" },
+    { code: "GAN", name: "Gan" }
   ],
   "Oceania": [
     { code: "SYD", name: "Sydney" },

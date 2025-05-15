@@ -2,9 +2,14 @@ import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
 import { createServer as createViteServer, createLogger } from "vite";
-import { type Server } from "http";
+import { fileURLToPath } from "url"; // Import fileURLToPath
+import type { Server } from "http"; // Using 'type' import for consistency
 import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
+
+// Get current directory in an ESM-safe way
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const viteLogger = createLogger();
 
@@ -26,8 +31,11 @@ export async function setupVite(app: Express, server: Server) {
     allowedHosts: true,
   };
 
+  // Await the viteConfig promise because vite.config.ts uses top-level await
+  const resolvedViteConfig = await viteConfig;
+
   const vite = await createViteServer({
-    ...viteConfig,
+    ...resolvedViteConfig, // Spread the resolved configuration
     configFile: false,
     customLogger: {
       ...viteLogger,
@@ -46,9 +54,9 @@ export async function setupVite(app: Express, server: Server) {
 
     try {
       const clientTemplate = path.resolve(
-        import.meta.dirname,
-        "..",
-        "client",
+        __dirname, // This is /home/jordan/Desktop/FlightBack/server
+        "..",      // Go up to /home/jordan/Desktop/FlightBack
+        "client",  // Then into /home/jordan/Desktop/FlightBack/client
         "index.html",
       );
 
@@ -68,7 +76,7 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+  const distPath = path.resolve(__dirname, "..", "dist", "public"); // Adjusted path to go up one level for 'dist'
 
   if (!fs.existsSync(distPath)) {
     throw new Error(

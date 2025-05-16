@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import ProgressStepper from "@/components/ProgressStepper";
 import AirlineLogo from "@/components/AirlineLogo";
-import { type Airport, type FlightWithDetails } from "@shared/schema";
+import { type Airport, type FlightWithDetails, type Airline as SharedAirlineType } from "@shared/schema"; // Assuming Airline type from schema
 import { useFlightContext } from "@/lib/context/FlightContext";
 
 const FlightSelection = () => {
@@ -406,7 +406,7 @@ const FlightSelection = () => {
                   <SelectContent>
                     {airlines && 
                       [...airlines].sort((a, b) => a.code.localeCompare(b.code)).map((airline) => (
-                        <SelectItem key={airline.code} value={airline.code}>
+                        <SelectItem key={airline.id} value={airline.code}> {/* Use airline.id if available and unique */}
                           {airline.code} - {airline.name}
                         </SelectItem>
                       ))

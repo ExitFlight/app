@@ -43,34 +43,34 @@ import { type Airport } from "@shared/schema";
 import { useFlightContext } from "@/lib/context/FlightContext";
 import { calculateEnhancedFlightDetails } from "@/lib/enhancedFlightCalculator";
 import { allAirlines, getAirlinesForRegion, getAirlinesForAirport } from "@/lib/airlineUtil";
-import { directFlightExists } from "@/lib/flightData";
+import { directFlightExists, type AirlineData } from "@/lib/flightData"; // Assuming AirlineData type exists or can be created
 
 // Major international airports by region
 const majorAirports = {
   "North America": [
-    { code: "JFK", name: "New York JFK" },
-    { code: "LAX", name: "Los Angeles" },
-    { code: "SFO", name: "San Francisco" },
-    { code: "SEA", name: "Seattle-Tacoma" },
-    { code: "ORD", name: "Chicago O'Hare" },
-    { code: "DFW", name: "Dallas/Fort Worth" },
-    { code: "MIA", name: "Miami" },
-    { code: "ATL", name: "Atlanta" },
-    { code: "DEN", name: "Denver" },
-    { code: "LAS", name: "Las Vegas" },
-    { code: "HNL", name: "Honolulu, Oahu" },
-    { code: "KOA", name: "Kailua-Kona, Big Island" },
-    { code: "OGG", name: "Kahului, Maui" },
-    { code: "LIH", name: "Lihue, Kauai" },
-    { code: "YYZ", name: "Toronto Pearson" },
-    { code: "MEX", name: "Mexico City" }
+    { code: "JFK", name: "New York JFK", latitude: 40.6413, longitude: -73.7781 },
+    { code: "LAX", name: "Los Angeles", latitude: 33.9416, longitude: -118.4085 },
+    { code: "SFO", name: "San Francisco", latitude: 37.6213, longitude: -122.3790 },
+    { code: "SEA", name: "Seattle-Tacoma", latitude: 47.4480, longitude: -122.3088 },
+    { code: "ORD", name: "Chicago O'Hare", latitude: 41.9742, longitude: -87.9073 },
+    { code: "DFW", name: "Dallas/Fort Worth", latitude: 32.8998, longitude: -97.0403 },
+    { code: "MIA", name: "Miami", latitude: 25.7959, longitude: -80.2871 },
+    { code: "ATL", name: "Atlanta", latitude: 33.6407, longitude: -84.4277 },
+    { code: "DEN", name: "Denver", latitude: 39.8561, longitude: -104.6737 },
+    { code: "LAS", name: "Las Vegas", latitude: 36.0840, longitude: -115.1537 },
+    { code: "HNL", name: "Honolulu, Oahu", latitude: 21.3187, longitude: -157.9224 },
+    { code: "KOA", name: "Kailua-Kona, Big Island", latitude: 19.7388, longitude: -156.0456 },
+    { code: "OGG", name: "Kahului, Maui", latitude: 20.8987, longitude: -156.4305 },
+    { code: "LIH", name: "Lihue, Kauai", latitude: 21.9760, longitude: -159.3388 },
+    { code: "YYZ", name: "Toronto Pearson", latitude: 43.6777, longitude: -79.6248 },
+    { code: "MEX", name: "Mexico City", latitude: 19.4363, longitude: -99.0721 }
   ],
   "Europe": [
     // UK and Ireland
-    { code: "LHR", name: "London Heathrow" },
-    { code: "LGW", name: "London Gatwick" },
-    { code: "MAN", name: "Manchester" },
-    { code: "DUB", name: "Dublin" },
+    { code: "LHR", name: "London Heathrow", latitude: 51.4700, longitude: -0.4543 },
+    { code: "LGW", name: "London Gatwick", latitude: 51.1537, longitude: -0.1821 },
+    { code: "MAN", name: "Manchester", latitude: 53.3537, longitude: -2.2749 },
+    { code: "DUB", name: "Dublin", latitude: 53.4264, longitude: -6.2499 },
     // Western Europe
     { code: "CDG", name: "Paris Charles de Gaulle" },
     { code: "ORY", name: "Paris Orly" },
@@ -264,6 +264,7 @@ const allAirports = Object.values(majorAirports).flat().sort((a, b) => a.code.lo
 // List of airline codes and names
 const airlines = [
   { code: "AA", name: "American Airlines", region: "North America", logo: "https://www.aa.com/favicon.ico" },
+  { code: "AS", name: "Alaska Airlines", region: "North America", logo: "https://www.alaskaair.com/favicon.ico" },
   { code: "DL", name: "Delta Air Lines", region: "North America", logo: "https://www.delta.com/favicon.ico" },
   { code: "UA", name: "United Airlines", region: "North America", logo: "https://www.united.com/favicon.ico" },
   { code: "BA", name: "British Airways", region: "Europe", logo: "https://www.britishairways.com/favicon.ico" },
@@ -275,7 +276,7 @@ const airlines = [
   { code: "CX", name: "Cathay Pacific", region: "Asia", logo: "https://www.cathaypacific.com/favicon.ico" },
   { code: "JL", name: "Japan Airlines", region: "Asia", logo: "https://www.jal.com/favicon.ico" },
   { code: "QF", name: "Qantas", region: "Oceania", logo: "https://www.qantas.com/favicon.ico" },
-  { code: "TG", name: "Thai Airways", region: "Asia", logo: "https://www.thaiairways.com/favicon.ico" },
+  { code: "TG", name: "Thai Airways", region: "Asia", logo: "https://www.thaiairways.com/favicon.ico" }, // CM is not in this list
   { code: "MH", name: "Malaysia Airlines", region: "Asia", logo: "https://www.malaysiaairlines.com/favicon.ico" }
 ];
 
@@ -403,9 +404,14 @@ const EnhancedFlightSelection = () => {
   const [airlineRegionFilter, setAirlineRegionFilter] = useState<string>(loadCachedValue("airlineRegionFilter", "All Regions"));
   const [filteredAirlines, setFilteredAirlines] = useState(allAirlines);
   
+  // Define a more specific type for airport search results if possible
+  type AirportSearchResult = { code: string; name: string; region: string; latitude?: number; longitude?: number };
+  // Define a more specific type for airline search results if possible
+  type AirlineSearchResult = { id: string | number; code: string; name: string; region: string; logo?: string };
+
   // Search functionality
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<{airports: any[], airlines: any[]}>({
+  const [searchResults, setSearchResults] = useState<{airports: AirportSearchResult[], airlines: AirlineSearchResult[]}>({
     airports: [], 
     airlines: []
   });
@@ -1182,7 +1188,7 @@ const EnhancedFlightSelection = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {filteredAirlines.map((airline) => (
-                          <SelectItem key={airline.code} value={airline.code}>
+                        <SelectItem key={airline.id} value={airline.code}> {/* Ensure airline objects have a unique id */}
                             {airline.code} - {airline.name}
                           </SelectItem>
                         ))}

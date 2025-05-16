@@ -3,7 +3,6 @@ import { useLocation } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -62,27 +61,13 @@ const PassengerDetails = () => {
     navigate("/select-flight");
   };
 
-  const onSubmit = async (data: PassengerDetailsForm) => {
-    try {
-      // Save passenger details to context
-      setPassengerDetails(data);
-      
-      // Create passenger in database
-      const response = await apiRequest("POST", "/api/passengers", data);
-      const passenger = await response.json();
-      
-      // Navigate to preview with passenger ID
-      navigate("/preview");
-    } catch (error) {
-      console.error("Failed to save passenger details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save passenger details. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const onSubmit = (data: PassengerDetailsForm) => {
+    // Save passenger details to context
+    setPassengerDetails(data);
+    
+    // Navigate to the preview page where actual creation of passenger and ticket will happen
+    navigate("/preview");
   };
-
   return (
     <div className="container mx-auto px-4 py-6 md:py-8">
       <ProgressStepper currentStep={2} />

@@ -85,10 +85,14 @@ app.use((req, res, next) => {
     log('Static file serving setup complete for production.', 'server');
   }
 
+  const isDevelopment = app.get("env") === "development";
+
   server.listen({
     port: PORT,
     host: "0.0.0.0",
-    reusePort: true,
+    // Only use reusePort in production if needed; disable for development
+    // to get explicit EADDRINUSE errors if the port is taken.
+    reusePort: !isDevelopment ? true : false, // Or simply omit for development: reusePort: process.env.NODE_ENV === 'production'
   }, () => {
     log(`Server listening on http://0.0.0.0:${PORT}`);
     if (app.get("env") === "development") {

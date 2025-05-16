@@ -1,10 +1,16 @@
 import { Card } from "@/components/ui/card";
 import AirlineLogo from "./AirlineLogo";
 import { Plane } from "lucide-react";
+    import { type FlightWithDetails, type Passenger } from "@shared/schema"; // Adjust path if necessary
 
 interface TicketPreviewProps {
-  booking: any;
-  flight: any;
+      booking: Passenger & { // Or a more specific Booking type if you have one
+        bookingReference: string;
+        seatNumber: string;
+        seatPreference?: string;
+        // Add other booking-specific fields if they exist on the 'booking' prop
+      };
+      flight: FlightWithDetails;
 }
 
 export default function TicketPreview({ booking, flight }: TicketPreviewProps) {
@@ -17,25 +23,14 @@ export default function TicketPreview({ booking, flight }: TicketPreviewProps) {
     day: 'numeric'
   });
 
-  // Map airline code to logo name for the AirlineLogo component
-  const getAirlineLogoName = (code: string) => {
-    const codeMap: {[key: string]: string} = {
-      'AA': 'american-airlines',
-      'DL': 'delta-airlines',
-      'BA': 'british-airways',
-      'UA': 'emirates'
-    };
-    return codeMap[code] || 'american-airlines';
-  };
-
   return (
     <Card className="rounded-xl shadow-lg overflow-hidden">
       <div className="p-6 relative">
         {/* Header section with airline logo and name */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
-            <AirlineLogo 
-              airlineLogo={getAirlineLogoName(flight.airline.code)}
+            <AirlineLogo
+              airlineLogo={flight.airline.logo} // Directly use the logo string from your data
               airlineName={flight.airline.name}
               size={40}
               className="w-12 h-12 flex items-center justify-center"
@@ -122,10 +117,10 @@ export default function TicketPreview({ booking, flight }: TicketPreviewProps) {
                 {/* Calculate boarding time (30 mins before departure) */}
                 {(() => {
                   const [hour, minute] = flight.departureTime.split(':').map(Number);
-                  const departureTime = new Date();
-                  departureTime.setHours(hour, minute);
-                  departureTime.setMinutes(departureTime.getMinutes() - 30);
-                  return departureTime.toLocaleTimeString('en-US', {
+                const departureDateTime = new Date(dateObj); // Use the flight's actual departure date
+                departureDateTime.setHours(hour, minute, 0, 0); // Set H, M, S, MS
+                departureDateTime.setMinutes(departureDateTime.getMinutes() - 30);
+                return departureDateTime.toLocaleTimeString('en-US', {
                     hour: 'numeric',
                     minute: '2-digit',
                     hour12: true

@@ -22,6 +22,8 @@ export const airports = pgTable("airports", {
   city: text("city").notNull(),
   country: text("country").notNull(),
   region: text("region").notNull(),
+  latitude: numeric("latitude"), // Or numeric("latitude", { precision: 9, scale: 6 }) for more control
+  longitude: numeric("longitude"), // Or numeric("longitude", { precision: 9, scale: 6 })
 });
 
 export const insertAirportSchema = createInsertSchema(airports).pick({
@@ -30,6 +32,8 @@ export const insertAirportSchema = createInsertSchema(airports).pick({
   city: true,
   country: true,
   region: true,
+  latitude: true, // Add to insert schema if you plan to insert them
+  longitude: true, // Add to insert schema if you plan to insert them
 });
 
 // Airline schema
@@ -174,6 +178,8 @@ export type FlightWithDetails = {
       name: string;
       city: string;
       country: string;
+      latitude?: string | number | null; // Reflecting numeric type from schema
+      longitude?: string | number | null; // Reflecting numeric type from schema
     };
     time: string;
     date: string; // Added date
@@ -185,6 +191,8 @@ export type FlightWithDetails = {
       name: string;
       city: string;
       country: string;
+      latitude?: string | number | null; // Reflecting numeric type from schema
+      longitude?: string | number | null; // Reflecting numeric type from schema
     };
     time: string;
     date: string; // Added date

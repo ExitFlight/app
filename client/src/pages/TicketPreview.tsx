@@ -131,6 +131,11 @@ const TicketPreview = () => {
   });
 
   const onSubmit = (data: TicketDeliveryForm) => {
+  // Trigger PDF download if selected
+  if (data.downloadPdf && ticket) {
+    window.open(`/api/tickets/${ticket.id}/pdf`, "_blank");
+  }
+  // Mutate for other delivery actions (like email)
     deliverTicketMutation.mutate(data);
   };
 
@@ -169,7 +174,9 @@ const TicketPreview = () => {
                     />
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">Boarding Pass</p>
-                      <p className="font-medium text-base md:text-lg text-primary">FIRST CLASS</p>
+                  <p className="font-medium text-base md:text-lg text-primary">
+                    {ticket.flight.class.replace("_", " ").toUpperCase()}
+                  </p>
                     </div>
                   </div>
                   
@@ -200,7 +207,7 @@ const TicketPreview = () => {
                     </div>
                     <div>
                       <p className="text-muted-foreground text-xs">Date</p>
-                      <p className="font-semibold text-foreground">{new Date().toLocaleDateString("en-US", { 
+                  <p className="font-semibold text-foreground">{new Date(ticket.flight.departure.date).toLocaleDateString("en-US", { 
                         day: "2-digit", 
                         month: "short", 
                         year: "numeric"
@@ -347,7 +354,7 @@ const TicketPreview = () => {
                       <>Processing...</>
                     ) : (
                       <>
-                        Generate Ticket
+                    Confirm & Proceed
                         <Ticket className="ml-2" size={16} />
                       </>
                     )}

@@ -1,7 +1,17 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { type FlightWithDetails, type Passenger } from "@shared/schema"; // Adjust path as needed
+
+// Define a more specific type for booking if it's a combination
+type BookingDetails = Passenger & {
+  bookingReference: string;
+  seatNumber: string;
+  seatPreference?: string;
+  specialRequests?: string;
+  // other booking-specific fields
+};
 
 // Function to generate a PDF ticket
-export async function generateTicketPdf(booking: any, flight: any, airline: any): Promise<Uint8Array> {
+export async function generateTicketPdf(booking: BookingDetails, flight: FlightWithDetails, airline: FlightWithDetails['airline']): Promise<Uint8Array> {
   // Create a new PDF document
   const pdfDoc = await PDFDocument.create();
   
@@ -17,8 +27,17 @@ export async function generateTicketPdf(booking: any, flight: any, airline: any)
   const { width, height } = page.getSize();
   
   // Format date
-  const dateObj = new Date(flight.departureDate || Date.now());
-  const formattedDate = dateObj.toLocaleDateString('en-US', {
+  // Departure Date
+  const departureDateObj = new Date(flight.departure.date || Date.now()); // Use flight.departure.date
+  const formattedDepartureDate = departureDateObj.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  // Arrival Date
+  const arrivalDateObj = new Date(flight.arrival.date || flight.departure.date || Date.now()); // Use flight.arrival.date
+  const formattedArrivalDate = arrivalDateObj.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -121,7 +140,7 @@ export async function generateTicketPdf(booking: any, flight: any, airline: any)
     color: rgb(0, 0, 0),
   });
   
-  page.drawText(formattedDate, {
+  page.drawText(formattedDepartureDate, {
     x: margin,
     y: departureY - 90,
     size: 10,
@@ -162,7 +181,7 @@ export async function generateTicketPdf(booking: any, flight: any, airline: any)
     color: rgb(0, 0, 0),
   });
   
-  page.drawText(formattedDate, {
+  page.drawText(formattedArrivalDate, {
     x: width / 2 + 50,
     y: departureY - 90,
     size: 10,

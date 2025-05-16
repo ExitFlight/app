@@ -6,6 +6,7 @@ const airportCoordinates: { [code: string]: { lat: number; lon: number } } = {
   // North America
   'JFK': { lat: 40.6413, lon: -73.7781 }, // New York
   'LAX': { lat: 33.9416, lon: -118.4085 }, // Los Angeles
+  'ATL': { lat: 33.6407, lon: -84.4277 }, // Atlanta - ADDED
   'ORD': { lat: 41.9742, lon: -87.9073 }, // Chicago
   'DFW': { lat: 32.8998, lon: -97.0403 }, // Dallas
   'MIA': { lat: 25.7932, lon: -80.2906 }, // Miami
@@ -91,6 +92,9 @@ const airportCoordinates: { [code: string]: { lat: number; lon: number } } = {
   'NBO': { lat: -1.3192, lon: 36.9278 }, // Nairobi
   'LOS': { lat: 6.5774, lon: 3.3214 }, // Lagos
   'ACC': { lat: 5.6052, lon: -0.1718 }, // Accra
+  'CMN': { lat: 33.3675, lon: -7.5899 },  // Casablanca
+  'RAK': { lat: 31.6069, lon: -8.0363 },  // Marrakesh
+  'AGA': { lat: 30.3250, lon: -9.4130 },  // Agadir - ADDED
 };
 
 // Airport timezones by IATA code
@@ -386,6 +390,7 @@ export async function calculateEnhancedFlightDetails(
     departureDateStr, 
     departureTimeStr
   );
+  
   
   // Get the origin and destination timezones
   const originTimezone = airportTimezones[originCode] || 'UTC';

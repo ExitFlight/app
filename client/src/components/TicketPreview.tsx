@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import AirlineLogo from "./AirlineLogo";
 import { Plane } from "lucide-react";
-    import { type FlightWithDetails, type Passenger } from "@shared/schema"; // Adjust path if necessary
+import { type FlightWithDetails, type Passenger } from "@shared/schema"; // Adjust path if necessary
 
 interface TicketPreviewProps {
       booking: Passenger & { // Or a more specific Booking type if you have one
@@ -14,14 +14,17 @@ interface TicketPreviewProps {
 }
 
 export default function TicketPreview({ booking, flight }: TicketPreviewProps) {
-  // Format date
-  const dateObj = new Date(flight.departureDate || Date.now());
-  const formattedDate = dateObj.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  // Assuming flight.departureDateLocal is a pre-formatted string like "Monday, July 15, 2024"
+  // If flight.departureDate is "YYYY-MM-DD", the original formatting is also fine:
+  // const dateObj = new Date(flight.departureDate || Date.now());
+  // const formattedDepartureDate = dateObj.toLocaleDateString('en-US', {
+  //   weekday: 'long',
+  //   year: 'numeric',
+  //   month: 'long',
+  //   day: 'numeric'
+  // });
+  // For simplicity, we'll assume flight.departureDateLocal is ready for display.
+  const displayDepartureDate = flight.departureDateLocal || new Date(flight.departureDate || Date.now()).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
     <Card className="rounded-xl shadow-lg overflow-hidden">
@@ -55,7 +58,7 @@ export default function TicketPreview({ booking, flight }: TicketPreviewProps) {
             </div>
             <div className="border border-gray-200 rounded-lg p-3">
               <div className="text-xs text-gray-500 mb-1">Date</div>
-              <div className="font-medium">{formattedDate}</div>
+              <div className="font-medium">{displayDepartureDate}</div>
             </div>
             <div className="border border-gray-200 rounded-lg p-3">
               <div className="text-xs text-gray-500 mb-1">Class</div>
@@ -67,7 +70,7 @@ export default function TicketPreview({ booking, flight }: TicketPreviewProps) {
         {/* Departure and Arrival */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div className="text-center mb-4 md:mb-0">
-            <div className="text-3xl font-bold font-heading text-primary-800">{flight.departureTime}</div>
+            <div className="text-3xl font-bold font-heading text-primary-800">{flight.departureTimeLocal || flight.departureTime}</div>
             <div className="text-sm font-medium mb-1">{flight.departureAirportCode}</div>
             <div className="text-xs text-gray-500">{flight.departureAirport?.city}, {flight.departureAirport?.country}</div>
           </div>
@@ -86,9 +89,16 @@ export default function TicketPreview({ booking, flight }: TicketPreviewProps) {
           </div>
           
           <div className="text-center">
-            <div className="text-3xl font-bold font-heading text-primary-800">{flight.arrivalTime}</div>
+            <div className="text-3xl font-bold font-heading text-primary-800">{flight.arrivalTimeLocal || flight.arrivalTime}</div>
             <div className="text-sm font-medium mb-1">{flight.arrivalAirportCode}</div>
-            <div className="text-xs text-gray-500">{flight.arrivalAirport?.city}, {flight.arrivalAirport?.country}</div>
+            <div className="text-xs text-gray-500">
+              {flight.arrivalDateLocal && flight.arrivalDateLocal !== displayDepartureDate 
+                ? flight.arrivalDateLocal 
+                : `${flight.arrivalAirport?.city}, ${flight.arrivalAirport?.country}`}
+              {flight.dayChange && flight.dayChange !== 0 && (
+                <span className="ml-1 text-primary">({flight.dayChange > 0 ? '+' : ''}{flight.dayChange} day{Math.abs(flight.dayChange) > 1 ? 's' : ''})</span>
+              )}
+            </div>
           </div>
         </div>
         
@@ -116,11 +126,13 @@ export default function TicketPreview({ booking, flight }: TicketPreviewProps) {
               <div className="font-medium">
                 {/* Calculate boarding time (30 mins before departure) */}
                 {(() => {
+                  // This calculation relies on flight.departureDate being a parseable date string (e.g., YYYY-MM-DD)
+                  // and flight.departureTime being in "HH:mm" format.
+                  const boardingDateObj = new Date(flight.departureDate || Date.now()); // Use a new variable for clarity
                   const [hour, minute] = flight.departureTime.split(':').map(Number);
-                const departureDateTime = new Date(dateObj); // Use the flight's actual departure date
-                departureDateTime.setHours(hour, minute, 0, 0); // Set H, M, S, MS
-                departureDateTime.setMinutes(departureDateTime.getMinutes() - 30);
-                return departureDateTime.toLocaleTimeString('en-US', {
+                boardingDateObj.setHours(hour, minute, 0, 0); // Set H, M, S, MS on the correct object
+                boardingDateObj.setMinutes(boardingDateObj.getMinutes() - 30); // Subtract 30 minutes
+                return boardingDateObj.toLocaleTimeString('en-US', {
                     hour: 'numeric',
                     minute: '2-digit',
                     hour12: true
@@ -138,17 +150,12 @@ export default function TicketPreview({ booking, flight }: TicketPreviewProps) {
             {/* Fake QR code - black square */}
             <div className="w-32 h-32 bg-gray-800 mx-auto mb-2"></div>
             <div className="text-xs text-gray-700 font-mono">
-              {`${flight.flightNumber}${booking.firstName?.charAt(0)}${booking.lastName?.charAt(0)}${dateObj.getDate()}${dateObj.getMonth() + 1}${dateObj.getFullYear().toString().substr(-2)}${flight.arrivalAirportCode}`}
+              {`${flight.flightNumber}${booking.firstName?.charAt(0)}${booking.lastName?.charAt(0)}${new Date(flight.departureDate || Date.now()).getDate()}${new Date(flight.departureDate || Date.now()).getMonth() + 1}${new Date(flight.departureDate || Date.now()).getFullYear().toString().substr(-2)}${flight.arrivalAirportCode}`}
             </div>
           </div>
         </div>
-        
-        {/* Disclaimer */}
-        <div className="mt-6 text-xs text-gray-500 text-center">
-          <p>THIS IS A MOCK TICKET FOR PROJECT PURPOSES ONLY</p>
-          <p>NOT VALID FOR ACTUAL TRAVEL</p>
-        </div>
-      </div>
+      
+       </div>
     </Card>
   );
 }

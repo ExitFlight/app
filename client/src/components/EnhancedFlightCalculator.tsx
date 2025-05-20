@@ -16,6 +16,7 @@ import { formatDistance } from "@/lib/utils";
 import { calculateEnhancedFlightDetails } from "@/lib/enhancedFlightCalculator";
 import { format } from "date-fns";
 import { Plane, Calendar, Clock, Repeat, ArrowRight, MapPin } from "lucide-react";
+import { useLocation } from "wouter"; // Import useLocation for navigation
 
 // Major international airports by region
 const majorAirports = {
@@ -133,6 +134,7 @@ const EnhancedFlightCalculator = () => {
   const [flightDetails, setFlightDetails] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [, navigate] = useLocation(); // For navigation
 
   // Calculate flight details
   const handleCalculateFlightDetails = async () => {
@@ -176,6 +178,13 @@ const EnhancedFlightCalculator = () => {
     setError("");
   };
 
+  const handleGoToPassengerDetails = () => {
+    if (flightDetails) {
+      // Here you would typically pass the flightDetails to the next page,
+      // e.g., via state management ( Zustand, Redux, Context) or query params / route state.
+      navigate("/passenger-details"); // Navigate to the passenger details page
+    }
+  };
   // Get airport name from code
   const getAirportName = (code: string): string => {
     const airport = allAirports.find(airport => airport.code === code);
@@ -293,13 +302,23 @@ const EnhancedFlightCalculator = () => {
               <div className="flex space-x-2 pt-4">
                 <Button
                   onClick={handleCalculateFlightDetails}
-                  disabled={!originCode || !destCode || isLoading}
+                  disabled={!originCode || !destCode || isLoading || !!flightDetails} // Disable if already calculated
                 >
-                  {isLoading ? "Calculating..." : "Calculate Flight Time"}
+                  {isLoading ? "Calculating..." : flightDetails ? "Flight Details Generated" : "Generate Flight Preview"}
                 </Button>
                 <Button variant="outline" onClick={handleClear}>
                   Clear
                 </Button>
+                {flightDetails && !isLoading && (
+                  <Button
+                    onClick={handleGoToPassengerDetails}
+                    variant="default"
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Go to Passenger Details
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                )}
               </div>
 
               {/* Error Message */}

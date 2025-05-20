@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowRight, Plane, Clock, CalendarIcon, Search, AlertTriangle, RefreshCcw } from "lucide-react";
+import { ArrowRight, Plane, Clock, CalendarIcon, Search, AlertTriangle, RefreshCcw, XIcon } from "lucide-react"; // Added XIcon
 import { Badge } from "@/components/ui/badge";
 import { formatDistance } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -29,23 +28,20 @@ import {
 } from "@/components/ui/alert";
 import {
   Command,
-  CommandDialog,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import ProgressStepper from "@/components/ProgressStepper";
-import AirlineLogo from "@/components/AirlineLogo";
-import { type Airport } from "@shared/schema";
 import { useFlightContext } from "@/lib/context/FlightContext";
 import { calculateEnhancedFlightDetails } from "@/lib/enhancedFlightCalculator";
-import { allAirlines, getAirlinesForRegion, getAirlinesForAirport } from "@/lib/airlineUtil";
-import { directFlightExists, type AirlineData } from "@/lib/flightData"; // Assuming AirlineData type exists or can be created
+// Import from airlineUtil.ts
+import { allAirlines, getAirlinesForRegion, airlinesGroupedByRegion } from "@/lib/airlineUtil";
+import { directFlightExists } from "@/lib/flightData";
 
-// Major international airports by region
+// Major international airports by region (ensure all have lat/long)
 const majorAirports = {
   "North America": [
     { code: "JFK", name: "New York JFK", latitude: 40.6413, longitude: -73.7781 },
@@ -66,265 +62,179 @@ const majorAirports = {
     { code: "MEX", name: "Mexico City", latitude: 19.4363, longitude: -99.0721 }
   ],
   "Europe": [
-    // UK and Ireland
     { code: "LHR", name: "London Heathrow", latitude: 51.4700, longitude: -0.4543 },
     { code: "LGW", name: "London Gatwick", latitude: 51.1537, longitude: -0.1821 },
     { code: "MAN", name: "Manchester", latitude: 53.3537, longitude: -2.2749 },
     { code: "DUB", name: "Dublin", latitude: 53.4264, longitude: -6.2499 },
-    // Western Europe
-    { code: "CDG", name: "Paris Charles de Gaulle" },
-    { code: "ORY", name: "Paris Orly" },
-    { code: "FRA", name: "Frankfurt" },
-    { code: "MUC", name: "Munich" },
-    { code: "AMS", name: "Amsterdam Schiphol" },
-    { code: "BRU", name: "Brussels" },
-    // Southern Europe
-    { code: "MAD", name: "Madrid Barajas" },
-    { code: "BCN", name: "Barcelona El Prat" },
-    { code: "LIS", name: "Lisbon" },
-    { code: "FCO", name: "Rome Fiumicino" },
-    { code: "MXP", name: "Milan Malpensa" },
-    { code: "ATH", name: "Athens" },
-    { code: "IST", name: "Istanbul" },
-    // Northern Europe
-    { code: "CPH", name: "Copenhagen" },
-    { code: "ARN", name: "Stockholm Arlanda" },
-    { code: "OSL", name: "Oslo" },
-    { code: "HEL", name: "Helsinki" },
-    // Central/Eastern Europe
-    { code: "VIE", name: "Vienna" },
-    { code: "ZRH", name: "Zurich" },
-    { code: "WAW", name: "Warsaw" },
-    { code: "BUD", name: "Budapest" },
-    { code: "PRG", name: "Prague" },
-    // Russia
-    { code: "SVO", name: "Moscow Sheremetyevo" },
-    { code: "DME", name: "Moscow Domodedovo" },
-    { code: "LED", name: "St. Petersburg" },
-    { code: "KZN", name: "Kazan" },
-    { code: "AER", name: "Sochi" }
+    { code: "CDG", name: "Paris Charles de Gaulle", latitude: 49.0097, longitude: 2.5479 },
+    { code: "ORY", name: "Paris Orly", latitude: 48.7233, longitude: 2.3794 },
+    { code: "FRA", name: "Frankfurt", latitude: 50.0379, longitude: 8.5622 },
+    { code: "MUC", name: "Munich", latitude: 48.3537, longitude: 11.7861 },
+    { code: "AMS", name: "Amsterdam Schiphol", latitude: 52.3105, longitude: 4.7683 },
+    { code: "BRU", name: "Brussels", latitude: 50.9014, longitude: 4.4844 },
+    { code: "MAD", name: "Madrid Barajas", latitude: 40.4983, longitude: -3.5676 },
+    { code: "BCN", name: "Barcelona El Prat", latitude: 41.2974, longitude: 2.0833 },
+    { code: "LIS", name: "Lisbon", latitude: 38.7742, longitude: -9.1342 },
+    { code: "FCO", name: "Rome Fiumicino", latitude: 41.8003, longitude: 12.2389 },
+    { code: "MXP", name: "Milan Malpensa", latitude: 45.6306, longitude: 8.7281 },
+    { code: "ATH", name: "Athens", latitude: 37.9364, longitude: 23.9444 },
+    { code: "IST", name: "Istanbul", latitude: 41.2753, longitude: 28.7519 },
+    { code: "CPH", name: "Copenhagen", latitude: 55.6180, longitude: 12.6508 },
+    { code: "ARN", name: "Stockholm Arlanda", latitude: 59.6498, longitude: 17.9238 },
+    { code: "OSL", name: "Oslo", latitude: 60.1976, longitude: 11.1004 },
+    { code: "HEL", name: "Helsinki", latitude: 60.3172, longitude: 24.9633 },
+    { code: "VIE", name: "Vienna", latitude: 48.1103, longitude: 16.5697 },
+    { code: "ZRH", name: "Zurich", latitude: 47.4647, longitude: 8.5492 },
+    { code: "WAW", name: "Warsaw", latitude: 52.1657, longitude: 20.9671 },
+    { code: "BUD", name: "Budapest", latitude: 47.4369, longitude: 19.2617 },
+    { code: "PRG", name: "Prague", latitude: 50.1008, longitude: 14.2600 },
+    { code: "SVO", name: "Moscow Sheremetyevo", latitude: 55.9726, longitude: 37.4146 },
+    { code: "DME", name: "Moscow Domodedovo", latitude: 55.4088, longitude: 37.9063 },
+    { code: "LED", name: "St. Petersburg", latitude: 59.8003, longitude: 30.2625 },
+    { code: "KZN", name: "Kazan", latitude: 55.6062, longitude: 49.2787 },
+    { code: "AER", name: "Sochi", latitude: 43.4499, longitude: 39.9572 }
   ],
-  "Asia": [
-    // Japan
-    { code: "HND", name: "Tokyo Haneda" },
-    { code: "NRT", name: "Tokyo Narita" },
-    { code: "KIX", name: "Osaka Kansai" },
-    // Greater China
-    { code: "PEK", name: "Beijing Capital" },
-    { code: "PKX", name: "Beijing Daxing" },
-    { code: "PVG", name: "Shanghai Pudong" },
-    { code: "HKG", name: "Hong Kong" },
-    { code: "TPE", name: "Taipei Taoyuan" },
-    { code: "TSA", name: "Taipei Songshan" },
-    { code: "KHH", name: "Kaohsiung" },
-    // South Korea
-    { code: "ICN", name: "Seoul Incheon" },
-    { code: "GMP", name: "Seoul Gimpo" },
-    // Singapore
-    { code: "SIN", name: "Singapore Changi" },
-    // Thailand
-    { code: "BKK", name: "Bangkok Suvarnabhumi" },
-    { code: "DMK", name: "Bangkok Don Mueang" },
-    { code: "HKT", name: "Phuket" },
-    { code: "CNX", name: "Chiang Mai" },
-    { code: "USM", name: "Koh Samui" },
-    { code: "KBV", name: "Krabi" },
-    { code: "CEI", name: "Chiang Rai" },
-    // Vietnam
-    { code: "SGN", name: "Ho Chi Minh City" },
-    { code: "HAN", name: "Hanoi" },
-    { code: "DAD", name: "Da Nang" },
-    { code: "PQC", name: "Phu Quoc" },
-    { code: "CXR", name: "Nha Trang" },
-    // Cambodia
-    { code: "REP", name: "Siem Reap" },
-    { code: "PNH", name: "Phnom Penh" },
-    { code: "KOS", name: "Sihanoukville" },
-    // Laos
-    { code: "VTE", name: "Vientiane" },
-    { code: "LPQ", name: "Luang Prabang" },
-    // Myanmar
-    { code: "RGN", name: "Yangon" },
-    { code: "MDL", name: "Mandalay" },
-    // Indonesia
-    { code: "DPS", name: "Denpasar, Bali" },
-    { code: "CGK", name: "Jakarta" },
-    { code: "SUB", name: "Surabaya" },
-    { code: "UPG", name: "Makassar" },
-    { code: "DJJ", name: "Jayapura" },
-    // Malaysia
-    { code: "KUL", name: "Kuala Lumpur" },
-    { code: "PEN", name: "Penang" },
-    { code: "BKI", name: "Kota Kinabalu" },
-    // Philippines
-    { code: "MNL", name: "Manila" },
-    { code: "CEB", name: "Cebu" },
-    // India
-    { code: "DEL", name: "Delhi" },
-    { code: "BOM", name: "Mumbai" },
-    { code: "MAA", name: "Chennai" },
-    // Maldives
-    { code: "MLE", name: "Malé" },
-    { code: "GAN", name: "Gan" }
+   "Asia": [
+    { code: "HND", name: "Tokyo Haneda", latitude: 35.5494, longitude: 139.7798 },
+    { code: "NRT", name: "Tokyo Narita", latitude: 35.7719, longitude: 140.3928 },
+    { code: "KIX", name: "Osaka Kansai", latitude: 34.4347, longitude: 135.2440 },
+    { code: "PEK", name: "Beijing Capital", latitude: 40.0801, longitude: 116.5846 },
+    { code: "PKX", name: "Beijing Daxing", latitude: 39.5093, longitude: 116.4103 },
+    { code: "PVG", name: "Shanghai Pudong", latitude: 31.1444, longitude: 121.8053 },
+    { code: "HKG", name: "Hong Kong", latitude: 22.3080, longitude: 113.9185 },
+    { code: "TPE", name: "Taipei Taoyuan", latitude: 25.0797, longitude: 121.2342 },
+    { code: "TSA", name: "Taipei Songshan", latitude: 25.0691, longitude: 121.5526 },
+    { code: "KHH", name: "Kaohsiung", latitude: 22.5771, longitude: 120.3499 },
+    { code: "ICN", name: "Seoul Incheon", latitude: 37.4602, longitude: 126.4407 },
+    { code: "GMP", name: "Seoul Gimpo", latitude: 37.5580, longitude: 126.7906 },
+    { code: "SIN", name: "Singapore Changi", latitude: 1.3644, longitude: 103.9915 },
+    { code: "BKK", name: "Bangkok Suvarnabhumi", latitude: 13.6900, longitude: 100.7501 },
+    { code: "DMK", name: "Bangkok Don Mueang", latitude: 13.9126, longitude: 100.6068 },
+    { code: "HKT", name: "Phuket", latitude: 8.1132, longitude: 98.3169 },
+    { code: "CNX", name: "Chiang Mai", latitude: 18.7717, longitude: 98.9627 },
+    { code: "USM", name: "Koh Samui", latitude: 9.5479, longitude: 100.0627 },
+    { code: "KBV", name: "Krabi", latitude: 8.0950, longitude: 98.9850 },
+    { code: "CEI", name: "Chiang Rai", latitude: 19.9525, longitude: 99.8828 },
+    { code: "SGN", name: "Ho Chi Minh City", latitude: 10.8189, longitude: 106.6519 },
+    { code: "HAN", name: "Hanoi", latitude: 21.2212, longitude: 105.7472 },
+    { code: "DAD", name: "Da Nang", latitude: 16.0439, longitude: 108.1994 },
+    { code: "PQC", name: "Phu Quoc", latitude: 10.1698, longitude: 103.9934 },
+    { code: "CXR", name: "Nha Trang", latitude: 12.0000, longitude: 109.2167 },
+    { code: "REP", name: "Siem Reap", latitude: 13.3669, longitude: 103.8120 },
+    { code: "PNH", name: "Phnom Penh", latitude: 11.5465, longitude: 104.8441 },
+    { code: "KOS", name: "Sihanoukville", latitude: 10.5798, longitude: 103.6347 },
+    { code: "VTE", name: "Vientiane", latitude: 17.9884, longitude: 102.5633 },
+    { code: "LPQ", name: "Luang Prabang", latitude: 19.8978, longitude: 102.1614 },
+    { code: "RGN", name: "Yangon", latitude: 16.9073, longitude: 96.1332 },
+    { code: "MDL", name: "Mandalay", latitude: 21.7022, longitude: 95.9780 },
+    { code: "DPS", name: "Denpasar, Bali", latitude: -8.7485, longitude: 115.1671 },
+    { code: "CGK", name: "Jakarta", latitude: -6.1256, longitude: 106.6559 },
+    { code: "SUB", name: "Surabaya", latitude: -7.3797, longitude: 112.7868 },
+    { code: "UPG", name: "Makassar", latitude: -5.0617, longitude: 119.5542 },
+    { code: "DJJ", name: "Jayapura", latitude: -2.5769, longitude: 140.5169 },
+    { code: "KUL", name: "Kuala Lumpur", latitude: 2.7456, longitude: 101.7099 },
+    { code: "PEN", name: "Penang", latitude: 5.2971, longitude: 100.2767 },
+    { code: "BKI", name: "Kota Kinabalu", latitude: 5.9351, longitude: 116.0500 },
+    { code: "MNL", name: "Manila", latitude: 14.5086, longitude: 121.0194 },
+    { code: "CEB", name: "Cebu", latitude: 10.3075, longitude: 123.9789 },
+    { code: "DEL", name: "Delhi", latitude: 28.5562, longitude: 77.1000 },
+    { code: "BOM", name: "Mumbai", latitude: 19.0896, longitude: 72.8656 },
+    { code: "MAA", name: "Chennai", latitude: 12.9901, longitude: 80.1696 },
+    { code: "MLE", name: "Malé", latitude: 4.2010, longitude: 73.5290 },
+    { code: "GAN", name: "Gan", latitude: -0.6936, longitude: 73.1556 }
   ],
   "Oceania": [
-    { code: "SYD", name: "Sydney" },
-    { code: "MEL", name: "Melbourne" },
-    { code: "BNE", name: "Brisbane" },
-    { code: "PER", name: "Perth" },
-    { code: "AKL", name: "Auckland" },
-    { code: "CHC", name: "Christchurch" },
-    { code: "NAN", name: "Fiji Nadi" },
-    { code: "POM", name: "Port Moresby" }
+    { code: "SYD", name: "Sydney", latitude: -33.9399, longitude: 151.1753 },
+    { code: "MEL", name: "Melbourne", latitude: -37.6690, longitude: 144.8410 },
+    { code: "BNE", name: "Brisbane", latitude: -27.3842, longitude: 153.1175 },
+    { code: "PER", name: "Perth", latitude: -31.9403, longitude: 115.9669 },
+    { code: "AKL", name: "Auckland", latitude: -37.0082, longitude: 174.7917 },
+    { code: "CHC", name: "Christchurch", latitude: -43.4894, longitude: 172.5322 },
+    { code: "NAN", name: "Fiji Nadi", latitude: -17.7550, longitude: 177.4436 },
+    { code: "POM", name: "Port Moresby", latitude: -9.4433, longitude: 147.2100 }
   ],
   "Middle East": [
-    { code: "DXB", name: "Dubai" },
-    { code: "DOH", name: "Doha" },
-    { code: "AUH", name: "Abu Dhabi" },
-    { code: "RUH", name: "Riyadh" }
+    { code: "DXB", name: "Dubai", latitude: 25.2532, longitude: 55.3657 },
+    { code: "DOH", name: "Doha", latitude: 25.2732, longitude: 51.6139 },
+    { code: "AUH", name: "Abu Dhabi", latitude: 24.4330, longitude: 54.6511 },
+    { code: "RUH", name: "Riyadh", latitude: 24.9576, longitude: 46.6988 }
   ],
   "Central America": [
-    { code: "PTY", name: "Panama City Tocumen" },
-    { code: "PAC", name: "Panama City Albrook" },
-    { code: "SJO", name: "San José, Costa Rica" },
-    { code: "LIR", name: "Liberia, Costa Rica" },
-    { code: "SAL", name: "San Salvador, El Salvador" },
-    { code: "GUA", name: "Guatemala City" },
-    { code: "TGU", name: "Tegucigalpa, Honduras" },
-    { code: "SAP", name: "San Pedro Sula, Honduras" },
-    { code: "RTB", name: "Roatán, Honduras" },
-    { code: "MGA", name: "Managua, Nicaragua" },
-    { code: "BZE", name: "Belize City" },
-    { code: "SDQ", name: "Santo Domingo, Dominican Republic" },
-    { code: "PUJ", name: "Punta Cana, Dominican Republic" },
-    { code: "HAV", name: "Havana, Cuba" },
-    { code: "VRA", name: "Varadero, Cuba" },
-    { code: "GCM", name: "Grand Cayman" },
-    { code: "MBJ", name: "Montego Bay, Jamaica" },
-    { code: "KIN", name: "Kingston, Jamaica" },
-    { code: "ANU", name: "Antigua" },
-    { code: "SJU", name: "San Juan, Puerto Rico" }
+    { code: "PTY", name: "Panama City Tocumen", latitude: 9.0713, longitude: -79.3835 },
+    { code: "PAC", name: "Panama City Albrook", latitude: 8.9730, longitude: -79.5555 },
+    { code: "SJO", name: "San José, Costa Rica", latitude: 9.9939, longitude: -84.2088 },
+    { code: "LIR", name: "Liberia, Costa Rica", latitude: 10.6000, longitude: -85.5442 },
+    { code: "SAL", name: "San Salvador, El Salvador", latitude: 13.4409, longitude: -89.0558 },
+    { code: "GUA", name: "Guatemala City", latitude: 14.5833, longitude: -90.5278 },
+    { code: "TGU", name: "Tegucigalpa, Honduras", latitude: 14.0608, longitude: -87.2178 },
+    { code: "SAP", name: "San Pedro Sula, Honduras", latitude: 15.4527, longitude: -87.9236 },
+    { code: "RTB", name: "Roatán, Honduras", latitude: 16.3171, longitude: -86.5229 },
+    { code: "MGA", name: "Managua, Nicaragua", latitude: 12.1413, longitude: -86.1681 },
+    { code: "BZE", name: "Belize City", latitude: 17.5391, longitude: -88.3082 },
+    { code: "SDQ", name: "Santo Domingo, Dominican Republic", latitude: 18.4296, longitude: -69.6688 },
+    { code: "PUJ", name: "Punta Cana, Dominican Republic", latitude: 18.5675, longitude: -68.3634 },
+    { code: "HAV", name: "Havana, Cuba", latitude: 22.9891, longitude: -82.4091 },
+    { code: "VRA", name: "Varadero, Cuba", latitude: 23.0344, longitude: -81.4353 },
+    { code: "GCM", name: "Grand Cayman", latitude: 19.2926, longitude: -81.3578 },
+    { code: "MBJ", name: "Montego Bay, Jamaica", latitude: 18.5037, longitude: -77.9133 },
+    { code: "KIN", name: "Kingston, Jamaica", latitude: 17.9357, longitude: -76.7870 },
+    { code: "ANU", name: "Antigua", latitude: 17.1367, longitude: -61.7929 },
+    { code: "SJU", name: "San Juan, Puerto Rico", latitude: 18.4394, longitude: -66.0018 }
   ],
   "South America": [
-    { code: "GRU", name: "São Paulo Guarulhos" },
-    { code: "CGH", name: "São Paulo Congonhas" },
-    { code: "GIG", name: "Rio de Janeiro Galeão" },
-    { code: "SDU", name: "Rio de Janeiro Santos Dumont" },
-    { code: "EZE", name: "Buenos Aires Ezeiza" },
-    { code: "AEP", name: "Buenos Aires Aeroparque" },
-    { code: "BOG", name: "Bogotá" },
-    { code: "SCL", name: "Santiago" },
-    { code: "LIM", name: "Lima" },
-    { code: "CCS", name: "Caracas" },
-    { code: "UIO", name: "Quito" },
-    { code: "GYE", name: "Guayaquil" },
-    { code: "MVD", name: "Montevideo" },
-    { code: "ASU", name: "Asunción" },
-    { code: "VVI", name: "Santa Cruz" },
-    { code: "LPB", name: "La Paz" },
-    { code: "CUZ", name: "Cusco" },
-    { code: "CTG", name: "Cartagena" },
-    { code: "CNF", name: "Belo Horizonte" },
-    { code: "FLN", name: "Florianópolis" }
+    { code: "GRU", name: "São Paulo Guarulhos", latitude: -23.4356, longitude: -46.4731 },
+    { code: "CGH", name: "São Paulo Congonhas", latitude: -23.6261, longitude: -46.6564 },
+    { code: "GIG", name: "Rio de Janeiro Galeão", latitude: -22.8100, longitude: -43.2505 },
+    { code: "SDU", name: "Rio de Janeiro Santos Dumont", latitude: -22.9105, longitude: -43.1631 },
+    { code: "EZE", name: "Buenos Aires Ezeiza", latitude: -34.8222, longitude: -58.5358 },
+    { code: "AEP", name: "Buenos Aires Aeroparque", latitude: -34.5592, longitude: -58.4156 },
+    { code: "BOG", name: "Bogotá", latitude: 4.7016, longitude: -74.1469 },
+    { code: "SCL", name: "Santiago", latitude: -33.3930, longitude: -70.7858 },
+    { code: "LIM", name: "Lima", latitude: -12.0219, longitude: -77.1143 },
+    { code: "CCS", name: "Caracas", latitude: 10.6031, longitude: -66.9906 },
+    { code: "UIO", name: "Quito", latitude: -0.1417, longitude: -78.3575 },
+    { code: "GYE", name: "Guayaquil", latitude: -2.1575, longitude: -79.8836 },
+    { code: "MVD", name: "Montevideo", latitude: -34.8383, longitude: -56.0308 },
+    { code: "ASU", name: "Asunción", latitude: -25.2397, longitude: -57.5192 },
+    { code: "VVI", name: "Santa Cruz", latitude: -17.6448, longitude: -63.1354 },
+    { code: "LPB", name: "La Paz", latitude: -16.5134, longitude: -68.1724 },
+    { code: "CUZ", name: "Cusco", latitude: -13.5357, longitude: -71.9388 },
+    { code: "CTG", name: "Cartagena", latitude: 10.4424, longitude: -75.5129 },
+    { code: "CNF", name: "Belo Horizonte", latitude: -19.6244, longitude: -43.9719 },
+    { code: "FLN", name: "Florianópolis", latitude: -27.6706, longitude: -48.5470 }
   ],
   "Africa": [
-    // South Africa
-    { code: "JNB", name: "Johannesburg O.R. Tambo" },
-    { code: "DUR", name: "Durban King Shaka" },
-    { code: "CPT", name: "Cape Town" },
-    { code: "PLZ", name: "Port Elizabeth" },
-    // Morocco
-    { code: "CMN", name: "Casablanca Mohammed V" },
-    { code: "RAK", name: "Marrakesh Menara" },
-    { code: "FEZ", name: "Fez" },
-    { code: "AGA", name: "Agadir" },
-    { code: "TNG", name: "Tangier Ibn Battouta" },
-    // North Africa
-    { code: "CAI", name: "Cairo" },
-    { code: "ALG", name: "Algiers" },
-    { code: "TUN", name: "Tunis Carthage" },
-    // West Africa
-    { code: "NBO", name: "Nairobi" },
-    { code: "LOS", name: "Lagos" },
-    { code: "ACC", name: "Accra" },
-    { code: "DKR", name: "Dakar" },
-    // East Africa
-    { code: "ADD", name: "Addis Ababa" },
-    { code: "DAR", name: "Dar es Salaam" },
-    { code: "EBB", name: "Entebbe" },
-    // Islands
-    { code: "SEZ", name: "Seychelles" },
-    { code: "MRU", name: "Mauritius" }
+    { code: "JNB", name: "Johannesburg O.R. Tambo", latitude: -26.1392, longitude: 28.2460 },
+    { code: "DUR", name: "Durban King Shaka", latitude: -29.6142, longitude: 31.1194 },
+    { code: "CPT", name: "Cape Town", latitude: -33.9648, longitude: 18.6017 },
+    { code: "PLZ", name: "Port Elizabeth", latitude: -33.9849, longitude: 25.6173 },
+    { code: "CMN", name: "Casablanca Mohammed V", latitude: 33.3675, longitude: -7.5899 },
+    { code: "RAK", name: "Marrakesh Menara", latitude: 31.6069, longitude: -8.0363 },
+    { code: "FEZ", name: "Fez", latitude: 33.9272, longitude: -4.9779 },
+    { code: "AGA", name: "Agadir", latitude: 30.3250, longitude: -9.4130 },
+    { code: "TNG", name: "Tangier Ibn Battouta", latitude: 35.7269, longitude: -5.9169 },
+    { code: "CAI", name: "Cairo", latitude: 30.1219, longitude: 31.4056 },
+    { code: "ALG", name: "Algiers", latitude: 36.6910, longitude: 3.2154 },
+    { code: "TUN", name: "Tunis Carthage", latitude: 36.8510, longitude: 10.2272 },
+    { code: "LOS", name: "Lagos", latitude: 6.5774, longitude: 3.3211 },
+    { code: "ACC", name: "Accra", latitude: 5.6052, longitude: -0.1668 },
+    { code: "DKR", name: "Dakar", latitude: 14.7397, longitude: -17.4901 },
+    { code: "NBO", name: "Nairobi", latitude: -1.3192, longitude: 36.9278 },
+    { code: "ADD", name: "Addis Ababa", latitude: 8.9779, longitude: 38.7993 },
+    { code: "DAR", name: "Dar es Salaam", latitude: -6.8781, longitude: 39.2026 },
+    { code: "EBB", name: "Entebbe", latitude: 0.0424, longitude: 32.4436 },
+    { code: "SEZ", name: "Seychelles", latitude: -4.6744, longitude: 55.5219 },
+    { code: "MRU", name: "Mauritius", latitude: -20.4302, longitude: 57.6830 }
   ]
 };
 
 // Flatten airport list for easy selection
-const allAirports = Object.values(majorAirports).flat().sort((a, b) => a.code.localeCompare(b.code));
+const allAirportsFlat = Object.values(majorAirports).flat().sort((a, b) => a.code.localeCompare(b.code));
 
-// List of airline codes and names
-const airlines = [
-  { code: "AA", name: "American Airlines", region: "North America", logo: "https://www.aa.com/favicon.ico" },
-  { code: "AS", name: "Alaska Airlines", region: "North America", logo: "https://www.alaskaair.com/favicon.ico" },
-  { code: "DL", name: "Delta Air Lines", region: "North America", logo: "https://www.delta.com/favicon.ico" },
-  { code: "UA", name: "United Airlines", region: "North America", logo: "https://www.united.com/favicon.ico" },
-  { code: "BA", name: "British Airways", region: "Europe", logo: "https://www.britishairways.com/favicon.ico" },
-  { code: "LH", name: "Lufthansa", region: "Europe", logo: "https://www.lufthansa.com/favicon.ico" },
-  { code: "AF", name: "Air France", region: "Europe", logo: "https://www.airfrance.com/favicon.ico" },
-  { code: "EK", name: "Emirates", region: "Middle East", logo: "https://www.emirates.com/favicon.ico" },
-  { code: "QR", name: "Qatar Airways", region: "Middle East", logo: "https://www.qatarairways.com/favicon.ico" },
-  { code: "SQ", name: "Singapore Airlines", region: "Asia", logo: "https://www.singaporeair.com/favicon.ico" },
-  { code: "CX", name: "Cathay Pacific", region: "Asia", logo: "https://www.cathaypacific.com/favicon.ico" },
-  { code: "JL", name: "Japan Airlines", region: "Asia", logo: "https://www.jal.com/favicon.ico" },
-  { code: "QF", name: "Qantas", region: "Oceania", logo: "https://www.qantas.com/favicon.ico" },
-  { code: "TG", name: "Thai Airways", region: "Asia", logo: "https://www.thaiairways.com/favicon.ico" }, // CM is not in this list
-  { code: "MH", name: "Malaysia Airlines", region: "Asia", logo: "https://www.malaysiaairlines.com/favicon.ico" }
-];
-
-// Generate hour options in 24-hour format
-const generateHourOptions = () => {
-  const hours = [];
-  for (let hour = 0; hour < 24; hour++) {
-    const formattedHour = hour.toString().padStart(2, '0');
-    hours.push(formattedHour);
-  }
-  return hours;
-};
-
-// Generate minute options in 5-minute increments
-const generateMinuteOptions = () => {
-  const minutes = [];
-  for (let minute = 0; minute < 60; minute += 5) {
-    const formattedMinute = minute.toString().padStart(2, '0');
-    minutes.push(formattedMinute);
-  }
-  return minutes;
-};
-
-const hourOptions = generateHourOptions();
-const minuteOptions = generateMinuteOptions();
-
-// Generate date options (next 365 days)
-const generateDateOptions = () => {
-  const dates = [];
-  const today = new Date();
-  
-  for (let i = 0; i < 365; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    
-    dates.push({
-      value: `${year}-${month}-${day}`,
-      label: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
-    });
-  }
-  
-  return dates;
-};
-
-const dateOptions = generateDateOptions();
+// Generate hour options
+const hourOptions = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+// Generate minute options
+const minuteOptions = Array.from({ length: 12 }, (_, i) => (i * 5).toString().padStart(2, '0'));
 
 // Available cabin classes
 const cabinClasses = [
@@ -345,7 +255,13 @@ interface EnhancedFlightDetails {
   arrivalDate: string;
   arrivalTime: string;
   flightNumber: string;
-  airline: { code: string; name: string };
+  airline: {
+    id: string; // Will be the airline code
+    code: string;
+    name: string;
+    logo?: string;
+    region?: string;
+  };
   duration: string;
   cabin: string;
   distanceKm: number;
@@ -365,27 +281,35 @@ interface EnhancedFlightDetails {
   };
 }
 
+// Helper function to get airline region from the grouped structure
+const getAirlineRegionFromGroup = (airlineCode: string): string | undefined => {
+  for (const group of airlinesGroupedByRegion) {
+    if (group.airlines.some(a => a.code === airlineCode)) {
+      return group.regionName;
+    }
+  }
+  return undefined;
+};
+
+
 const EnhancedFlightSelection = () => {
   const [_, navigate] = useLocation();
   const { toast } = useToast();
   const { flightDetails, setFlightDetails, setSelectedFlight } = useFlightContext();
-  
-  // Load cached values from local storage
+
   const loadCachedValue = (key: string, defaultValue: string): string => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem(`flightCache_${key}`) || defaultValue;
     }
     return defaultValue;
   };
-  
-  // Save values to local storage cache
+
   const saveToCache = (key: string, value: string) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem(`flightCache_${key}`, value);
     }
   };
-  
-  // Form State
+
   const [departureRegion, setDepartureRegion] = useState<string>(loadCachedValue("departureRegion", ""));
   const [destinationRegion, setDestinationRegion] = useState<string>(loadCachedValue("destinationRegion", ""));
   const [departureAirport, setDepartureAirport] = useState<string>(
@@ -402,350 +326,238 @@ const EnhancedFlightSelection = () => {
   const [selectedAirline, setSelectedAirline] = useState<string>(loadCachedValue("selectedAirline", ""));
   const [selectedCabin, setSelectedCabin] = useState<string>(loadCachedValue("selectedCabin", "economy"));
   const [airlineRegionFilter, setAirlineRegionFilter] = useState<string>(loadCachedValue("airlineRegionFilter", "All Regions"));
-  const [filteredAirlines, setFilteredAirlines] = useState(allAirlines);
   
-  // Define a more specific type for airport search results if possible
-  type AirportSearchResult = { code: string; name: string; region: string; latitude?: number; longitude?: number };
-  // Define a more specific type for airline search results if possible
-  type AirlineSearchResult = { id: string | number; code: string; name: string; region: string; logo?: string };
+  // Filtered airlines for the dropdown
+  const [airlinesForDropdown, setAirlinesForDropdown] = useState(() => {
+    // Initialize with allAirlines from util, ensuring each has code, name, and region
+    return allAirlines.map(a => ({
+        code: a.code,
+        name: a.name,
+        region: getAirlineRegionFromGroup(a.code) || "Unknown" // Add region for filtering
+    }));
+  });
 
-  // Search functionality
+
+  type AirportSearchResult = { code: string; name: string; region: string; latitude?: number; longitude?: number };
+  // Airline search result type, includes region for display/filtering if needed
+  type AirlineSearchResult = {
+    code: string;
+    name: string;
+    region?: string; // Region from airlinesGroupedByRegion
+    logo?: string; // If you add logos to allAirlines in util
+  };
+
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<{airports: AirportSearchResult[], airlines: AirlineSearchResult[]}>({
-    airports: [], 
+  const [searchResults, setSearchResults] = useState<{ airports: AirportSearchResult[], airlines: AirlineSearchResult[] }>({
+    airports: [],
     airlines: []
   });
   const [isSearching, setIsSearching] = useState<boolean>(false);
-  
-  // Flattened list of all airports
-  const allAirportsList = Object.entries(majorAirports).flatMap(([region, airports]) => 
-    airports.map(airport => ({...airport, region}))
+
+  const allAirportsList = Object.entries(majorAirports).flatMap(([region, airports]) =>
+    airports.map(airport => ({ ...airport, region }))
   ).sort((a, b) => a.code.localeCompare(b.code));
-  
-  // Generated flight state
+
   const [flightData, setFlightData] = useState<EnhancedFlightDetails | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [hasDirectFlight, setHasDirectFlight] = useState<boolean>(true);
+  const [isDepartureCalendarOpen, setIsDepartureCalendarOpen] = useState(false);
 
   useEffect(() => {
     document.title = "Select Flight - FlightBack";
   }, []);
-  
-  // Create wrapper functions for setters to save to cache
-  const setCachedDepartureRegion = (value: string) => {
-    saveToCache("departureRegion", value);
-    setDepartureRegion(value);
-  };
-  
-  const setCachedDestinationRegion = (value: string) => {
-    saveToCache("destinationRegion", value);
-    setDestinationRegion(value);
-  };
-  
-  const setCachedDepartureAirport = (value: string) => {
-    saveToCache("departureAirport", value);
-    setDepartureAirport(value);
-  };
-  
-  const setCachedDestinationAirport = (value: string) => {
-    saveToCache("destinationAirport", value);
-    setDestinationAirport(value);
-  };
-  
-  const setCachedDepartureHour = (value: string) => {
-    saveToCache("departureHour", value);
-    setDepartureHour(value);
-  };
-  
-  const setCachedDepartureMinute = (value: string) => {
-    saveToCache("departureMinute", value);
-    setDepartureMinute(value);
-  };
-  
-  const setCachedSelectedAirline = (value: string) => {
-    saveToCache("selectedAirline", value);
-    setSelectedAirline(value);
-  };
-  
-  const setCachedSelectedCabin = (value: string) => {
-    saveToCache("selectedCabin", value);
-    setSelectedCabin(value);
-  };
-  
-  const setCachedAirlineRegionFilter = (value: string) => {
-    saveToCache("airlineRegionFilter", value);
-    setAirlineRegionFilter(value);
-  };
-  
-  // Reset all form data and cache
+
+  const setCachedDepartureRegion = (value: string) => { saveToCache("departureRegion", value); setDepartureRegion(value); };
+  const setCachedDestinationRegion = (value: string) => { saveToCache("destinationRegion", value); setDestinationRegion(value); };
+  const setCachedDepartureAirport = (value: string) => { saveToCache("departureAirport", value); setDepartureAirport(value); };
+  const setCachedDestinationAirport = (value: string) => { saveToCache("destinationAirport", value); setDestinationAirport(value); };
+  const setCachedDepartureHour = (value: string) => { saveToCache("departureHour", value); setDepartureHour(value); };
+  const setCachedDepartureMinute = (value: string) => { saveToCache("departureMinute", value); setDepartureMinute(value); };
+  const setCachedSelectedAirline = (value: string) => { saveToCache("selectedAirline", value); setSelectedAirline(value); };
+  const setCachedSelectedCabin = (value: string) => { saveToCache("selectedCabin", value); setSelectedCabin(value); };
+  const setCachedAirlineRegionFilter = (value: string) => { saveToCache("airlineRegionFilter", value); setAirlineRegionFilter(value); };
+
   const resetAll = () => {
-    // Clear cache
-    ["departureRegion", "destinationRegion", "departureAirport", "destinationAirport", 
-     "departureHour", "departureMinute", "selectedAirline", "selectedCabin", "airlineRegionFilter"]
+    ["departureRegion", "destinationRegion", "departureAirport", "destinationAirport",
+      "departureHour", "departureMinute", "selectedAirline", "selectedCabin", "airlineRegionFilter"]
       .forEach(key => localStorage.removeItem(`flightCache_${key}`));
-    
-    // Reset state
-    setDepartureRegion("");
-    setDestinationRegion("");
-    setDepartureAirport("");
-    setDestinationAirport("");
-    setDepartureHour("09");
-    setDepartureMinute("00");
-    setSelectedAirline("");
-    setSelectedCabin("economy");
-    setAirlineRegionFilter("All Regions");
-    setFlightData(null);
+    setDepartureRegion(""); setDestinationRegion(""); setDepartureAirport(""); setDestinationAirport("");
+    setDepartureHour("09"); setDepartureMinute("00"); setSelectedAirline(""); setSelectedCabin("economy");
+    setAirlineRegionFilter("All Regions"); setFlightData(null); setDepartureDate(new Date()); setError("");
   };
-  
-  // Effect to filter airlines by region
+
+  // Effect to filter airlines for the dropdown based on airlineRegionFilter
   useEffect(() => {
     if (airlineRegionFilter === "All Regions") {
-      setFilteredAirlines(allAirlines);
+        setAirlinesForDropdown(allAirlines.map(a => ({
+            code: a.code,
+            name: a.name,
+            region: getAirlineRegionFromGroup(a.code) || "Unknown"
+        })).sort((a,b) => a.name.localeCompare(b.name)) );
     } else {
-      setFilteredAirlines(getAirlinesForRegion(airlineRegionFilter));
+        const regionGroup = airlinesGroupedByRegion.find(group => group.regionName === airlineRegionFilter);
+        setAirlinesForDropdown(
+            regionGroup ? regionGroup.airlines.map(a => ({
+                code: a.code,
+                name: a.name,
+                region: regionGroup.regionName
+            })).sort((a,b) => a.name.localeCompare(b.name)) : []
+        );
     }
   }, [airlineRegionFilter]);
-  
-  // Effect to update airline filter when departure airport changes (optional suggestion feature)
+
+
   useEffect(() => {
     if (departureAirport) {
-      // Find the region of the selected departure airport
-      const region = Object.entries(majorAirports).find(([_, airports]) => 
+      const region = Object.entries(majorAirports).find(([_, airports]) =>
         airports.some(airport => airport.code === departureAirport)
       )?.[0];
-      
-      if (region) {
-        // Just set a suggested region but don't force filtering
-        // User can still select "All Regions" if they want
-        setAirlineRegionFilter(region);
+      // Auto-set airline region filter if a departure airport is selected and its region is known
+      // This will trigger the useEffect above to filter airlinesForDropdown
+      if (region && Object.keys(majorAirports).includes(region)) { 
+        setCachedAirlineRegionFilter(region);
+      } else {
+        setCachedAirlineRegionFilter("All Regions"); // Fallback if region not found
       }
+    } else {
+        setCachedAirlineRegionFilter("All Regions"); // Reset if no departure airport
     }
-  }, [departureAirport]);
-  
-  // Effect to check direct flight availability when both airports are selected
+  }, [departureAirport]); // Removed setCachedAirlineRegionFilter from dep array to avoid loop with itself
+
   useEffect(() => {
     if (departureAirport && destinationAirport) {
-      // Check if a direct flight exists between the two airports
       const directFlightAvailable = directFlightExists(departureAirport, destinationAirport);
       setHasDirectFlight(directFlightAvailable);
     } else {
-      // Reset when airports are not selected
       setHasDirectFlight(true);
     }
   }, [departureAirport, destinationAirport]);
-  
-  // Search functionality
+
   const handleSearch = (search: string) => {
     setSearchTerm(search);
-    
-    // Always stay in searching mode once the user has clicked the search bar
     setIsSearching(true);
-    
     if (!search || search.length < 1) {
-      // Show a default set of popular airports when no search term
       const popularAirports = allAirportsList
         .filter(a => ['JFK', 'LAX', 'SFO', 'LHR', 'CDG', 'SIN', 'HKG', 'DXB', 'SYD'].includes(a.code))
         .sort((a, b) => a.code.localeCompare(b.code));
-      
-      setSearchResults({ 
-        airports: popularAirports, 
-        airlines: [] 
-      });
+      setSearchResults({ airports: popularAirports, airlines: [] });
       return;
     }
-    
     const searchLower = search.toLowerCase().trim();
-    
-    // Log all airports for debugging
-    console.log("Available airports:", allAirportsList.map(a => a.code));
-    
-    // Search airports (more permissive - even with 1 character)
-    let airportResults = allAirportsList.filter(airport => {
-      const codeMatch = airport.code.toLowerCase().includes(searchLower);
-      const nameMatch = airport.name.toLowerCase().includes(searchLower);
-      return codeMatch || nameMatch;
-    });
-    
-    // Log found results for debugging
-    console.log(`Search for '${searchLower}' found ${airportResults.length} airports`);
-    if (airportResults.length > 0) {
-      console.log("First few results:", airportResults.slice(0, 3).map(a => `${a.code} - ${a.name}`));
-    }
-    
-    // Prioritize exact code matches (move them to the top)
+    let airportResults = allAirportsList.filter(airport =>
+      airport.code.toLowerCase().includes(searchLower) || airport.name.toLowerCase().includes(searchLower)
+    );
     airportResults.sort((a, b) => {
-      // Exact code match gets top priority (case insensitive)
-      if (a.code.toLowerCase() === searchLower) return -1;
-      if (b.code.toLowerCase() === searchLower) return 1;
-      
-      // Then prioritize codes that start with the search term
-      const aCodeStarts = a.code.toLowerCase().startsWith(searchLower);
-      const bCodeStarts = b.code.toLowerCase().startsWith(searchLower);
-      
-      if (aCodeStarts && !bCodeStarts) return -1;
-      if (!aCodeStarts && bCodeStarts) return 1;
-      
-      // Next priority: names that start with the search term
-      const aNameStarts = a.name.toLowerCase().startsWith(searchLower);
-      const bNameStarts = b.name.toLowerCase().startsWith(searchLower);
-      
-      if (aNameStarts && !bNameStarts) return -1;
-      if (!aNameStarts && bNameStarts) return 1;
-      
-      // Default sort by code
+      if (a.code.toLowerCase() === searchLower) return -1; if (b.code.toLowerCase() === searchLower) return 1;
+      const aCodeStarts = a.code.toLowerCase().startsWith(searchLower); const bCodeStarts = b.code.toLowerCase().startsWith(searchLower);
+      if (aCodeStarts && !bCodeStarts) return -1; if (!aCodeStarts && bCodeStarts) return 1;
+      const aNameStarts = a.name.toLowerCase().startsWith(searchLower); const bNameStarts = b.name.toLowerCase().startsWith(searchLower);
+      if (aNameStarts && !bNameStarts) return -1; if (!aNameStarts && bNameStarts) return 1;
       return a.code.localeCompare(b.code);
     });
-    
-    // Limit results
     airportResults = airportResults.slice(0, 15);
-    
-    // Search airlines and prioritize exact code matches
-    let airlineResults = allAirlines.filter(airline => {
+
+    // Search airlines from the global allAirlines list
+    const airlineResultsRaw = allAirlines.filter(airline => {
       const codeMatch = airline.code.toLowerCase().includes(searchLower);
       const nameMatch = airline.name.toLowerCase().includes(searchLower);
-      
-      // Special case for Qantas - also match "Quantas" (common misspelling)
       const isQantasSearch = searchLower.includes("quant") && airline.code === "QF";
-      
       return codeMatch || nameMatch || isQantasSearch;
     });
-    
-    // Debug search for airlines
-    console.log(`Search for '${searchLower}' found ${airlineResults.length} airlines`);
-    if (airlineResults.length > 0) {
-      console.log("Airline results:", airlineResults.map(a => `${a.name} (${a.code})`));
-    }
-    
-    // Prioritize exact airline code matches
-    airlineResults.sort((a, b) => {
-      if (a.code.toLowerCase() === searchLower) return -1;
-      if (b.code.toLowerCase() === searchLower) return 1;
-      
-      const aCodeStarts = a.code.toLowerCase().startsWith(searchLower);
-      const bCodeStarts = b.code.toLowerCase().startsWith(searchLower);
-      
-      if (aCodeStarts && !bCodeStarts) return -1;
-      if (!aCodeStarts && bCodeStarts) return 1;
-      
+
+    let airlineFormattedResults: AirlineSearchResult[] = airlineResultsRaw.map(ar => ({
+      code: ar.code,
+      name: ar.name,
+      // logo: ar.logo, // Add if your allAirlines objects have logos
+      region: getAirlineRegionFromGroup(ar.code) || "Unknown"
+    }));
+
+    airlineFormattedResults.sort((a, b) => {
+      if (a.code.toLowerCase() === searchLower) return -1; if (b.code.toLowerCase() === searchLower) return 1;
+      const aCodeStarts = a.code.toLowerCase().startsWith(searchLower); const bCodeStarts = b.code.toLowerCase().startsWith(searchLower);
+      if (aCodeStarts && !bCodeStarts) return -1; if (!aCodeStarts && bCodeStarts) return 1;
       return a.name.localeCompare(b.name);
     });
-    
-    // Limit results
-    airlineResults = airlineResults.slice(0, 10);
-    
-    setSearchResults({
-      airports: airportResults,
-      airlines: airlineResults
-    });
+    airlineFormattedResults = airlineFormattedResults.slice(0, 10);
+    setSearchResults({ airports: airportResults, airlines: airlineFormattedResults });
   };
-  
-  // Handle selecting an airport from search
-  const handleSelectAirportFromSearch = (airport: any) => {
-    // Set region first
+
+  const handleSelectAirportFromSearch = (airport: AirportSearchResult) => {
     const selectedRegion = airport.region;
-    
-    // Then set airport - we need to manage both departure and destination
     if (!departureAirport) {
-      setDepartureRegion(selectedRegion);
-      setDepartureAirport(airport.code);
-      // Close search after selecting departure airport to let user
-      // interact with regular dropdowns
-      setIsSearching(false);
+      setCachedDepartureRegion(selectedRegion); setCachedDepartureAirport(airport.code); setIsSearching(false);
     } else if (!destinationAirport) {
-      setDestinationRegion(selectedRegion);
-      setDestinationAirport(airport.code);
-      // Close search after both airports are selected
-      setIsSearching(false);
-    } else {
-      // Both are filled, replace departure
-      setDepartureRegion(selectedRegion);
-      setDepartureAirport(airport.code);
-      // Leave search open so they can select destination next
+      setCachedDestinationRegion(selectedRegion); setCachedDestinationAirport(airport.code); setIsSearching(false);
+    } else { // Both are filled, replace departure
+      setCachedDepartureRegion(selectedRegion); setCachedDepartureAirport(airport.code);
     }
-    
-    // Clear search term in any case
     setSearchTerm("");
   };
-  
-  // Handle selecting an airline from search
-  const handleSelectAirlineFromSearch = (airline: any) => {
-    setSelectedAirline(airline.code);
+
+  const handleSelectAirlineFromSearch = (airline: AirlineSearchResult) => {
+    setCachedSelectedAirline(airline.code);
+    // Optionally set airlineRegionFilter based on the searched airline's region
+    if (airline.region && airline.region !== "Unknown") {
+        setCachedAirlineRegionFilter(airline.region);
+    }
     setSearchTerm("");
-    // Close search after selecting an airline
     setIsSearching(false);
   };
-  
-  // Generate flight number
+
   const generateFlightNumber = (airlineCode: string): string => {
-    // Most airlines use numbers between 1 and 9999
     const number = Math.floor(Math.random() * 9999) + 1;
     return `${airlineCode}${number.toString().padStart(3, '0')}`;
   };
 
-  // Calculate flight details
   const handleGenerateFlight = async () => {
     if (!departureAirport || !destinationAirport) {
-      toast({
-        title: "Missing information",
-        description: "Please select both departure and destination airports",
-        variant: "destructive",
-      });
-      return;
+      toast({ title: "Missing information", description: "Please select both departure and destination airports", variant: "destructive" }); return;
     }
-
     if (departureAirport === destinationAirport) {
-      toast({
-        title: "Invalid selection",
-        description: "Departure and destination airports cannot be the same",
-        variant: "destructive",
-      });
-      return;
+      toast({ title: "Invalid selection", description: "Departure and destination airports cannot be the same", variant: "destructive" }); return;
     }
-
     if (!selectedAirline) {
-      toast({
-        title: "Missing information",
-        description: "Please select an airline",
-        variant: "destructive",
-      });
-      return;
+      toast({ title: "Missing information", description: "Please select an airline", variant: "destructive" }); return;
     }
 
-    setIsLoading(true);
-    setError("");
-    setFlightData(null);
+    setIsLoading(true); setError(""); setFlightData(null);
+
+    // --- START DEBUG LOGS (Optional: Remove after confirming it works) ---
+    console.log("--- DEBUGGING handleGenerateFlight ---");
+    console.log("1. Value of 'selectedAirline' state:", selectedAirline);
+    console.log("2. Is 'allAirlines' (from airlineUtil) an array?", Array.isArray(allAirlines));
+    if (Array.isArray(allAirlines)) {
+      console.log("3. Number of airlines in 'allAirlines':", allAirlines.length);
+      console.log("4. First 3 airlines in 'allAirlines':", JSON.stringify(allAirlines.slice(0, 3)));
+      const airlineExists = allAirlines.some(a => a.code === selectedAirline);
+      console.log(`5. Does airline with code '${selectedAirline}' exist in 'allAirlines'?`, airlineExists);
+    }
+    // --- END DEBUG LOGS ---
 
     try {
-      // Format date to YYYY-MM-DD
       const formattedDate = departureDate ? format(departureDate, "yyyy-MM-dd") : "";
-      
-      // Combine hour and minute for departure time
       const departureTime = `${departureHour}:${departureMinute}`;
-      
-      // Calculate enhanced flight details
+
       const calculatedData = await calculateEnhancedFlightDetails(
-        departureAirport,
-        destinationAirport,
-        formattedDate,
-        departureTime
+        departureAirport, destinationAirport, formattedDate, departureTime
       );
-      
-      // Find the airline information
-      const airlineInfo = airlines.find(a => a.code === selectedAirline);
-      if (!airlineInfo) throw new Error("Airline information not found");
-      
-      // Find airport names
-      const departureAirportInfo = allAirports.find(a => a.code === departureAirport);
-      const destinationAirportInfo = allAirports.find(a => a.code === destinationAirport);
-      
-      if (!departureAirportInfo || !destinationAirportInfo) {
-        throw new Error("Airport information not found");
+
+      const airlineInfo = allAirlines.find(a => a.code === selectedAirline);
+      if (!airlineInfo) {
+        throw new Error(`Airline information not found for code: ${selectedAirline}. Check console logs and ensure this airline code exists in the list from "@/lib/airlineUtil".`);
       }
-      
-      // Generate flight data
+
+      const departureAirportInfo = allAirportsFlat.find(a => a.code === departureAirport);
+      const destinationAirportInfo = allAirportsFlat.find(a => a.code === destinationAirport);
+      if (!departureAirportInfo || !destinationAirportInfo) throw new Error("Airport information not found");
+
+      if (!calculatedData.departureDateLocal || !calculatedData.arrivalTimeLocal || !calculatedData.arrivalDateLocal || !calculatedData.departureTimeLocal || !calculatedData.durationFormatted || typeof calculatedData.distanceKm === 'undefined') {
+        throw new Error("Flight calculation failed to return complete data. Check calculateEnhancedFlightDetails.");
+      }
+
       const enhancedFlightData: EnhancedFlightDetails = {
-        departureAirport: departureAirport,
+        departureAirport,
         departureAirportName: departureAirportInfo.name,
         arrivalAirport: destinationAirport,
         arrivalAirportName: destinationAirportInfo.name,
@@ -755,19 +567,23 @@ const EnhancedFlightSelection = () => {
         arrivalTime: calculatedData.arrivalTimeLocal,
         flightNumber: generateFlightNumber(selectedAirline),
         airline: {
+          id: airlineInfo.code, // Use code as ID
           code: airlineInfo.code,
-          name: airlineInfo.name
+          name: airlineInfo.name,
+          // logo: airlineInfo.logo, // If your allAirlines objects have logos
+          region: getAirlineRegionFromGroup(airlineInfo.code)
         },
         duration: calculatedData.durationFormatted,
         cabin: selectedCabin,
         distanceKm: calculatedData.distanceKm,
         calculatedData
       };
-      
       setFlightData(enhancedFlightData);
     } catch (error) {
       console.error("Error generating flight:", error);
-      setError(`Failed to generate flight: ${error instanceof Error ? error.message : "Unknown error"}`);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      setError(`Failed to generate flight: ${errorMessage}`);
+      toast({ title: "Error", description: `Failed to generate flight: ${errorMessage}`, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -775,77 +591,46 @@ const EnhancedFlightSelection = () => {
 
   const handleContinue = () => {
     if (!flightData) {
-      toast({
-        title: "No flight selected",
-        description: "Please generate a flight first",
-        variant: "destructive",
-      });
-      return;
+      toast({ title: "No flight selected", description: "Please generate a flight first", variant: "destructive" }); return;
     }
-    
-    // Format date to YYYY-MM-DD
-    const formattedDate = departureDate ? format(departureDate, "yyyy-MM-dd") : "";
-    
-    // Combine hour and minute for departure time
-    const departureTime = `${departureHour}:${departureMinute}`;
-    
-    // Save flight details to context
+    const contextDepartureDate = departureDate ? format(departureDate, "yyyy-MM-dd") : flightData.departureDate;
     setFlightDetails({
       departureAirport: flightData.departureAirport,
       arrivalAirport: flightData.arrivalAirport,
-      departureDate: formattedDate,
+      departureDate: contextDepartureDate,
       departureTime: flightData.departureTime,
       calculatedFlightData: flightData
     });
-    
-    // Mock flight for the selected flight context
+
     const mockFlight = {
-      id: 1,
+      id: 1, // Mock booking instance ID
       flightNumber: flightData.flightNumber,
       airline: {
-        id: 1,
+        id: flightData.airline.id, // This is now the airline code
         code: flightData.airline.code,
         name: flightData.airline.name,
-        logo: airlines.find(a => a.code === flightData.airline.code)?.logo || "",
-        region: airlines.find(a => a.code === flightData.airline.code)?.region || ""
+        logo: flightData.airline.logo || "",
+        region: flightData.airline.region || ""
       },
       departure: {
-        airport: {
-          id: 1,
-          code: flightData.departureAirport,
-          name: flightData.departureAirportName,
-          city: flightData.departureAirportName.split(" ")[0], // Simple extraction
-          country: getAirportRegion(flightData.departureAirport)
-        },
+        airport: { id: 1, code: flightData.departureAirport, name: flightData.departureAirportName, city: flightData.departureAirportName.split(" ")[0], country: getAirportRegion(flightData.departureAirport) },
         time: flightData.departureTime
       },
       arrival: {
-        airport: {
-          id: 2,
-          code: flightData.arrivalAirport,
-          name: flightData.arrivalAirportName,
-          city: flightData.arrivalAirportName.split(" ")[0], // Simple extraction
-          country: getAirportRegion(flightData.arrivalAirport)
-        },
+        airport: { id: 2, code: flightData.arrivalAirport, name: flightData.arrivalAirportName, city: flightData.arrivalAirportName.split(" ")[0], country: getAirportRegion(flightData.arrivalAirport) },
         time: flightData.arrivalTime
       },
       duration: flightData.duration,
       price: `$${Math.floor(Math.random() * 1000) + 200}`,
       class: flightData.cabin
     };
-    
     setSelectedFlight(mockFlight);
-    
-    // Navigate to next step
     navigate("/passenger-details");
   };
 
-  // Get region from airport code
   const getAirportRegion = (code: string): string => {
     for (const [region, airports] of Object.entries(majorAirports)) {
-      if (airports.some(airport => airport.code === code)) {
-        return region;
-      }
+      if (airports.some(airport => airport.code === code)) return region;
     }
     return "Unknown";
   };
@@ -853,106 +638,77 @@ const EnhancedFlightSelection = () => {
   return (
     <div className="container mx-auto px-4 py-6 md:py-8">
       <ProgressStepper currentStep={1} />
-
       <div className="max-w-4xl mx-auto">
         <h2 className="text-xl md:text-2xl font-semibold mb-4 md:mb-6 text-foreground">Select Your Flight</h2>
-        
-        {/* Search Bar */}
         <Card className="mb-6 md:mb-6 border-border bg-card">
           <CardContent className="p-4 md:p-6">
             <div className="relative">
-              <div className="flex">
+              <div className="flex items-center">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder={
-                    !departureAirport ? "Search for departure airport by code or name..." : 
-                    !destinationAirport ? "Search for destination airport by code or name..." : 
-                    !selectedAirline ? "Search for airline by code or name..." :
-                    "Search for airports or airlines..."
+                    !departureAirport ? "Search departure: e.g., LAX or Los Angeles" :
+                    !destinationAirport ? "Search destination: e.g., JFK or New York" :
+                    !selectedAirline ? "Search airline: e.g., AA or American" :
+                    "Search airports or airlines..."
                   }
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
                   onFocus={() => setIsSearching(true)}
-                  className="flex-1 pr-10"
+                  className="flex-1 pl-10 pr-10" // Added padding for icons
                 />
+                {searchTerm && isSearching && ( // Show X to clear search term only if there's a term and searching
+                  <Button variant="ghost" size="icon" className="absolute right-10 top-1/2 transform -translate-y-1/2 h-7 w-7" onClick={() => {setSearchTerm(""); setSearchResults({airports:[], airlines:[]});}}>
+                    <XIcon className="h-4 w-4" />
+                  </Button>
+                )}
                 {isSearching ? (
-                  <Button 
-                    variant="ghost" 
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                    onClick={() => setIsSearching(false)}
-                  >
-                    <ArrowRight className="h-4 w-4" />
+                  <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 w-7" onClick={() => setIsSearching(false)}>
+                     <XIcon className="h-4 w-4 text-muted-foreground" /> {/* Changed to X to close search dropdown */}
                   </Button>
                 ) : (
-                  <Button 
-                    variant="ghost" 
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                    onClick={() => setIsSearching(true)}
-                  >
-                    <Search className="h-4 w-4" />
+                  <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 w-7" onClick={() => setIsSearching(true)}>
+                    <Search className="h-4 w-4 opacity-0" /> {/* Keep layout, hide search if not active to avoid jump */}
                   </Button>
                 )}
               </div>
-              
-              <div className="mt-2 flex justify-end">
-                <Button 
-                  variant="secondary" 
-                  size="sm"
-                  onClick={resetAll}
-                >
-                  Reset Form
-                </Button>
-              </div>
-              
               {isSearching && (
-                <div className="absolute z-10 mt-1 w-full bg-background border border-border rounded-md shadow-lg">
+                <div className="absolute z-10 mt-1 w-full bg-background border border-border rounded-md shadow-lg max-h-80 overflow-y-auto">
                   <Command>
-                    <div className="flex justify-between items-center p-2 border-b border-border">
+                    <div className="flex justify-between items-center p-2 border-b border-border sticky top-0 bg-background z-10">
                       <span className="text-sm font-medium">
-                        {!departureAirport ? "Search Departure Airports" : 
-                         !destinationAirport ? "Search Destination Airports" : 
-                         !selectedAirline ? "Search Airlines" : "Search Results"}
+                        {!departureAirport ? "Select Departure Airport" :
+                         !destinationAirport ? "Select Destination Airport" :
+                         !selectedAirline ? "Select Airline" : "Search Results"}
                       </span>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-6 px-2"
-                        onClick={() => setIsSearching(false)}
-                      >
-                        Close
-                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 px-2" onClick={() => setIsSearching(false)}>Close</Button>
                     </div>
                     <CommandList>
+                      {searchResults.airports.length === 0 && searchResults.airlines.length === 0 && searchTerm && (
+                        <CommandEmpty>No results for "{searchTerm}"</CommandEmpty>
+                      )}
+                       {searchResults.airports.length === 0 && searchResults.airlines.length === 0 && !searchTerm && (
+                        <CommandEmpty>Type to search airports or airlines.</CommandEmpty>
+                      )}
                       {searchResults.airports.length > 0 && (
                         <CommandGroup heading="Airports">
                           {searchResults.airports.map((airport) => (
-                            <CommandItem 
-                              key={airport.code}
-                              onSelect={() => handleSelectAirportFromSearch(airport)}
-                              className="cursor-pointer"
-                            >
-                              <span className="font-medium">{airport.code}</span> - {airport.name} ({airport.region})
+                            <CommandItem key={airport.code} onSelect={() => handleSelectAirportFromSearch(airport)} className="cursor-pointer">
+                              <span className="font-medium">{airport.code}</span> - {airport.name} <span className="text-xs text-muted-foreground ml-2">({airport.region})</span>
                             </CommandItem>
                           ))}
                         </CommandGroup>
                       )}
-                      
                       {searchResults.airlines.length > 0 && (
                         <CommandGroup heading="Airlines">
                           {searchResults.airlines.map((airline) => (
-                            <CommandItem 
-                              key={airline.code}
-                              onSelect={() => handleSelectAirlineFromSearch(airline)}
-                              className="cursor-pointer"
-                            >
+                            <CommandItem key={airline.code} onSelect={() => handleSelectAirlineFromSearch(airline)} className="cursor-pointer">
                               {airline.name} ({airline.code})
+                              {airline.region && airline.region !== "Unknown" && <span className="text-xs text-muted-foreground ml-2">({airline.region})</span>}
                             </CommandItem>
                           ))}
                         </CommandGroup>
-                      )}
-                      
-                      {searchResults.airports.length === 0 && searchResults.airlines.length === 0 && (
-                        <CommandEmpty>No results found</CommandEmpty>
                       )}
                     </CommandList>
                   </Command>
@@ -961,379 +717,100 @@ const EnhancedFlightSelection = () => {
             </div>
           </CardContent>
         </Card>
-        
         <Card className="mb-6 md:mb-8 border-border bg-card">
           <CardContent className="p-4 md:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-4">
-                <div>
-                  <label className="block text-foreground font-medium mb-2 text-sm">
-                    Departure Region
-                  </label>
+                <div><label className="block text-foreground font-medium mb-2 text-sm">Departure Region</label>
                   <Select value={departureRegion} onValueChange={setCachedDepartureRegion}>
-                    <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Select region" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem key="all-regions" value="All Regions">All Regions</SelectItem>
-                      {Object.keys(majorAirports).map((region) => (
-                        <SelectItem key={region} value={region}>
-                          {region}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="block text-foreground font-medium mb-2 text-sm">
-                    Departure Airport
-                  </label>
-                  <Select 
-                    value={departureAirport} 
-                    onValueChange={setCachedDepartureAirport}
-                    disabled={!departureRegion}
-                  >
-                    <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Select departure airport" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {departureRegion === "All Regions" ? (
-                        // Show all airports sorted by code when "All Regions" is selected
-                        allAirportsList.map((airport) => (
-                          <SelectItem key={airport.code} value={airport.code}>
-                            {airport.code} - {airport.name}
-                          </SelectItem>
-                        ))
-                      ) : departureRegion && (
-                        // Show airports for the selected region
-                        majorAirports[departureRegion as keyof typeof majorAirports].map((airport) => (
-                          <SelectItem key={airport.code} value={airport.code}>
-                            {airport.code} - {airport.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="block text-foreground font-medium mb-2 text-sm">
-                    Departure Date
-                  </label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal bg-background"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {departureDate ? (
-                          format(departureDate, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={departureDate}
-                        onSelect={setDepartureDate}
-                        initialFocus
-                        disabled={(date) => date < new Date()}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                
-                <div>
-                  <label className="block text-foreground font-medium mb-2 text-sm">
-                    Departure Time
-                  </label>
+                    <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select region" /></SelectTrigger>
+                    <SelectContent><SelectItem value="All Regions">All Regions</SelectItem>{Object.keys(majorAirports).map((r) => (<SelectItem key={r} value={r}>{r}</SelectItem>))}</SelectContent>
+                  </Select></div>
+                <div><label className="block text-foreground font-medium mb-2 text-sm">Departure Airport</label>
+                  <Select value={departureAirport} onValueChange={setCachedDepartureAirport} disabled={!departureRegion && departureRegion !== "All Regions"}>
+                    <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select airport" /></SelectTrigger>
+                    <SelectContent>{(departureRegion === "All Regions" || !departureRegion ? allAirportsList : majorAirports[departureRegion as keyof typeof majorAirports] || []).map((a) => (<SelectItem key={a.code} value={a.code}>{a.code} - {a.name}</SelectItem>))}</SelectContent>
+                  </Select></div>
+                <div><label className="block text-foreground font-medium mb-2 text-sm">Departure Date</label>
+                  <Popover open={isDepartureCalendarOpen} onOpenChange={setIsDepartureCalendarOpen}>
+                    <PopoverTrigger asChild><Button variant="outline" className="w-full justify-start text-left font-normal bg-background"><CalendarIcon className="mr-2 h-4 w-4" />{departureDate ? format(departureDate, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger>
+                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={departureDate} onSelect={(d) => { setDepartureDate(d); setIsDepartureCalendarOpen(false); }} initialFocus disabled={(d) => d < new Date(new Date().setHours(0,0,0,0))}/></PopoverContent>
+                  </Popover></div>
+                <div><label className="block text-foreground font-medium mb-2 text-sm">Departure Time</label>
                   <div className="flex space-x-2">
-                    <div className="w-1/2">
-                      <Select value={departureHour} onValueChange={setCachedDepartureHour}>
-                        <SelectTrigger className="w-full bg-background">
-                          <SelectValue placeholder="Hour" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {hourOptions.map((hour) => (
-                            <SelectItem key={hour} value={hour}>
-                              {hour}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="w-1/2">
-                      <Select value={departureMinute} onValueChange={setCachedDepartureMinute}>
-                        <SelectTrigger className="w-full bg-background">
-                          <SelectValue placeholder="Minute" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {minuteOptions.map((minute) => (
-                            <SelectItem key={minute} value={minute}>
-                              {minute}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
+                    <div className="w-1/2"><Select value={departureHour} onValueChange={setCachedDepartureHour}><SelectTrigger className="w-full bg-background"><SelectValue placeholder="Hour" /></SelectTrigger><SelectContent>{hourOptions.map((h) => (<SelectItem key={h} value={h}>{h}</SelectItem>))}</SelectContent></Select></div>
+                    <div className="w-1/2"><Select value={departureMinute} onValueChange={setCachedDepartureMinute}><SelectTrigger className="w-full bg-background"><SelectValue placeholder="Minute" /></SelectTrigger><SelectContent>{minuteOptions.map((m) => (<SelectItem key={m} value={m}>{m}</SelectItem>))}</SelectContent></Select></div>
+                  </div></div>
               </div>
-              
               <div className="space-y-4">
-                <div>
-                  <label className="block text-foreground font-medium mb-2 text-sm">
-                    Destination Region
-                  </label>
+                <div><label className="block text-foreground font-medium mb-2 text-sm">Destination Region</label>
                   <Select value={destinationRegion} onValueChange={setCachedDestinationRegion}>
-                    <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Select region" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem key="all-regions" value="All Regions">All Regions</SelectItem>
-                      {Object.keys(majorAirports).map((region) => (
-                        <SelectItem key={region} value={region}>
-                          {region}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="block text-foreground font-medium mb-2 text-sm">
-                    Destination Airport
-                  </label>
-                  <Select 
-                    value={destinationAirport} 
-                    onValueChange={setCachedDestinationAirport}
-                  >
-                    <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Select destination airport" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {!destinationRegion || destinationRegion === "All Regions" ? (
-                        // Show all airports sorted by code when "All Regions" or no region is selected
-                        allAirportsList.map((airport) => (
-                          <SelectItem key={airport.code} value={airport.code}>
-                            {airport.code} - {airport.name}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        // Show airports for the selected region
-                        majorAirports[destinationRegion as keyof typeof majorAirports].map((airport) => (
-                          <SelectItem key={airport.code} value={airport.code}>
-                            {airport.code} - {airport.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {departureAirport && destinationAirport && !hasDirectFlight && (
-                  <Alert variant="destructive" className="bg-destructive/10 text-destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>No Direct Flights Available</AlertTitle>
-                    <AlertDescription>
-                      There are no direct flights between {departureAirport} and {destinationAirport}. 
-                      In real-world travel, this route would require a connecting flight.
-                      You can still generate a theoretical direct flight for this route.
-                    </AlertDescription>
-                  </Alert>
-                )}
-                
+                    <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select region" /></SelectTrigger>
+                    <SelectContent><SelectItem value="All Regions">All Regions</SelectItem>{Object.keys(majorAirports).map((r) => (<SelectItem key={r} value={r}>{r}</SelectItem>))}</SelectContent>
+                  </Select></div>
+                <div><label className="block text-foreground font-medium mb-2 text-sm">Destination Airport</label>
+                  <Select value={destinationAirport} onValueChange={setCachedDestinationAirport} disabled={!destinationRegion && destinationRegion !== "All Regions"}>
+                    <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select airport" /></SelectTrigger>
+                    <SelectContent>{(destinationRegion === "All Regions" || !destinationRegion ? allAirportsList : majorAirports[destinationRegion as keyof typeof majorAirports] || []).map((a) => (<SelectItem key={a.code} value={a.code}>{a.code} - {a.name}</SelectItem>))}</SelectContent>
+                  </Select></div>
+                {departureAirport && destinationAirport && !hasDirectFlight && (<Alert variant="destructive" className="bg-destructive/10 text-destructive"><AlertTriangle className="h-4 w-4" /> <AlertTitle>No Direct Flights Known</AlertTitle><AlertDescription>No direct flights known between {departureAirport} and {destinationAirport}. A theoretical direct flight will be generated.</AlertDescription></Alert>)}
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-foreground font-medium mb-2 text-sm">
-                      Airline Region Filter (Optional)
-                    </label>
-                    <Select 
-                      value={airlineRegionFilter} 
-                      onValueChange={setCachedAirlineRegionFilter}
-                    >
-                      <SelectTrigger className="w-full bg-background">
-                        <SelectValue placeholder="All Regions" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="All Regions">All Regions</SelectItem>
-                        {Object.keys(majorAirports).map((region) => (
-                          <SelectItem key={region} value={region}>
-                            {region}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
+                  <div><label className="block text-foreground font-medium mb-2 text-sm">Airline Region Filter (Optional)</label>
+                    <Select value={airlineRegionFilter} onValueChange={setCachedAirlineRegionFilter}>
+                      <SelectTrigger className="w-full bg-background"><SelectValue placeholder="All Regions" /></SelectTrigger>
+                      <SelectContent><SelectItem value="All Regions">All Regions</SelectItem>{Object.keys(majorAirports).map((r) => (<SelectItem key={r} value={r}>{r}</SelectItem>))}</SelectContent>
                     </Select>
-                    {departureAirport && airlineRegionFilter !== getAirportRegion(departureAirport) && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Tip: Airlines from {getAirportRegion(departureAirport)} are common for flights from {departureAirport}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-foreground font-medium mb-2 text-sm">
-                      Airline
-                    </label>
-                    <Select 
-                      value={selectedAirline} 
-                      onValueChange={setCachedSelectedAirline}
-                    >
-                      <SelectTrigger className="w-full bg-background">
-                        <SelectValue placeholder="Select airline" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredAirlines.map((airline) => (
-                        <SelectItem key={airline.id} value={airline.code}> {/* Ensure airline objects have a unique id */}
-                            {airline.code} - {airline.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    {departureAirport && airlineRegionFilter !== getAirportRegion(departureAirport) && getAirportRegion(departureAirport) !== "Unknown" && (<p className="text-xs text-muted-foreground mt-1">Tip: Airlines from {getAirportRegion(departureAirport)} are common for {departureAirport}.</p>)}</div>
+                  <div><label className="block text-foreground font-medium mb-2 text-sm">Airline</label>
+                    <Select value={selectedAirline} onValueChange={setCachedSelectedAirline}>
+                      <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select airline" /></SelectTrigger>
+                      <SelectContent>{airlinesForDropdown.map((a) => (<SelectItem key={a.code} value={a.code}>{a.code} - {a.name}</SelectItem>))}</SelectContent>
+                    </Select></div>
                 </div>
-                
-                <div>
-                  <label className="block text-foreground font-medium mb-2 text-sm">
-                    Cabin Class
-                  </label>
+                <div><label className="block text-foreground font-medium mb-2 text-sm">Cabin Class</label>
                   <Select value={selectedCabin} onValueChange={setCachedSelectedCabin}>
-                    <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Select cabin class" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {cabinClasses.map((cabin) => (
-                        <SelectItem key={cabin.value} value={cabin.value}>
-                          {cabin.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select cabin class" /></SelectTrigger>
+                    <SelectContent>{cabinClasses.map((c) => (<SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>))}</SelectContent>
+                  </Select></div>
               </div>
             </div>
-            
             <div className="mt-6 flex justify-between items-center flex-wrap gap-4">
-              <Button 
-                variant="outline"
-                onClick={resetAll}
-                className="text-muted-foreground hover:text-destructive border-muted-foreground"
-              >
-                <RefreshCcw className="mr-2 h-4 w-4" /> Reset All Selections
-              </Button>
-              
-              <Button 
-                onClick={handleGenerateFlight}
-                disabled={!departureAirport || !destinationAirport || !selectedAirline || isLoading}
-                className="w-full md:w-auto"
-              >
-                {isLoading ? "Processing..." : "Go to Passenger Details"}
-              </Button>
+              <Button variant="outline" onClick={resetAll} className="text-muted-foreground hover:text-destructive border-muted-foreground"><RefreshCcw className="mr-2 h-4 w-4" /> Reset All</Button>
+              <Button onClick={handleGenerateFlight} disabled={isLoading || !departureAirport || !destinationAirport || !selectedAirline} className="w-full md:w-auto">{isLoading ? "Generating Preview..." : "Preview Ticket"}</Button>
             </div>
-            
-            {error && (
-              <div className="mt-4 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
-                {error}
-              </div>
-            )}
+            {error && (<div className="mt-4 p-3 bg-destructive/10 text-destructive rounded-md text-sm">{error}</div>)}
           </CardContent>
         </Card>
-        
         {flightData && (
           <Card className="mb-6 md:mb-8 border-border bg-card">
             <CardContent className="p-4 md:p-6">
               <div className="mb-4 flex justify-between items-center">
                 <div className="flex items-center">
-                  <div className="w-12 h-12 flex items-center justify-center bg-primary/10 rounded-full mr-3">
-                    <Plane className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold">{flightData.airline.code} {flightData.flightNumber}</h3>
-                    <p className="text-sm text-muted-foreground">{flightData.airline.name}</p>
-                  </div>
+                  <div className="w-12 h-12 flex items-center justify-center bg-primary/10 rounded-full mr-3"><Plane className="h-6 w-6 text-primary" /></div>
+                  <div><h3 className="text-lg font-bold">{flightData.airline.code} {flightData.flightNumber}</h3><p className="text-sm text-muted-foreground">{flightData.airline.name}</p></div>
                 </div>
-                <div className="text-right">
-                  <Badge variant="outline" className="bg-primary/10">
-                    {flightData.cabin.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                  </Badge>
-                </div>
+                <div className="text-right"><Badge variant="outline" className="bg-primary/10">{flightData.cabin.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</Badge></div>
               </div>
-              
               <Separator className="my-4" />
-              
               <div className="flex justify-between items-center mb-4">
-                <div className="space-y-1 text-center">
-                  <div className="text-3xl font-bold">{flightData.departureTime}</div>
-                  <div className="text-sm font-medium">{flightData.departureDate}</div>
-                  <div className="text-sm">{flightData.departureAirport}</div>
-                  <div className="text-xs text-muted-foreground">{flightData.departureAirportName}</div>
-                </div>
-                
+                <div className="space-y-1 text-center"><div className="text-3xl font-bold">{flightData.departureTime}</div><div className="text-sm font-medium">{flightData.departureDate}</div><div className="text-sm">{flightData.departureAirport}</div><div className="text-xs text-muted-foreground">{flightData.departureAirportName}</div></div>
                 <div className="flex flex-col items-center px-4">
                   <div className="text-xs text-muted-foreground mb-1">{flightData.duration}</div>
-                  <div className="relative w-32 md:w-48">
-                    <div className="h-0.5 bg-primary w-full"></div>
-                    <Plane className="absolute -top-2 right-0 h-4 w-4 text-primary rotate-90" />
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {formatDistance(flightData.distanceKm)}
-                  </div>
+                  <div className="relative w-32 md:w-48"><div className="h-0.5 bg-primary w-full"></div><Plane className="absolute -top-2 right-0 h-4 w-4 text-primary rotate-90" /></div>
+                  <div className="text-xs text-muted-foreground mt-1">{formatDistance(flightData.distanceKm)}</div>
                 </div>
-                
                 <div className="space-y-1 text-center">
                   <div className="text-3xl font-bold">{flightData.arrivalTime}</div>
-                  <div className="text-sm font-medium">
-                    {flightData.arrivalDate}
-                    {flightData.departureDate !== flightData.arrivalDate && (
-                      <span className="ml-1 text-xs text-primary">
-                        {flightData.departureDate < flightData.arrivalDate ? '+1' : '-1'}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-sm">{flightData.arrivalAirport}</div>
-                  <div className="text-xs text-muted-foreground">{flightData.arrivalAirportName}</div>
+                  <div className="text-sm font-medium">{flightData.arrivalDate}
+                    {flightData.calculatedData?.dayChange && flightData.calculatedData.dayChange !== 0 && (<span className="ml-1 text-xs text-primary">{flightData.calculatedData.dayChange > 0 ? `+${flightData.calculatedData.dayChange}` : flightData.calculatedData.dayChange}</span>)}
+                  </div><div className="text-sm">{flightData.arrivalAirport}</div><div className="text-xs text-muted-foreground">{flightData.arrivalAirportName}</div>
                 </div>
               </div>
-              
               <div className="flex flex-wrap gap-2 mt-4">
-                <div className="bg-muted/40 rounded-md px-3 py-1.5 text-xs flex items-center">
-                  <Clock className="h-3.5 w-3.5 mr-1.5" />
-                  Flight Duration: {flightData.duration}
-                </div>
-                <div className="bg-muted/40 rounded-md px-3 py-1.5 text-xs flex items-center">
-                  <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                  {flightData.departureDate}
-                </div>
-                {flightData.calculatedData?.timezoneDifference && (
-                  <div className="bg-muted/40 rounded-md px-3 py-1.5 text-xs flex items-center">
-                    <Clock className="h-3.5 w-3.5 mr-1.5" />
-                    Time Zone Difference: {flightData.calculatedData.timezoneDifference}
-                  </div>
-                )}
-                {typeof flightData.calculatedData?.dayChange === 'number' && flightData.calculatedData.dayChange > 0 && (
-                  <div className="bg-primary/20 rounded-md px-3 py-1.5 text-xs flex items-center text-primary">
-                    <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                    Arrives {flightData.calculatedData.dayChange} day{flightData.calculatedData.dayChange > 1 ? 's' : ''} later
-                  </div>
-                )}
-                {flightData.calculatedData?.exitDay && typeof flightData.calculatedData?.dayChange === 'number' && flightData.calculatedData.dayChange === 0 && (
-                  <div className="bg-muted/40 rounded-md px-3 py-1.5 text-xs flex items-center">
-                    <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                    Arrives same day ({flightData.calculatedData.exitDay})
-                  </div>
-                )}
+                <div className="bg-muted/40 rounded-md px-3 py-1.5 text-xs flex items-center"><Clock className="h-3.5 w-3.5 mr-1.5" /> Flight Duration: {flightData.duration}</div>
+                {flightData.calculatedData?.timezoneDifference && (<div className="bg-muted/40 rounded-md px-3 py-1.5 text-xs flex items-center"><Clock className="h-3.5 w-3.5 mr-1.5" /> Time Zone Diff: {flightData.calculatedData.timezoneDifference}</div>)}
               </div>
-              
-              <div className="mt-6 flex justify-end">
-                <Button onClick={handleContinue}>
-                  Continue to Passenger Details
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
+              <div className="mt-6 flex justify-end"><Button onClick={handleContinue}>Continue to Passenger Details <ArrowRight className="ml-2 h-4 w-4" /></Button></div>
             </CardContent>
           </Card>
         )}

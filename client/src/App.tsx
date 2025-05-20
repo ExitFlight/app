@@ -11,7 +11,7 @@ import PassengerDetails from "@/pages/PassengerDetails";
 import TicketPreview from "@/pages/TicketPreview";
 import Confirmation from "@/pages/Confirmation";
 import About from "@/pages/About";
-import LayoverTester from "@/components/LayoverTester";
+
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";

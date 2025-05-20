@@ -1,36 +1,36 @@
+// vite.config.ts
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { fileURLToPath } from "url";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
-
-// Get current directory in an ESM-safe way
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [
     react(),
-    runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer(),
-          ),
-        ]
-      : []),
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "client", "src"),
-      "@shared": path.resolve(__dirname, "shared"),
-      "@assets": path.resolve(__dirname, "attached_assets"),
+      "@": path.resolve("client/src"), // Resolves to projectRoot/client/src
+      "@shared": path.resolve("shared"),   // Resolves to projectRoot/shared
+      "@assets": path.resolve("attached_assets"), // Resolves to projectRoot/attached_assets
     },
   },
-  root: path.resolve(__dirname, "client"),
+  // The 'root' directory where Vite will look for index.html and source files.
+  // Relative to the project root (where vite.config.ts is).
+  root: "client", 
   build: {
-    outDir: path.resolve(__dirname, "dist/public"),
+    // The output directory for the build.
+    // Relative to the project root. Vite handles the `root` setting correctly for output.
+    outDir: "dist/public", 
     emptyOutDir: true,
   },
+  server: {
+    // Optional: Proxy API requests to your backend if running Vite dev server separately.
+    // Since you integrate Vite as Express middleware, this is likely handled in your Express setup.
+    // proxy: {
+    //   '/api': {
+    //     target: 'http://localhost:5000', // Your Express backend URL
+    //     changeOrigin: true,
+    //   },
+    // },
+  }
 });

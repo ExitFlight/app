@@ -52,28 +52,15 @@ const specialRoutes = [
  */
 export function directFlightExists(origin: string, destination: string): boolean {
   // If it's the same airport, no direct flight needed (but not valid for booking)
+  // This logic should likely be false if the intent is to prevent booking same-airport flights.
+  // However, to strictly answer "can a direct flight exist if I can go anywhere",
+  // we'll keep the spirit of allowing any distinct pair.
   if (origin === destination) {
-    return true;
+    return false; // A flight from KIX to KIX isn't a flight path.
   }
   
-  // Check for special direct routes
-  if (specialRoutes.some(route => 
-    (route[0] === origin && route[1] === destination) || 
-    (route[0] === destination && route[1] === origin)
-  )) {
-    return true;
-  }
-  
-  // Rules for direct flights:
-  // 1. Both airports are major hubs
-  // 2. Same region (both North America, both Europe, etc.)
-  // 3. Short-distance airports
-  
-  const isMajorRoute = majorHubs.includes(origin) && majorHubs.includes(destination);
-  
-  // The rest would need to be determined by a proper flight database
-  // For now, we'll assume major hubs have direct flights between them
-  return isMajorRoute;
+  // If we want to allow any theoretical direct flight between any two different airports:
+  return true;
 }
 
 // Function to format dates for the tickets

@@ -1,5 +1,23 @@
+import { Plane } from "lucide-react"; // Assuming you might want to use an icon
+
+interface FlightAirlineData {
+  name: string;
+  logoUrl: string; // Assuming this is always a URL
+}
+interface FlightDisplayData {
+  airline: FlightAirlineData;
+  flightNumber: string;
+  departureTime: string;
+  departureAirportCode: string;
+  arrivalTime: string;
+  arrivalAirportCode: string;
+  duration: string;
+  price: number; // Or string if it includes currency symbols
+  class: string;
+  isDirect?: boolean; // Optional: true if direct, false or undefined otherwise
+}
 interface FlightCardProps {
-  flight: any;
+  flight: FlightDisplayData;
   isSelected: boolean;
   onSelect: () => void;
 }
@@ -40,7 +58,13 @@ export default function FlightCard({ flight, isSelected, onSelect }: FlightCardP
               <div className="absolute right-0 -mr-1 w-2 h-2 rounded-full bg-gray-300"></div>
               <div className="absolute left-0 -ml-1 w-2 h-2 rounded-full bg-gray-300"></div>
             </div>
-            <div className="text-xs text-gray-500 mt-1">Direct</div>
+            <div className="text-xs text-gray-500 mt-1 flex items-center justify-center">
+              {flight.isDirect !== false ? ( // Show "Direct" if isDirect is true or undefined
+                <><Plane className="w-3 h-3 mr-1" /> Direct</>
+              ) : (
+                <span>Connecting</span> // Or display number of stops
+              )}
+            </div>
           </div>
           
           <div className="text-center">

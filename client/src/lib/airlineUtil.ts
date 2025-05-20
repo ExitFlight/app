@@ -215,7 +215,7 @@ export function getAirlinesForAirport(airportCode: string): any[] {
     
     // Asia
     'PEK': 'Asia', 'PVG': 'Asia', 'HND': 'Asia', 'NRT': 'Asia', 'ICN': 'Asia',
-    'SIN': 'Asia', 'BKK': 'Asia', 'KUL': 'Asia', 'HKG': 'Asia', 'TPE': 'Asia',
+    'SIN': 'Asia', 'BKK': 'Asia', 'KUL': 'Asia', 'HKG': 'Asia', 'TPE': 'Asia', 'KIX': 'Asia',
     
     // Middle East
     'DXB': 'Middle East', 'DOH': 'Middle East', 'AUH': 'Middle East',

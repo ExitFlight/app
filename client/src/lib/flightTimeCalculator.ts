@@ -6,11 +6,23 @@ const airportTimezones: Record<string, string> = {
   // North America
   'JFK': 'America/New_York',
   'LAX': 'America/Los_Angeles',
+  'ATL': 'America/New_York',
   'ORD': 'America/Chicago',
   'DFW': 'America/Chicago',
   'MIA': 'America/New_York',
+  'SFO': 'America/Los_Angeles',
+  'SEA': 'America/Los_Angeles',
+  'ANC': 'America/Anchorage',
   'YYZ': 'America/Toronto',
+  'YVR': 'America/Vancouver',
+  'YYC': 'America/Edmonton',
   'MEX': 'America/Mexico_City',
+  'HNL': 'Pacific/Honolulu',
+  'OGG': 'Pacific/Honolulu',
+  'LIH': 'Pacific/Honolulu',
+  'KOA': 'Pacific/Honolulu',
+  'LAS': 'America/Los_Angeles',
+  'DEN': 'America/Denver',
   
   // Europe
   'LHR': 'Europe/London',
@@ -20,6 +32,17 @@ const airportTimezones: Record<string, string> = {
   'MAD': 'Europe/Madrid',
   'FCO': 'Europe/Rome',
   'ZRH': 'Europe/Zurich',
+  'MUC': 'Europe/Berlin', // Added Munich
+  'DUB': 'Europe/Dublin',
+  'ARN': 'Europe/Stockholm',
+  'CPH': 'Europe/Copenhagen',
+  'OSL': 'Europe/Oslo',
+  'HEL': 'Europe/Helsinki',
+  'KEF': 'Atlantic/Reykjavik',
+  'TLL': 'Europe/Tallinn',
+  'RIX': 'Europe/Riga',
+  'VNO': 'Europe/Vilnius',
+  'LIS': 'Europe/Lisbon', // Added Lisbon
   
   // Asia
   'HND': 'Asia/Tokyo',
@@ -39,6 +62,9 @@ const airportTimezones: Record<string, string> = {
   'GMP': 'Asia/Seoul',
   'DEL': 'Asia/Kolkata',
   'BOM': 'Asia/Kolkata',
+  'KIX': 'Asia/Tokyo',
+  'KUL': 'Asia/Kuala_Lumpur', // Added Kuala Lumpur
+  'TPE': 'Asia/Taipei', // Added Taipei
   
   // Australia/Oceania
   'SYD': 'Australia/Sydney',
@@ -49,20 +75,20 @@ const airportTimezones: Record<string, string> = {
   'CHC': 'Pacific/Auckland',
   'NAN': 'Pacific/Fiji',
   'POM': 'Pacific/Port_Moresby',
-  
+
   // Middle East
   'DXB': 'Asia/Dubai',
   'DOH': 'Asia/Qatar',
   'AUH': 'Asia/Dubai',
   'RUH': 'Asia/Riyadh',
-  
+
   // South America
   'GRU': 'America/Sao_Paulo',
   'EZE': 'America/Argentina/Buenos_Aires',
   'BOG': 'America/Bogota',
   'SCL': 'America/Santiago',
   'LIM': 'America/Lima',
-  
+
   // Africa
   'JNB': 'Africa/Johannesburg',
   'CPT': 'Africa/Johannesburg',
@@ -70,6 +96,9 @@ const airportTimezones: Record<string, string> = {
   'NBO': 'Africa/Nairobi',
   'LOS': 'Africa/Lagos',
   'ACC': 'Africa/Accra',
+  'CMN': 'Africa/Casablanca',
+  'RAK': 'Africa/Casablanca',
+  'AGA': 'Africa/Casablanca',
 };
 
 // Example flight duration data (in minutes)
@@ -83,13 +112,13 @@ const estimateFlightDuration = (originCode: string, destCode: string): number =>
   
   const getRegion = (code: string): string => {
     // Simple region determination based on airport codes
-    if (['JFK', 'LAX', 'ORD', 'DFW', 'MIA', 'YYZ', 'MEX'].includes(code)) return 'NA'; // North America
-    if (['LHR', 'CDG', 'FRA', 'AMS', 'MAD', 'FCO', 'ZRH'].includes(code)) return 'EU'; // Europe
-    if (['HND', 'NRT', 'PEK', 'PVG', 'HKG', 'SIN', 'BKK', 'ICN', 'DEL', 'BOM'].includes(code)) return 'AS'; // Asia
+    if (['JFK', 'LAX', 'ATL', 'ORD', 'DFW', 'MIA', 'SFO', 'SEA', 'ANC', 'YYZ', 'YVR', 'YYC', 'MEX', 'HNL', 'OGG', 'LIH', 'KOA', 'LAS', 'DEN'].includes(code)) return 'NA'; // North America
+    if (['LHR', 'CDG', 'FRA', 'AMS', 'MAD', 'FCO', 'ZRH', 'MUC', 'DUB', 'ARN', 'CPH', 'OSL', 'HEL', 'KEF', 'TLL', 'RIX', 'VNO', 'LIS'].includes(code)) return 'EU'; // Europe
+    if (['HND', 'NRT', 'PEK', 'PVG', 'HKG', 'SIN', 'BKK', 'DMK', 'HKT', 'CNX', 'USM', 'KBV', 'CEI', 'ICN', 'GMP', 'DEL', 'BOM', 'KIX', 'KUL', 'TPE'].includes(code)) return 'AS'; // Asia
     if (['SYD', 'MEL', 'BNE', 'PER', 'AKL', 'CHC', 'NAN', 'POM'].includes(code)) return 'OC'; // Oceania
     if (['DXB', 'DOH', 'AUH', 'RUH'].includes(code)) return 'ME'; // Middle East
     if (['GRU', 'EZE', 'BOG', 'SCL', 'LIM'].includes(code)) return 'SA'; // South America
-    if (['JNB', 'CPT', 'CAI', 'NBO', 'LOS', 'ACC'].includes(code)) return 'AF'; // Africa
+    if (['JNB', 'CPT', 'CAI', 'NBO', 'LOS', 'ACC', 'CMN', 'RAK', 'AGA'].includes(code)) return 'AF'; // Africa
     return 'UN'; // Unknown
   };
   

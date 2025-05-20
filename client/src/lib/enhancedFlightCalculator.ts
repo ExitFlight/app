@@ -1,107 +1,130 @@
-import { format, addMinutes, differenceInDays, differenceInHours } from 'date-fns';
-import { toZonedTime, formatInTimeZone } from 'date-fns-tz';
+import { format, addMinutes, differenceInDays, parse, setHours, setMinutes, setSeconds } from 'date-fns'; // Added setHours, setMinutes, setSeconds, parse
+import { toZonedTime, formatInTimeZone } from 'date-fns-tz'; // Still need these for converting UTC back to local and formatting
 
 // Airport coordinates with latitude and longitude
+// IMPORTANT: For accurate flight calculations, ensure ALL airports listed here
+// have 'latitude' and 'longitude' defined.
 const airportCoordinates: { [code: string]: { lat: number; lon: number } } = {
   // North America
-  'JFK': { lat: 40.6413, lon: -73.7781 }, // New York
-  'LAX': { lat: 33.9416, lon: -118.4085 }, // Los Angeles
-  'ATL': { lat: 33.6407, lon: -84.4277 }, // Atlanta - ADDED
-  'ORD': { lat: 41.9742, lon: -87.9073 }, // Chicago
-  'DFW': { lat: 32.8998, lon: -97.0403 }, // Dallas
-  'MIA': { lat: 25.7932, lon: -80.2906 }, // Miami
-  'SFO': { lat: 37.6213, lon: -122.3790 }, // San Francisco
-  'SEA': { lat: 47.4502, lon: -122.3088 }, // Seattle
-  'YYZ': { lat: 43.6777, lon: -79.6248 }, // Toronto
-  'YVR': { lat: 49.1967, lon: -123.1815 }, // Vancouver
-  'YYC': { lat: 51.1215, lon: -114.0076 }, // Calgary
-  'ANC': { lat: 61.1743, lon: -149.9962 }, // Anchorage
-  'MEX': { lat: 19.4363, lon: -99.0721 }, // Mexico City
-  'HNL': { lat: 21.3245, lon: -157.9251 }, // Honolulu, Hawaii
-  'LAS': { lat: 36.0840, lon: -115.1536 }, // Las Vegas
-  'DEN': { lat: 39.8561, lon: -104.6737 }, // Denver
-  'OGG': { lat: 20.8968, lon: -156.4329 }, // Maui, Hawaii
-  'LIH': { lat: 21.9761, lon: -159.3389 }, // Kauai, Hawaii
-  'KOA': { lat: 19.7388, lon: -156.0456 }, // Kona, Hawaii
-  
+  'JFK': { lat: 40.6413, lon: -73.7781 },
+  'LAX': { lat: 33.9416, lon: -118.4085 },
+  'ATL': { lat: 33.6407, lon: -84.4277 },
+  'ORD': { lat: 41.9742, lon: -87.9073 },
+  'DFW': { lat: 32.8998, lon: -97.0403 },
+  'MIA': { lat: 25.7932, lon: -80.2906 },
+  'SFO': { lat: 37.6213, lon: -122.3790 },
+  'SEA': { lat: 47.4502, lon: -122.3088 },
+  'YYZ': { lat: 43.6777, lon: -79.6248 },
+  'YVR': { lat: 49.1967, lon: -123.1815 },
+  'YYC': { lat: 51.1215, lon: -114.0076 },
+  'ANC': { lat: 61.1743, lon: -149.9962 },
+  'MEX': { lat: 19.4363, lon: -99.0721 },
+  'HNL': { lat: 21.3245, lon: -157.9251 },
+  'LAS': { lat: 36.0840, lon: -115.1536 },
+  'DEN': { lat: 39.8561, lon: -104.6737 },
+  'OGG': { lat: 20.8968, lon: -156.4329 },
+  'LIH': { lat: 21.9761, lon: -159.3389 },
+  'KOA': { lat: 19.7388, lon: -156.0456 },
+  'CLT': { lat: 35.2140, lon: -80.9431 },
+  'IAH': { lat: 29.9902, lon: -95.3368 },
+  'EWR': { lat: 40.6925, lon: -74.1687 },
+  'IAD': { lat: 38.9531, lon: -77.4565 },
+  'DTW': { lat: 42.2124, lon: -83.3534 },
+  'MSP': { lat: 44.8848, lon: -93.2223 },
+  'SLC': { lat: 40.7884, lon: -111.9778},
+  'YUL': { lat: 45.4679, lon: -73.7413 },
+
   // Europe
-  'LHR': { lat: 51.4700, lon: -0.4543 }, // London
-  'CDG': { lat: 49.0097, lon: 2.5479 }, // Paris
-  'FRA': { lat: 50.0379, lon: 8.5622 }, // Frankfurt
-  'AMS': { lat: 52.3105, lon: 4.7683 }, // Amsterdam
-  'MAD': { lat: 40.4983, lon: -3.5676 }, // Madrid
-  'FCO': { lat: 41.8003, lon: 12.2389 }, // Rome
-  'ZRH': { lat: 47.4582, lon: 8.5555 }, // Zurich
-  
-  // Northern Europe
-  'DUB': { lat: 53.4264, lon: -6.2499 }, // Dublin
-  'ARN': { lat: 59.6498, lon: 17.9237 }, // Stockholm
-  'CPH': { lat: 55.6180, lon: 12.6508 }, // Copenhagen
-  'OSL': { lat: 60.1975, lon: 11.1004 }, // Oslo
-  'HEL': { lat: 60.3172, lon: 24.9633 }, // Helsinki
-  'KEF': { lat: 63.9850, lon: -22.6056 }, // Reykjavík
-  'TLL': { lat: 59.4133, lon: 24.8327 }, // Tallinn
-  'RIX': { lat: 56.9236, lon: 23.9711 }, // Riga
-  
+  'LHR': { lat: 51.4700, lon: -0.4543 },
+  'CDG': { lat: 49.0097, lon: 2.5479 },
+  'FRA': { lat: 50.0379, lon: 8.5622 },
+  'AMS': { lat: 52.3105, lon: 4.7683 },
+  'MAD': { lat: 40.4983, lon: -3.5676 },
+  'FCO': { lat: 41.8003, lon: 12.2389 },
+  'ZRH': { lat: 47.4582, lon: 8.5555 },
+  'MUC': { lat: 48.3537, lon: 11.7861 },
+  'IST': { lat: 41.2753, lon: 28.7519 },
+  'LIS': { lat: 38.7742, lon: -9.1342 },
+  'LGW': { lat: 51.1537, lon: -0.1821 },
+  'ORY': { lat: 48.7233, lon: 2.3794 },
+  'DME': { lat: 55.4088, lon: 37.9063 },
+  'DUB': { lat: 53.4264, lon: -6.2499 },
+  'ARN': { lat: 59.6498, lon: 17.9237 },
+  'CPH': { lat: 55.6180, lon: 12.6508 },
+  'OSL': { lat: 60.1975, lon: 11.1004 },
+  'HEL': { lat: 60.3172, lon: 24.9633 },
+  'KEF': { lat: 63.9850, lon: -22.6056 },
+  'TLL': { lat: 59.4133, lon: 24.8327 },
+  'RIX': { lat: 56.9236, lon: 23.9711 },
+  'VNO': { lat: 54.6340, lon: 25.2858 },
+
   // Asia
-  'HND': { lat: 35.5494, lon: 139.7798 }, // Tokyo Haneda
-  'NRT': { lat: 35.7719, lon: 140.3929 }, // Tokyo Narita
-  'PEK': { lat: 40.0725, lon: 116.5974 }, // Beijing
-  'PVG': { lat: 31.1443, lon: 121.8083 }, // Shanghai
-  'HKG': { lat: 22.3080, lon: 113.9185 }, // Hong Kong
-  'SIN': { lat: 1.3644, lon: 103.9915 }, // Singapore
-  'BKK': { lat: 13.6900, lon: 100.7501 }, // Bangkok
-  'DMK': { lat: 13.9132, lon: 100.6071 }, // Bangkok Don Mueang
-  'HKT': { lat: 8.1132, lon: 98.3169 }, // Phuket
-  'CNX': { lat: 18.7669, lon: 98.9625 }, // Chiang Mai
-  'USM': { lat: 9.5478, lon: 100.0623 }, // Koh Samui
-  'KBV': { lat: 8.0990, lon: 98.9862 }, // Krabi
-  'CEI': { lat: 19.9522, lon: 99.8828 }, // Chiang Rai
-  'ICN': { lat: 37.4602, lon: 126.4407 }, // Seoul
-  'GMP': { lat: 37.5586, lon: 126.7944 }, // Seoul Gimpo
-  'DEL': { lat: 28.5562, lon: 77.1000 }, // Delhi
-  'BOM': { lat: 19.0896, lon: 72.8656 }, // Mumbai
-  
+  //'TPE': { lat: 25.0797, lon: 121.2328 }, // Duplicate TPE, commented out
+  'HND': { lat: 35.5494, lon: 139.7798 },
+  'NRT': { lat: 35.7719, lon: 140.3929 },
+  'PEK': { lat: 40.0725, lon: 116.5974 },
+  'PVG': { lat: 31.1443, lon: 121.8083 },
+  'HKG': { lat: 22.3080, lon: 113.9185 },
+  'SIN': { lat: 1.3644, lon: 103.9915 },
+  'BKK': { lat: 13.6900, lon: 100.7501 },
+  'DMK': { lat: 13.9132, lon: 100.6071 },
+  'HKT': { lat: 8.1132, lon: 98.3169 },
+  'CNX': { lat: 18.7669, lon: 98.9625 },
+  'USM': { lat: 9.5478, lon: 100.0623 },
+  'KBV': { lat: 8.0990, lon: 98.9862 },
+  'CEI': { lat: 19.9522, lon: 99.8828 },
+  'ICN': { lat: 37.4602, lon: 126.4407 },
+  'GMP': { lat: 37.5586, lon: 126.7944 },
+  'DEL': { lat: 28.5562, lon: 77.1000 },
+  'KIX': { lat: 34.4338, lon: 135.2440 },
+  'BOM': { lat: 19.0896, lon: 72.8656 },
+  'KUL': { lat: 2.7456, lon: 101.7099 },
+  'MNL': { lat: 14.5086, lon: 121.0194 },
+  'SGN': { lat: 10.8189, lon: 106.6519 },
+  'HAN': { lat: 21.2212, lon: 105.8072 },
+  'DPS': { lat: -8.7489, lon: 115.1670 },
+
   // Australia/Oceania
-  'SYD': { lat: -33.9399, lon: 151.1753 }, // Sydney
-  'MEL': { lat: -37.6690, lon: 144.8410 }, // Melbourne
-  'BNE': { lat: -27.3942, lon: 153.1218 }, // Brisbane
-  'PER': { lat: -31.9385, lon: 115.9672 }, // Perth
-  'AKL': { lat: -37.0082, lon: 174.7850 }, // Auckland
-  'CHC': { lat: -43.4864, lon: 172.5369 }, // Christchurch
-  'NAN': { lat: -17.7553, lon: 177.4431 }, // Fiji Nadi
-  'POM': { lat: -9.4438, lon: 147.2200 }, // Port Moresby
-  
+  'SYD': { lat: -33.9399, lon: 151.1753 },
+  'MEL': { lat: -37.6690, lon: 144.8410 },
+  'BNE': { lat: -27.3942, lon: 153.1218 },
+  'PER': { lat: -31.9385, lon: 115.9672 },
+  'AKL': { lat: -37.0082, lon: 174.7850 },
+  'CHC': { lat: -43.4864, lon: 172.5369 },
+  'NAN': { lat: -17.7553, lon: 177.4431 },
+  'POM': { lat: -9.4438, lon: 147.2200 },
+
   // Middle East
-  'DXB': { lat: 25.2532, lon: 55.3657 }, // Dubai
-  'DOH': { lat: 25.2609, lon: 51.6138 }, // Doha
-  'AUH': { lat: 24.4330, lon: 54.6511 }, // Abu Dhabi
-  'RUH': { lat: 24.9578, lon: 46.6989 }, // Riyadh
-  
+  'DXB': { lat: 25.2532, lon: 55.3657 },
+  'DOH': { lat: 25.2609, lon: 51.6138 },
+  'AUH': { lat: 24.4330, lon: 54.6511 },
+  'RUH': { lat: 24.9578, lon: 46.6989 },
+
   // South America
-  'GRU': { lat: -23.4307, lon: -46.4697 }, // São Paulo
-  'EZE': { lat: -34.8222, lon: -58.5358 }, // Buenos Aires
-  'BOG': { lat: 4.7016, lon: -74.1469 }, // Bogotá
-  'SCL': { lat: -33.3930, lon: -70.7947 }, // Santiago
-  'LIM': { lat: -12.0219, lon: -77.1143 }, // Lima
-  
+  'GRU': { lat: -23.4307, lon: -46.4697 },
+  'EZE': { lat: -34.8222, lon: -58.5358 },
+  'BOG': { lat: 4.7016, lon: -74.1469 },
+  'SCL': { lat: -33.3930, lon: -70.7947 },
+  'LIM': { lat: -12.0219, lon: -77.1143 },
+
   // Africa
-  'JNB': { lat: -26.1367, lon: 28.2411 }, // Johannesburg
-  'CPT': { lat: -33.9649, lon: 18.6019 }, // Cape Town
-  'CAI': { lat: 30.1114, lon: 31.4139 }, // Cairo
-  'NBO': { lat: -1.3192, lon: 36.9278 }, // Nairobi
-  'LOS': { lat: 6.5774, lon: 3.3214 }, // Lagos
-  'ACC': { lat: 5.6052, lon: -0.1718 }, // Accra
-  'CMN': { lat: 33.3675, lon: -7.5899 },  // Casablanca
-  'RAK': { lat: 31.6069, lon: -8.0363 },  // Marrakesh
-  'AGA': { lat: 30.3250, lon: -9.4130 },  // Agadir - ADDED
+  'JNB': { lat: -26.1367, lon: 28.2411 },
+  'CPT': { lat: -33.9649, lon: 18.6019 },
+  'CAI': { lat: 30.1114, lon: 31.4139 },
+  'NBO': { lat: -1.3192, lon: 36.9278 },
+  'LOS': { lat: 6.5774, lon: 3.3214 },
+  'ACC': { lat: 5.6052, lon: -0.1718 },
+  'CMN': { lat: 33.3675, lon: -7.5899 },
+  'RAK': { lat: 31.6069, lon: -8.0363 },
+  'AGA': { lat: 30.3250, lon: -9.4130 },
+  'ADD': { lat: 8.9779, lon: 38.7993 },
 };
 
-// Airport timezones by IATA code
 const airportTimezones: { [code: string]: string } = {
   // North America
   'JFK': 'America/New_York',
   'LAX': 'America/Los_Angeles',
+  'ATL': 'America/New_York',
   'ORD': 'America/Chicago',
   'DFW': 'America/Chicago',
   'MIA': 'America/New_York',
@@ -110,7 +133,7 @@ const airportTimezones: { [code: string]: string } = {
   'ANC': 'America/Anchorage',
   'YYZ': 'America/Toronto',
   'YVR': 'America/Vancouver',
-  'YYC': 'America/Edmonton',
+  'YYC': 'America/Edmonton', // Note: Calgary is Mountain Time
   'MEX': 'America/Mexico_City',
   'HNL': 'Pacific/Honolulu',
   'OGG': 'Pacific/Honolulu',
@@ -118,17 +141,29 @@ const airportTimezones: { [code: string]: string } = {
   'KOA': 'Pacific/Honolulu',
   'LAS': 'America/Los_Angeles',
   'DEN': 'America/Denver',
-  
+  'CLT': 'America/New_York',
+  'IAH': 'America/Chicago',
+  'EWR': 'America/New_York',
+  'IAD': 'America/New_York',
+  'DTW': 'America/Detroit',
+  'MSP': 'America/Chicago',
+  'SLC': 'America/Denver',
+  'YUL': 'America/Toronto',
+
   // Europe
   'LHR': 'Europe/London',
   'CDG': 'Europe/Paris',
-  'FRA': 'Europe/Berlin',
+  'FRA': 'Europe/Berlin', // Frankfurt uses CET/CEST
   'AMS': 'Europe/Amsterdam',
   'MAD': 'Europe/Madrid',
   'FCO': 'Europe/Rome',
   'ZRH': 'Europe/Zurich',
-  
-  // Northern Europe
+  'MUC': 'Europe/Berlin', // Munich uses CET/CEST
+  'IST': 'Europe/Istanbul',
+  'LIS': 'Europe/Lisbon',
+  'LGW': 'Europe/London',
+  'ORY': 'Europe/Paris',
+  'DME': 'Europe/Moscow',
   'DUB': 'Europe/Dublin',
   'ARN': 'Europe/Stockholm',
   'CPH': 'Europe/Copenhagen',
@@ -138,12 +173,13 @@ const airportTimezones: { [code: string]: string } = {
   'TLL': 'Europe/Tallinn',
   'RIX': 'Europe/Riga',
   'VNO': 'Europe/Vilnius',
-  
+
   // Asia
+  'TPE': 'Asia/Taipei',
   'HND': 'Asia/Tokyo',
   'NRT': 'Asia/Tokyo',
-  'PEK': 'Asia/Shanghai',
-  'PVG': 'Asia/Shanghai',
+  'PEK': 'Asia/Shanghai', // Beijing uses China Standard Time
+  'PVG': 'Asia/Shanghai', // Shanghai uses China Standard Time
   'HKG': 'Asia/Hong_Kong',
   'SIN': 'Asia/Singapore',
   'BKK': 'Asia/Bangkok',
@@ -155,32 +191,38 @@ const airportTimezones: { [code: string]: string } = {
   'CEI': 'Asia/Bangkok',
   'ICN': 'Asia/Seoul',
   'GMP': 'Asia/Seoul',
-  'DEL': 'Asia/Kolkata',
-  'BOM': 'Asia/Kolkata',
-  
+  'DEL': 'Asia/Kolkata', // India Standard Time
+  'KIX': 'Asia/Tokyo',
+  'BOM': 'Asia/Kolkata', // India Standard Time
+  'KUL': 'Asia/Kuala_Lumpur',
+  'MNL': 'Asia/Manila',
+  'SGN': 'Asia/Ho_Chi_Minh',
+  'HAN': 'Asia/Hanoi',
+  'DPS': 'Asia/Makassar', // Central Indonesia Time
+
   // Australia/Oceania
   'SYD': 'Australia/Sydney',
   'MEL': 'Australia/Melbourne',
-  'BNE': 'Australia/Brisbane',
+  'BNE': 'Australia/Brisbane', // Brisbane does not observe DST
   'PER': 'Australia/Perth',
   'AKL': 'Pacific/Auckland',
   'CHC': 'Pacific/Auckland',
   'NAN': 'Pacific/Fiji',
   'POM': 'Pacific/Port_Moresby',
-  
+
   // Middle East
   'DXB': 'Asia/Dubai',
   'DOH': 'Asia/Qatar',
   'AUH': 'Asia/Dubai',
   'RUH': 'Asia/Riyadh',
-  
+
   // South America
   'GRU': 'America/Sao_Paulo',
   'EZE': 'America/Argentina/Buenos_Aires',
   'BOG': 'America/Bogota',
   'SCL': 'America/Santiago',
   'LIM': 'America/Lima',
-  
+
   // Africa
   'JNB': 'Africa/Johannesburg',
   'CPT': 'Africa/Johannesburg',
@@ -188,18 +230,14 @@ const airportTimezones: { [code: string]: string } = {
   'NBO': 'Africa/Nairobi',
   'LOS': 'Africa/Lagos',
   'ACC': 'Africa/Accra',
+  'CMN': 'Africa/Casablanca',
+  'RAK': 'Africa/Casablanca',
+  'AGA': 'Africa/Casablanca',
+  'ADD': 'Africa/Addis_Ababa',
 };
 
-/**
- * Calculate the distance between two coordinates using the Haversine formula
- * @param lat1 Latitude of first point in degrees
- * @param lon1 Longitude of first point in degrees
- * @param lat2 Latitude of second point in degrees
- * @param lon2 Longitude of second point in degrees
- * @returns Distance in kilometers
- */
 function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Radius of the earth in km
+  const R = 6371;
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
   const a =
@@ -207,32 +245,18 @@ function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon
     Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c; // Distance in km
-  return distance;
+  return R * c;
 }
 
-/**
- * Convert degrees to radians
- * @param deg Angle in degrees
- * @returns Angle in radians
- */
 function deg2rad(deg: number): number {
   return deg * (Math.PI / 180);
 }
 
-/**
- * Calculate realistic flight times based on origin and destination coordinates
- * @param originCode Origin airport code
- * @param destCode Destination airport code
- * @param departureDateStr Departure date string in YYYY-MM-DD format
- * @param departureTimeStr Departure time string in HH:mm format
- * @returns Promise resolving to object with duration, departure and arrival times in UTC and local
- */
 export async function calculateRealisticFlightTimes(
   originCode: string,
   destCode: string,
-  departureDateStr: string = new Date().toISOString().split('T')[0],
-  departureTimeStr: string = '09:00'
+  departureDateStrInput: string = new Date().toISOString().split('T')[0],
+  departureTimeStrInput: string = '09:00'
 ): Promise<{
   durationMinutes: number;
   departureUTC: Date;
@@ -241,119 +265,134 @@ export async function calculateRealisticFlightTimes(
   arrivalLocal: Date;
   distanceKm: number;
 }> {
-  // Get airport coordinates
   const originCoords = airportCoordinates[originCode];
   const destCoords = airportCoordinates[destCode];
-  
-  if (!originCoords || !destCoords) {
-    throw new Error(`Missing coordinates for ${!originCoords ? originCode : destCode}`);
-  }
-  
-  // Calculate distance using Haversine formula
+
+  if (!originCoords) throw new Error(`Missing coordinates for origin airport: ${originCode}`);
+  if (!destCoords) throw new Error(`Missing coordinates for destination airport: ${destCode}`);
+
   const distanceKm = getDistanceFromLatLonInKm(
-    originCoords.lat, 
-    originCoords.lon, 
-    destCoords.lat, 
-    destCoords.lon
+    originCoords.lat, originCoords.lon, destCoords.lat, destCoords.lon
   );
-  
-  // Flight parameters
-  const cruiseSpeedKmh = 875; // Average cruise speed in km/h
+
+  const cruiseSpeedKmh = 875;
   const baseFlightTimeHours = distanceKm / cruiseSpeedKmh;
-  
-  // Add buffer time: fixed amount + variable amount depending on flight length
-  // - Taxiing: ~20-30 mins (depends on airport)
-  // - Takeoff and initial climb: ~15 mins
-  // - Approach and landing: ~30-45 mins
-  // - Contingency for weather/routing: ~8% of flight time
-  const bufferMinutes = 90 + (baseFlightTimeHours * 60 * 0.08);
-  
-  // Calculate total duration in minutes
+  const bufferMinutes = 36 + (baseFlightTimeHours * 60 * 0.08);
   const durationMinutes = Math.round((baseFlightTimeHours * 60) + bufferMinutes);
-  
-  // Get timezones for origin and destination
-  const originTimezone = airportTimezones[originCode] || 'UTC';
-  const destTimezone = airportTimezones[destCode] || 'UTC';
-  
-  // Create departure date with local timezone
-  const departureDateTimeStr = `${departureDateStr}T${departureTimeStr}:00`;
-  const departureLocal = new Date(departureDateTimeStr);
-  
-  // Convert to UTC for calculations
-  const departureUTC = new Date(
-    departureLocal.getTime() - (departureLocal.getTimezoneOffset() * 60000)
-  );
-  
-  // Calculate arrival time in UTC
+
+  const originTimezone = airportTimezones[originCode];
+  const destTimezone = airportTimezones[destCode];
+
+  if (!originTimezone) console.warn(`Missing timezone for origin airport ${originCode}, using UTC as fallback.`);
+  if (!destTimezone) console.warn(`Missing timezone for destination airport ${destCode}, using UTC as fallback.`);
+
+  const departureDateToUse = departureDateStrInput || new Date().toISOString().split('T')[0];
+  const departureTimeParts = (departureTimeStrInput || '09:00').split(':').map(Number);
+  const departureHour = departureTimeParts[0];
+  const departureMinute = departureTimeParts[1];
+
+  let departureUTC: Date;
+  let departureLocalForReturn: Date;
+
+  try {
+    // --- FALLBACK MANUAL UTC CALCULATION ---
+    // Create a Date object representing the local departure time
+    // We need to parse the date string and set the time components
+    // Use parse from date-fns
+    let localDepartureDateTime = parse(`${departureDateToUse} ${departureHour}:${departureMinute}`, 'yyyy-MM-dd HH:mm', new Date());
+
+    if (isNaN(localDepartureDateTime.getTime())) {
+         throw new Error(`Failed to parse local departure date/time: "${departureDateToUse} ${departureHour}:${departureMinute}"`);
+    }
+
+    // Convert local time to UTC using the browser's/system's understanding of the origin timezone offset
+    // This is less precise than zonedTimeToUtc but avoids the import issue
+    // Note: This relies on the system having correct timezone data for the origin timezone.
+    // The getTimezoneOffset() method returns the difference in minutes between UTC and local time.
+    // We need to add this offset (converted to milliseconds) to the local time to get UTC.
+    const offsetMinutes = localDepartureDateTime.getTimezoneOffset();
+    departureUTC = new Date(localDepartureDateTime.getTime() + (offsetMinutes * 60000));
+    // --- END FALLBACK MANUAL UTC CALCULATION ---
+
+
+    // Use toZonedTime to get a Date object representing the local time at origin for return
+    // This function should still work even if zonedTimeToUtc is problematic
+    departureLocalForReturn = toZonedTime(departureUTC, originTimezone || 'UTC');
+     if (isNaN(departureLocalForReturn.getTime())) { // Should not happen if departureUTC is valid
+      throw new Error('toZonedTime for departureLocalForReturn resulted in Invalid Date.');
+    }
+
+  } catch(e) {
+    console.error(
+      "Error processing departure time:", e,
+      "\nInput string for local parse:", `${departureDateToUse} ${departureHour}:${departureMinute}`,
+      "\nOrigin timezone:", originTimezone
+    );
+    throw new Error(`Failed to process departure time "${departureDateToUse} ${departureTimeStrInput}" in timezone "${originTimezone || 'UTC'}". Original error: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  // Calculate the arrival time in UTC by adding the duration
   const arrivalUTC = addMinutes(departureUTC, durationMinutes);
-  
-  // Convert arrival time to destination timezone
-  const arrivalLocal = toZonedTime(arrivalUTC, destTimezone);
-  
+
+  if (isNaN(arrivalUTC.getTime())) {
+    throw new Error('Calculation of arrivalUTC resulted in Invalid Date.');
+  }
+
+  let arrivalLocalForReturn: Date;
+  try {
+    // Convert UTC arrival time back to local time using toZonedTime
+    arrivalLocalForReturn = toZonedTime(arrivalUTC, destTimezone || 'UTC');
+    if (isNaN(arrivalLocalForReturn.getTime())) {
+        throw new Error('toZonedTime for arrival resulted in Invalid Date.');
+    }
+  } catch(e) {
+    console.error("Error in toZonedTime for arrival:", e);
+    throw new Error(`Failed to convert arrival time to local using timezone: ${destTimezone || 'UTC'}. Original error: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
   return {
     durationMinutes,
     departureUTC,
     arrivalUTC,
-    departureLocal,
-    arrivalLocal,
+    departureLocal: departureLocalForReturn,
+    arrivalLocal: arrivalLocalForReturn,
     distanceKm
   };
 }
 
-/**
- * Format a duration in minutes to a human-readable string (e.g., "2h 15m")
- * @param minutes Duration in minutes
- * @returns Formatted duration string
- */
 export function formatDuration(minutes: number): string {
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
   return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`;
 }
 
-/**
- * Calculate complete flight details for display
- * @param originCode Origin airport code
- * @param destCode Destination airport code
- * @param departureDateStr Optional departure date string
- * @param departureTimeStr Optional departure time string
- * @returns Promise resolving to formatted flight details
- */
-/**
- * Calculate the time difference between two timezones
- * @param timezone1 First timezone
- * @param timezone2 Second timezone
- * @returns Time difference in hours (can be negative)
- */
 export function calculateTimezoneDifference(timezone1: string, timezone2: string): number {
-  // Create a reference date for comparison
   const referenceDate = new Date();
-  
-  // Convert the reference date to both timezones
-  const time1 = toZonedTime(referenceDate, timezone1);
-  const time2 = toZonedTime(referenceDate, timezone2);
-  
-  // Calculate the difference in hours
-  const diffHours = differenceInHours(time2, time1);
-  
-  return diffHours;
+  // Get the UTC offset for each timezone at this current moment
+  // This approach is simpler but might not be accurate for historical dates or DST transitions
+  // A more robust way is to format a known UTC time into each zone and compare.
+
+  // For a more robust offset calculation:
+  // Use toZonedTime to get Date objects representing the same instant in different timezones
+  const nowInTz1 = toZonedTime(referenceDate, timezone1);
+  const nowInTz2 = toZonedTime(referenceDate, timezone2);
+
+  // The difference in their UTC timestamps gives the timezone offset difference
+  const offsetDifferenceMs = nowInTz2.getTime() - nowInTz1.getTime();
+
+  return offsetDifferenceMs / (1000 * 60 * 60); // Difference in hours
 }
 
-/**
- * Format a timezone difference as a string like "+3h" or "-5h30m"
- * @param hoursDiff Time difference in hours
- * @returns Formatted string with sign
- */
 export function formatTimezoneDifference(hoursDiff: number): string {
   const sign = hoursDiff >= 0 ? '+' : '-';
   const absDiff = Math.abs(hoursDiff);
   const hours = Math.floor(absDiff);
   const minutes = Math.round((absDiff - hours) * 60);
-  
+
   if (minutes === 0) {
     return `${sign}${hours}h`;
   } else {
-    return `${sign}${hours}h${minutes}m`;
+    return `${sign}${hours}h ${minutes}m`;
   }
 }
 
@@ -376,53 +415,53 @@ export async function calculateEnhancedFlightDetails(
   dayChange: number;
   exitDay: string;
 }> {
-  // Calculate the realistic flight times
   const {
     durationMinutes,
     departureUTC,
     arrivalUTC,
-    departureLocal,
-    arrivalLocal,
-    distanceKm
+    distanceKm,
+    departureLocal, // Get the local date object from calculateRealisticFlightTimes
+    arrivalLocal // Get the local date object from calculateRealisticFlightTimes
   } = await calculateRealisticFlightTimes(
-    originCode, 
-    destCode, 
-    departureDateStr, 
+    originCode,
+    destCode,
+    departureDateStr,
     departureTimeStr
   );
-  
-  
-  // Get the origin and destination timezones
+
   const originTimezone = airportTimezones[originCode] || 'UTC';
   const destTimezone = airportTimezones[destCode] || 'UTC';
-  
-  // Format times in local timezones
-  const departureTimeLocal = formatInTimeZone(departureUTC, originTimezone, 'HH:mm');
-  const departureDateLocal = formatInTimeZone(departureUTC, originTimezone, 'yyyy-MM-dd');
-  const arrivalTimeLocal = formatInTimeZone(arrivalUTC, destTimezone, 'HH:mm');
-  const arrivalDateLocal = formatInTimeZone(arrivalUTC, destTimezone, 'yyyy-MM-dd');
-  
-  // Calculate timezone difference
+
+  if (!departureUTC || isNaN(departureUTC.getTime())) {
+    throw new Error("[CalcEFD] calculateRealisticFlightTimes returned an invalid departureUTC date.");
+  }
+  if (!arrivalUTC || isNaN(arrivalUTC.getTime())) {
+    throw new Error("[CalcEFD] calculateRealisticFlightTimes returned an invalid arrivalUTC date.");
+  }
+
+  // Use formatInTimeZone directly
+  const departureTimeLocalStr = formatInTimeZone(departureUTC, originTimezone, 'HH:mm');
+  const departureDateLocalStr = formatInTimeZone(departureUTC, originTimezone, 'yyyy-MM-dd');
+  const arrivalTimeLocalStr = formatInTimeZone(arrivalUTC, destTimezone, 'HH:mm');
+  const arrivalDateLocalStr = formatInTimeZone(arrivalUTC, destTimezone, 'yyyy-MM-dd');
+
   const tzDiffHours = calculateTimezoneDifference(originTimezone, destTimezone);
   const timezoneDifference = formatTimezoneDifference(tzDiffHours);
-  
-  // Calculate day change (if arrival is on a different day than departure)
-  const departureDateObj = new Date(departureDateLocal);
-  const arrivalDateObj = new Date(arrivalDateLocal);
-  const dayChange = differenceInDays(arrivalDateObj, departureDateObj);
-  
-  // Calculate exit day (based on local time at destination)
+
+  // Calculate day change using the local date objects returned by calculateRealisticFlightTimes
+  // This is more reliable than parsing strings again
+  const dayChange = differenceInDays(arrivalLocal, departureLocal);
+
+  // Use formatInTimeZone directly
   const exitDay = formatInTimeZone(arrivalUTC, destTimezone, 'EEEE');
-  
-  // Format the duration
   const durationFormatted = formatDuration(durationMinutes);
-  
+
   return {
     durationFormatted,
-    departureTimeLocal,
-    arrivalTimeLocal,
-    departureDateLocal,
-    arrivalDateLocal,
+    departureTimeLocal: departureTimeLocalStr,
+    arrivalTimeLocal: arrivalTimeLocalStr,
+    departureDateLocal: departureDateLocalStr,
+    arrivalDateLocal: arrivalDateLocalStr,
     durationMinutes,
     departureUTC,
     arrivalUTC,

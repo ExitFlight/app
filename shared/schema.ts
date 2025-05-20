@@ -22,7 +22,7 @@ export const airports = pgTable("airports", {
   city: text("city").notNull(),
   country: text("country").notNull(),
   region: text("region").notNull(),
-  latitude: numeric("latitude"), // Or numeric("latitude", { precision: 9, scale: 6 }) for more control
+  latitude: numeric("latitude"), // Or numeric("latitude", { precision: 9, scale: 6 })
   longitude: numeric("longitude"), // Or numeric("longitude", { precision: 9, scale: 6 })
 });
 
@@ -32,8 +32,8 @@ export const insertAirportSchema = createInsertSchema(airports).pick({
   city: true,
   country: true,
   region: true,
-  latitude: true, // Add to insert schema if you plan to insert them
-  longitude: true, // Add to insert schema if you plan to insert them
+  latitude: true,
+  longitude: true,
 });
 
 // Airline schema
@@ -146,7 +146,7 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
 export type InsertAirport = z.infer<typeof insertAirportSchema>;
-export type Airport = typeof airports.$inferSelect;
+export type Airport = typeof airports.$inferSelect; // This will now include latitude and longitude
 
 export type InsertAirline = z.infer<typeof insertAirlineSchema>;
 export type Airline = typeof airlines.$inferSelect;
@@ -178,8 +178,8 @@ export type FlightWithDetails = {
       name: string;
       city: string;
       country: string;
-      latitude?: string | number | null; // Reflecting numeric type from schema
-      longitude?: string | number | null; // Reflecting numeric type from schema
+      latitude?: string | number | null; // Added
+      longitude?: string | number | null; // Added
     };
     time: string;
     date: string; // Added date
@@ -191,14 +191,14 @@ export type FlightWithDetails = {
       name: string;
       city: string;
       country: string;
-      latitude?: string | number | null; // Reflecting numeric type from schema
-      longitude?: string | number | null; // Reflecting numeric type from schema
+      latitude?: string | number | null; // Added
+      longitude?: string | number | null; // Added
     };
     time: string;
     date: string; // Added date
   };
   duration: string;
-  price: string;
+  price: string; // Note: Your MemStorage uses string for price, but schema uses integer. Be consistent.
   class: string;
 };
 

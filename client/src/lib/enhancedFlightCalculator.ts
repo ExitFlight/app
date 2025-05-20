@@ -373,17 +373,37 @@ export function formatDuration(minutes: number): string {
 }
 
 export function calculateTimezoneDifference(timezone1: string, timezone2: string): number {
-  const referenceDate = new Date(); // Use a common reference date
-  // Get the offset in milliseconds for each timezone from UTC
-  // This offset is what you add to UTC to get local time.
-  const offset1Milliseconds = getIANATimezoneOffset(timezone1, referenceDate);
-  const offset2Milliseconds = getIANATimezoneOffset(timezone2, referenceDate);
+  const referenceDate = new Date();
 
-  // The difference in offsets gives the difference between the timezones
-  // (offset2 - offset1) will be positive if timezone2 is "further ahead" (larger positive offset or smaller negative offset)
-  const differenceMilliseconds = offset2Milliseconds - offset1Milliseconds;
+  const getOffsetInHours = (tz: string): number => {
+    try {
+      // Get offset string like "+07:00" or "-05:30" using 'xxx' token
+      const offsetStringWithColon = formatInTimeZone(referenceDate, tz, 'xxx');
+      
+      // Parse the offset string
+      const sign = offsetStringWithColon[0] === '-' ? -1 : 1;
+      const parts = offsetStringWithColon.substring(1).split(':');
+      const hours = parseInt(parts[0], 10);
+      const minutes = parts[1] ? parseInt(parts[1], 10) : 0;
+      
+      if (isNaN(hours) || isNaN(minutes)) {
+        console.warn(`Could not parse offset string: ${offsetStringWithColon} for timezone ${tz}. Falling back to 0 offset.`);
+        return 0;
+      }
+      
+      return sign * (hours + minutes / 60);
+    } catch (e) {
+      console.warn(`Error formatting/parsing offset for timezone ${tz}:`, e, `Falling back to 0 offset.`);
+      return 0; // Fallback in case of error
+    }
+  };
+
+  const offset1Hours = getOffsetInHours(timezone1); // Origin's offset from UTC in hours
+  const offset2Hours = getOffsetInHours(timezone2); // Destination's offset from UTC in hours
   
-  return differenceMilliseconds / (1000 * 60 * 60); // Difference in hours
+  // Difference: (Destination UTC Offset) - (Origin UTC Offset)
+  // Example: SIN (UTC+8) and CNX (UTC+7). Difference = 8 - 7 = +1 hour.
+  return offset2Hours - offset1Hours;
 }
 
 export function formatTimezoneDifference(hoursDiff: number): string {

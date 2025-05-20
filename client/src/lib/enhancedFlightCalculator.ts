@@ -81,6 +81,29 @@ const airportCoordinates: { [code: string]: { lat: number; lon: number } } = {
   'SGN': { lat: 10.8189, lon: 106.6519 },
   'HAN': { lat: 21.2212, lon: 105.8072 },
   'DPS': { lat: -8.7489, lon: 115.1670 },
+  'DAD': { lat: 16.0439, lon: 108.1992 }, // Da Nang
+  'PKX': { lat: 39.5093, lon: 116.4103 }, // Beijing Daxing
+  'TSA': { lat: 25.0691, lon: 121.5526 }, // Taipei Songshan
+  'KHH': { lat: 22.5771, lon: 120.3499 }, // Kaohsiung
+  'PQC': { lat: 10.1698, lon: 103.9934 }, // Phu Quoc
+  'CXR': { lat: 11.9981, lon: 109.2193 }, // Nha Trang (Cam Ranh)
+  'REP': { lat: 13.4108, lon: 103.8128 }, // Siem Reap
+  'PNH': { lat: 11.5465, lon: 104.8441 }, // Phnom Penh
+  'KOS': { lat: 10.5798, lon: 103.6347 }, // Sihanoukville
+  'VTE': { lat: 17.9884, lon: 102.5633 }, // Vientiane
+  'LPQ': { lat: 19.8978, lon: 102.1614 }, // Luang Prabang
+  'RGN': { lat: 16.9073, lon: 96.1332 }, // Yangon
+  'MDL': { lat: 21.7022, lon: 95.9780 }, // Mandalay
+  'CGK': { lat: -6.1256, lon: 106.6559 }, // Jakarta Soekarno-Hatta
+  'SUB': { lat: -7.3797, lon: 112.7868 }, // Surabaya
+  'UPG': { lat: -5.0617, lon: 119.5542 }, // Makassar
+  'DJJ': { lat: -2.5769, lon: 140.5169 }, // Jayapura
+  'PEN': { lat: 5.2971, lon: 100.2767 }, // Penang
+  'BKI': { lat: 5.9351, lon: 116.0500 }, // Kota Kinabalu
+  'CEB': { lat: 10.3075, lon: 123.9789 }, // Cebu
+  'MAA': { lat: 12.9901, lon: 80.1696 }, // Chennai
+  'MLE': { lat: 4.2010, lon: 73.5290 },   // Malé
+  'GAN': { lat: -0.6936, lon: 73.1556 },   // Gan Island
 
   // Australia/Oceania
   'SYD': { lat: -33.9399, lon: 151.1753 },
@@ -104,6 +127,26 @@ const airportCoordinates: { [code: string]: { lat: number; lon: number } } = {
   'BOG': { lat: 4.7016, lon: -74.1469 },
   'SCL': { lat: -33.3930, lon: -70.7947 },
   'LIM': { lat: -12.0219, lon: -77.1143 },
+  'CGH': { lat: -23.6261, lon: -46.6564 }, // São Paulo Congonhas
+  'GIG': { lat: -22.8100, lon: -43.2505 }, // Rio de Janeiro Galeão
+  'SDU': { lat: -22.9105, lon: -43.1631 }, // Rio de Janeiro Santos Dumont
+  'AEP': { lat: -34.5592, lon: -58.4156 }, // Buenos Aires Aeroparque
+  'CCS': { lat: 10.6031, lon: -66.9906 }, // Caracas
+  'UIO': { lat: -0.1292, lon: -78.3575 }, // Quito
+  'GYE': { lat: -2.1575, lon: -79.8836 }, // Guayaquil
+  'MVD': { lat: -34.8383, lon: -56.0308 }, // Montevideo
+  'ASU': { lat: -25.2397, lon: -57.5192 }, // Asunción
+  'VVI': { lat: -17.6448, lon: -63.1354 }, // Santa Cruz Viru Viru
+  'LPB': { lat: -16.5134, lon: -68.1724 }, // La Paz
+  'CUZ': { lat: -13.5357, lon: -71.9388 }, // Cusco
+  'CTG': { lat: 10.4424, lon: -75.5129 }, // Cartagena
+  'CNF': { lat: -19.6244, lon: -43.9719 }, // Belo Horizonte
+  'FLN': { lat: -27.6706, lon: -48.5470 }, // Florianópolis
+
+  // Central America & Caribbean - Add if these are in your UI dropdowns
+  'PTY': { lat: 9.0713, lon: -79.3835 },   // Panama City Tocumen
+  'SJO': { lat: 9.9939, lon: -84.2088 },   // San José, Costa Rica
+  'PUJ': { lat: 18.5675, lon: -68.3634 },   // Punta Cana
 
   // Africa
   'JNB': { lat: -26.1367, lon: 28.2411 },
@@ -116,6 +159,17 @@ const airportCoordinates: { [code: string]: { lat: number; lon: number } } = {
   'RAK': { lat: 31.6069, lon: -8.0363 },
   'AGA': { lat: 30.3250, lon: -9.4130 },
   'ADD': { lat: 8.9779, lon: 38.7993 },
+  'DUR': { lat: -29.6142, lon: 31.1194 }, // Durban
+  'PLZ': { lat: -33.9849, lon: 25.6173 }, // Port Elizabeth
+  'FEZ': { lat: 33.9272, lon: -4.9779 },   // Fez
+  'TNG': { lat: 35.7269, lon: -5.9169 },   // Tangier
+  'ALG': { lat: 36.6910, lon: 3.2154 },   // Algiers
+  'TUN': { lat: 36.8510, lon: 10.2272 },   // Tunis
+  'DKR': { lat: 14.7397, lon: -17.4901 }, // Dakar
+  'DAR': { lat: -6.8781, lon: 39.2026 }, // Dar es Salaam
+  'EBB': { lat: 0.0424, lon: 32.4436 },   // Entebbe
+  'SEZ': { lat: -4.6744, lon: 55.5219 }, // Seychelles
+  'MRU': { lat: -20.4302, lon: 57.6830 }  // Mauritius
 };
 
 const airportTimezones: { [code: string]: string } = {
@@ -197,6 +251,29 @@ const airportTimezones: { [code: string]: string } = {
   'SGN': 'Asia/Ho_Chi_Minh',
   'HAN': 'Asia/Hanoi',
   'DPS': 'Asia/Makassar',
+  'DAD': 'Asia/Ho_Chi_Minh', // Da Nang
+  'PKX': 'Asia/Shanghai',    // Beijing Daxing
+  'TSA': 'Asia/Taipei',      // Taipei Songshan
+  'KHH': 'Asia/Taipei',      // Kaohsiung
+  'PQC': 'Asia/Ho_Chi_Minh', // Phu Quoc
+  'CXR': 'Asia/Ho_Chi_Minh', // Nha Trang (Cam Ranh)
+  'REP': 'Asia/Bangkok',     // Siem Reap (Cambodia uses ICT, same as Bangkok)
+  'PNH': 'Asia/Bangkok',     // Phnom Penh
+  'KOS': 'Asia/Bangkok',     // Sihanoukville
+  'VTE': 'Asia/Vientiane',   // Vientiane
+  'LPQ': 'Asia/Vientiane',   // Luang Prabang
+  'RGN': 'Asia/Yangon',      // Yangon
+  'MDL': 'Asia/Yangon',      // Mandalay
+  'CGK': 'Asia/Jakarta',     // Jakarta
+  'SUB': 'Asia/Jakarta',     // Surabaya
+  'UPG': 'Asia/Makassar',    // Makassar
+  'DJJ': 'Asia/Jayapura',    // Jayapura
+  'PEN': 'Asia/Kuala_Lumpur',// Penang
+  'BKI': 'Asia/Kuching',     // Kota Kinabalu (East Malaysia timezone)
+  'CEB': 'Asia/Manila',      // Cebu
+  'MAA': 'Asia/Kolkata',     // Chennai
+  'MLE': 'Indian/Maldives',  // Malé
+  'GAN': 'Indian/Maldives',  // Gan Island
 
   // Australia/Oceania
   'SYD': 'Australia/Sydney',
@@ -220,6 +297,26 @@ const airportTimezones: { [code: string]: string } = {
   'BOG': 'America/Bogota',
   'SCL': 'America/Santiago',
   'LIM': 'America/Lima',
+  'CGH': 'America/Sao_Paulo', // São Paulo Congonhas
+  'GIG': 'America/Sao_Paulo', // Rio de Janeiro Galeão
+  'SDU': 'America/Sao_Paulo', // Rio de Janeiro Santos Dumont
+  'AEP': 'America/Argentina/Buenos_Aires', // Buenos Aires Aeroparque
+  'CCS': 'America/Caracas',   // Caracas
+  'UIO': 'America/Guayaquil', // Quito (Ecuador uses Guayaquil TZ for mainland)
+  'GYE': 'America/Guayaquil', // Guayaquil
+  'MVD': 'America/Montevideo',// Montevideo
+  'ASU': 'America/Asuncion',  // Asunción
+  'VVI': 'America/La_Paz',    // Santa Cruz Viru Viru (Bolivia uses La Paz TZ)
+  'LPB': 'America/La_Paz',    // La Paz
+  'CUZ': 'America/Lima',      // Cusco
+  'CTG': 'America/Bogota',    // Cartagena
+  'CNF': 'America/Sao_Paulo', // Belo Horizonte
+  'FLN': 'America/Sao_Paulo', // Florianópolis
+
+  // Central America & Caribbean
+  'PTY': 'America/Panama',
+  'SJO': 'America/Costa_Rica',
+  'PUJ': 'America/Santo_Domingo',
 
   // Africa
   'JNB': 'Africa/Johannesburg',
@@ -232,6 +329,17 @@ const airportTimezones: { [code: string]: string } = {
   'RAK': 'Africa/Casablanca',
   'AGA': 'Africa/Casablanca',
   'ADD': 'Africa/Addis_Ababa',
+  'DUR': 'Africa/Johannesburg', // Durban
+  'PLZ': 'Africa/Johannesburg', // Port Elizabeth
+  'FEZ': 'Africa/Casablanca',   // Fez
+  'TNG': 'Africa/Casablanca',   // Tangier
+  'ALG': 'Africa/Algiers',    // Algiers
+  'TUN': 'Africa/Tunis',      // Tunis
+  'DKR': 'Africa/Dakar',      // Dakar
+  'DAR': 'Africa/Dar_es_Salaam', // Dar es Salaam
+  'EBB': 'Africa/Kampala',    // Entebbe (Uganda uses EAT, same as Nairobi/Dar)
+  'SEZ': 'Indian/Mahe',       // Seychelles
+  'MRU': 'Indian/Mauritius'   // Mauritius
 };
 
 function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {

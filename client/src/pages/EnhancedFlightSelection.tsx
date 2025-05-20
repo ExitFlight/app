@@ -1,3 +1,4 @@
+// /home/jordan/Desktop/FlightBack/client/src/pages/EnhancedFlightSelection.tsx
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowRight, Plane, Clock, CalendarIcon, Search, AlertTriangle, RefreshCcw, XIcon } from "lucide-react"; // Added XIcon
+import { ArrowRight, Plane, Clock, CalendarIcon, Search, AlertTriangle, RefreshCcw, XIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDistance } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -38,7 +39,7 @@ import ProgressStepper from "@/components/ProgressStepper";
 import { useFlightContext } from "@/lib/context/FlightContext";
 import { calculateEnhancedFlightDetails } from "@/lib/enhancedFlightCalculator";
 // Import from airlineUtil.ts
-import { allAirlines, getAirlinesForRegion, airlinesGroupedByRegion } from "@/lib/airlineUtil";
+import { allAirlines, airlinesGroupedByRegion, type Airline as UtilAirline } from "@/lib/airlineUtil"; // Import Airline type
 import { directFlightExists } from "@/lib/flightData";
 
 // Major international airports by region (ensure all have lat/long)
@@ -251,12 +252,12 @@ interface EnhancedFlightDetails {
   arrivalAirport: string;
   arrivalAirportName: string;
   departureDate: string;
-  departureTime: string;
+  departureTime: string; // This will be the user's input time
   arrivalDate: string;
   arrivalTime: string;
   flightNumber: string;
   airline: {
-    id: string; // Will be the airline code
+    id: number; // Changed to number
     code: string;
     name: string;
     logo?: string;
@@ -270,7 +271,7 @@ interface EnhancedFlightDetails {
     dayChange?: number;
     exitDay?: string;
     durationFormatted?: string;
-    departureTimeLocal?: string;
+    departureTimeLocal?: string; // Calculated local departure time
     arrivalTimeLocal?: string;
     departureDateLocal?: string;
     arrivalDateLocal?: string;
@@ -282,13 +283,10 @@ interface EnhancedFlightDetails {
 }
 
 // Helper function to get airline region from the grouped structure
+// This can be simplified if 'region' is directly on the airline object from allAirlines
 const getAirlineRegionFromGroup = (airlineCode: string): string | undefined => {
-  for (const group of airlinesGroupedByRegion) {
-    if (group.airlines.some(a => a.code === airlineCode)) {
-      return group.regionName;
-    }
-  }
-  return undefined;
+  const airline = allAirlines.find(a => a.code === airlineCode);
+  return airline?.region; // Use the region from the allAirlines object
 };
 
 
@@ -323,28 +321,30 @@ const EnhancedFlightSelection = () => {
   );
   const [departureHour, setDepartureHour] = useState<string>(loadCachedValue("departureHour", "09"));
   const [departureMinute, setDepartureMinute] = useState<string>(loadCachedValue("departureMinute", "00"));
-  const [selectedAirline, setSelectedAirline] = useState<string>(loadCachedValue("selectedAirline", ""));
+  const [selectedAirline, setSelectedAirline] = useState<string>(loadCachedValue("selectedAirline", "")); // Stores airline code
   const [selectedCabin, setSelectedCabin] = useState<string>(loadCachedValue("selectedCabin", "economy"));
   const [airlineRegionFilter, setAirlineRegionFilter] = useState<string>(loadCachedValue("airlineRegionFilter", "All Regions"));
   
-  // Filtered airlines for the dropdown
-  const [airlinesForDropdown, setAirlinesForDropdown] = useState(() => {
-    // Initialize with allAirlines from util, ensuring each has code, name, and region
-    return allAirlines.map(a => ({
+  // Filtered airlines for the dropdown - now uses UtilAirline type
+  const [airlinesForDropdown, setAirlinesForDropdown] = useState<UtilAirline[]>(() => {
+    return allAirlines.map(a => ({ // allAirlines now contains id, code, name, region, logo
+        id: a.id,
         code: a.code,
         name: a.name,
-        region: getAirlineRegionFromGroup(a.code) || "Unknown" // Add region for filtering
+        region: a.region,
+        logo: a.logo
     }));
   });
 
 
   type AirportSearchResult = { code: string; name: string; region: string; latitude?: number; longitude?: number };
-  // Airline search result type, includes region for display/filtering if needed
+  // Airline search result type, now includes numeric id
   type AirlineSearchResult = {
+    id: number; // Numeric ID
     code: string;
     name: string;
-    region?: string; // Region from airlinesGroupedByRegion
-    logo?: string; // If you add logos to allAirlines in util
+    region?: string;
+    logo?: string;
   };
 
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -374,7 +374,7 @@ const EnhancedFlightSelection = () => {
   const setCachedDestinationAirport = (value: string) => { saveToCache("destinationAirport", value); setDestinationAirport(value); };
   const setCachedDepartureHour = (value: string) => { saveToCache("departureHour", value); setDepartureHour(value); };
   const setCachedDepartureMinute = (value: string) => { saveToCache("departureMinute", value); setDepartureMinute(value); };
-  const setCachedSelectedAirline = (value: string) => { saveToCache("selectedAirline", value); setSelectedAirline(value); };
+  const setCachedSelectedAirline = (value: string) => { saveToCache("selectedAirline", value); setSelectedAirline(value); }; // Still stores code
   const setCachedSelectedCabin = (value: string) => { saveToCache("selectedCabin", value); setSelectedCabin(value); };
   const setCachedAirlineRegionFilter = (value: string) => { saveToCache("airlineRegionFilter", value); setAirlineRegionFilter(value); };
 
@@ -390,19 +390,11 @@ const EnhancedFlightSelection = () => {
   // Effect to filter airlines for the dropdown based on airlineRegionFilter
   useEffect(() => {
     if (airlineRegionFilter === "All Regions") {
-        setAirlinesForDropdown(allAirlines.map(a => ({
-            code: a.code,
-            name: a.name,
-            region: getAirlineRegionFromGroup(a.code) || "Unknown"
-        })).sort((a,b) => a.name.localeCompare(b.name)) );
+        setAirlinesForDropdown(allAirlines.sort((a,b) => a.name.localeCompare(b.name)));
     } else {
         const regionGroup = airlinesGroupedByRegion.find(group => group.regionName === airlineRegionFilter);
         setAirlinesForDropdown(
-            regionGroup ? regionGroup.airlines.map(a => ({
-                code: a.code,
-                name: a.name,
-                region: regionGroup.regionName
-            })).sort((a,b) => a.name.localeCompare(b.name)) : []
+            regionGroup ? regionGroup.airlines.sort((a,b) => a.name.localeCompare(b.name)) : []
         );
     }
   }, [airlineRegionFilter]);
@@ -413,17 +405,15 @@ const EnhancedFlightSelection = () => {
       const region = Object.entries(majorAirports).find(([_, airports]) =>
         airports.some(airport => airport.code === departureAirport)
       )?.[0];
-      // Auto-set airline region filter if a departure airport is selected and its region is known
-      // This will trigger the useEffect above to filter airlinesForDropdown
       if (region && Object.keys(majorAirports).includes(region)) { 
         setCachedAirlineRegionFilter(region);
       } else {
-        setCachedAirlineRegionFilter("All Regions"); // Fallback if region not found
+        setCachedAirlineRegionFilter("All Regions");
       }
     } else {
-        setCachedAirlineRegionFilter("All Regions"); // Reset if no departure airport
+        setCachedAirlineRegionFilter("All Regions");
     }
-  }, [departureAirport]); // Removed setCachedAirlineRegionFilter from dep array to avoid loop with itself
+  }, [departureAirport]);
 
   useEffect(() => {
     if (departureAirport && destinationAirport) {
@@ -458,7 +448,6 @@ const EnhancedFlightSelection = () => {
     });
     airportResults = airportResults.slice(0, 15);
 
-    // Search airlines from the global allAirlines list
     const airlineResultsRaw = allAirlines.filter(airline => {
       const codeMatch = airline.code.toLowerCase().includes(searchLower);
       const nameMatch = airline.name.toLowerCase().includes(searchLower);
@@ -467,10 +456,11 @@ const EnhancedFlightSelection = () => {
     });
 
     let airlineFormattedResults: AirlineSearchResult[] = airlineResultsRaw.map(ar => ({
+      id: ar.id, // Include numeric id
       code: ar.code,
       name: ar.name,
-      // logo: ar.logo, // Add if your allAirlines objects have logos
-      region: getAirlineRegionFromGroup(ar.code) || "Unknown"
+      logo: ar.logo,
+      region: ar.region
     }));
 
     airlineFormattedResults.sort((a, b) => {
@@ -489,16 +479,15 @@ const EnhancedFlightSelection = () => {
       setCachedDepartureRegion(selectedRegion); setCachedDepartureAirport(airport.code); setIsSearching(false);
     } else if (!destinationAirport) {
       setCachedDestinationRegion(selectedRegion); setCachedDestinationAirport(airport.code); setIsSearching(false);
-    } else { // Both are filled, replace departure
+    } else { 
       setCachedDepartureRegion(selectedRegion); setCachedDepartureAirport(airport.code);
     }
     setSearchTerm("");
   };
 
   const handleSelectAirlineFromSearch = (airline: AirlineSearchResult) => {
-    setCachedSelectedAirline(airline.code);
-    // Optionally set airlineRegionFilter based on the searched airline's region
-    if (airline.region && airline.region !== "Unknown") {
+    setCachedSelectedAirline(airline.code); // Store airline code
+    if (airline.region) {
         setCachedAirlineRegionFilter(airline.region);
     }
     setSearchTerm("");
@@ -517,33 +506,21 @@ const EnhancedFlightSelection = () => {
     if (departureAirport === destinationAirport) {
       toast({ title: "Invalid selection", description: "Departure and destination airports cannot be the same", variant: "destructive" }); return;
     }
-    if (!selectedAirline) {
+    if (!selectedAirline) { // selectedAirline is the airline code
       toast({ title: "Missing information", description: "Please select an airline", variant: "destructive" }); return;
     }
 
     setIsLoading(true); setError(""); setFlightData(null);
 
-    // --- START DEBUG LOGS (Optional: Remove after confirming it works) ---
-    console.log("--- DEBUGGING handleGenerateFlight ---");
-    console.log("1. Value of 'selectedAirline' state:", selectedAirline);
-    console.log("2. Is 'allAirlines' (from airlineUtil) an array?", Array.isArray(allAirlines));
-    if (Array.isArray(allAirlines)) {
-      console.log("3. Number of airlines in 'allAirlines':", allAirlines.length);
-      console.log("4. First 3 airlines in 'allAirlines':", JSON.stringify(allAirlines.slice(0, 3)));
-      const airlineExists = allAirlines.some(a => a.code === selectedAirline);
-      console.log(`5. Does airline with code '${selectedAirline}' exist in 'allAirlines'?`, airlineExists);
-    }
-    // --- END DEBUG LOGS ---
-
     try {
       const formattedDate = departureDate ? format(departureDate, "yyyy-MM-dd") : "";
-      const departureTime = `${departureHour}:${departureMinute}`;
+      const departureTimeInput = `${departureHour}:${departureMinute}`; // User's direct input
 
       const calculatedData = await calculateEnhancedFlightDetails(
-        departureAirport, destinationAirport, formattedDate, departureTime
+        departureAirport, destinationAirport, formattedDate, departureTimeInput
       );
 
-      const airlineInfo = allAirlines.find(a => a.code === selectedAirline);
+      const airlineInfo = allAirlines.find(a => a.code === selectedAirline); // Find by code
       if (!airlineInfo) {
         throw new Error(`Airline information not found for code: ${selectedAirline}. Check console logs and ensure this airline code exists in the list from "@/lib/airlineUtil".`);
       }
@@ -561,17 +538,17 @@ const EnhancedFlightSelection = () => {
         departureAirportName: departureAirportInfo.name,
         arrivalAirport: destinationAirport,
         arrivalAirportName: destinationAirportInfo.name,
-        departureDate: calculatedData.departureDateLocal,
-        departureTime: calculatedData.departureTimeLocal,
+        departureDate: calculatedData.departureDateLocal, // Use calculated local date
+        departureTime: departureTimeInput, // Use the user's input time directly for display
         arrivalDate: calculatedData.arrivalDateLocal,
         arrivalTime: calculatedData.arrivalTimeLocal,
         flightNumber: generateFlightNumber(selectedAirline),
         airline: {
-          id: airlineInfo.code, // Use code as ID
+          id: airlineInfo.id, // Use numeric id from airlineInfo
           code: airlineInfo.code,
           name: airlineInfo.name,
-          // logo: airlineInfo.logo, // If your allAirlines objects have logos
-          region: getAirlineRegionFromGroup(airlineInfo.code)
+          logo: airlineInfo.logo,
+          region: airlineInfo.region
         },
         duration: calculatedData.durationFormatted,
         cabin: selectedCabin,
@@ -598,7 +575,7 @@ const EnhancedFlightSelection = () => {
       departureAirport: flightData.departureAirport,
       arrivalAirport: flightData.arrivalAirport,
       departureDate: contextDepartureDate,
-      departureTime: flightData.departureTime,
+      departureTime: flightData.departureTime, // This is the user's input time
       calculatedFlightData: flightData
     });
 
@@ -606,7 +583,7 @@ const EnhancedFlightSelection = () => {
       id: 1, // Mock booking instance ID
       flightNumber: flightData.flightNumber,
       airline: {
-        id: flightData.airline.id, // This is now the airline code
+        id: flightData.airline.id, // This is now the numeric ID
         code: flightData.airline.code,
         name: flightData.airline.name,
         logo: flightData.airline.logo || "",
@@ -614,11 +591,11 @@ const EnhancedFlightSelection = () => {
       },
       departure: {
         airport: { id: 1, code: flightData.departureAirport, name: flightData.departureAirportName, city: flightData.departureAirportName.split(" ")[0], country: getAirportRegion(flightData.departureAirport) },
-        time: flightData.departureTime
+        time: flightData.departureTime // User's input time
       },
       arrival: {
         airport: { id: 2, code: flightData.arrivalAirport, name: flightData.arrivalAirportName, city: flightData.arrivalAirportName.split(" ")[0], country: getAirportRegion(flightData.arrivalAirport) },
-        time: flightData.arrivalTime
+        time: flightData.arrivalTime // Calculated arrival time
       },
       duration: flightData.duration,
       price: `$${Math.floor(Math.random() * 1000) + 200}`,
@@ -656,20 +633,20 @@ const EnhancedFlightSelection = () => {
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
                   onFocus={() => setIsSearching(true)}
-                  className="flex-1 pl-10 pr-10" // Added padding for icons
+                  className="flex-1 pl-10 pr-10"
                 />
-                {searchTerm && isSearching && ( // Show X to clear search term only if there's a term and searching
+                {searchTerm && isSearching && (
                   <Button variant="ghost" size="icon" className="absolute right-10 top-1/2 transform -translate-y-1/2 h-7 w-7" onClick={() => {setSearchTerm(""); setSearchResults({airports:[], airlines:[]});}}>
                     <XIcon className="h-4 w-4" />
                   </Button>
                 )}
                 {isSearching ? (
                   <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 w-7" onClick={() => setIsSearching(false)}>
-                     <XIcon className="h-4 w-4 text-muted-foreground" /> {/* Changed to X to close search dropdown */}
+                     <XIcon className="h-4 w-4 text-muted-foreground" />
                   </Button>
                 ) : (
                   <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 w-7" onClick={() => setIsSearching(true)}>
-                    <Search className="h-4 w-4 opacity-0" /> {/* Keep layout, hide search if not active to avoid jump */}
+                    <Search className="h-4 w-4 opacity-0" />
                   </Button>
                 )}
               </div>
@@ -703,9 +680,9 @@ const EnhancedFlightSelection = () => {
                       {searchResults.airlines.length > 0 && (
                         <CommandGroup heading="Airlines">
                           {searchResults.airlines.map((airline) => (
-                            <CommandItem key={airline.code} onSelect={() => handleSelectAirlineFromSearch(airline)} className="cursor-pointer">
+                            <CommandItem key={airline.id} onSelect={() => handleSelectAirlineFromSearch(airline)} className="cursor-pointer"> {/* Use airline.id for key */}
                               {airline.name} ({airline.code})
-                              {airline.region && airline.region !== "Unknown" && <span className="text-xs text-muted-foreground ml-2">({airline.region})</span>}
+                              {airline.region && <span className="text-xs text-muted-foreground ml-2">({airline.region})</span>}
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -762,9 +739,9 @@ const EnhancedFlightSelection = () => {
                     </Select>
                     {departureAirport && airlineRegionFilter !== getAirportRegion(departureAirport) && getAirportRegion(departureAirport) !== "Unknown" && (<p className="text-xs text-muted-foreground mt-1">Tip: Airlines from {getAirportRegion(departureAirport)} are common for {departureAirport}.</p>)}</div>
                   <div><label className="block text-foreground font-medium mb-2 text-sm">Airline</label>
-                    <Select value={selectedAirline} onValueChange={setCachedSelectedAirline}>
+                    <Select value={selectedAirline} onValueChange={setCachedSelectedAirline}> {/* selectedAirline stores the code */}
                       <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select airline" /></SelectTrigger>
-                      <SelectContent>{airlinesForDropdown.map((a) => (<SelectItem key={a.code} value={a.code}>{a.code} - {a.name}</SelectItem>))}</SelectContent>
+                      <SelectContent>{airlinesForDropdown.map((a) => (<SelectItem key={a.id} value={a.code}>{a.code} - {a.name}</SelectItem>))}</SelectContent> {/* Use a.id for key, a.code for value */}
                     </Select></div>
                 </div>
                 <div><label className="block text-foreground font-medium mb-2 text-sm">Cabin Class</label>
@@ -786,7 +763,12 @@ const EnhancedFlightSelection = () => {
             <CardContent className="p-4 md:p-6">
               <div className="mb-4 flex justify-between items-center">
                 <div className="flex items-center">
-                  <div className="w-12 h-12 flex items-center justify-center bg-primary/10 rounded-full mr-3"><Plane className="h-6 w-6 text-primary" /></div>
+                  {flightData.airline.logo && (
+                    <img src={flightData.airline.logo} alt={`${flightData.airline.name} logo`} className="w-10 h-10 rounded-full mr-3 object-contain" />
+                  )}
+                  {!flightData.airline.logo && (
+                    <div className="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-full mr-3"><Plane className="h-5 w-5 text-primary" /></div>
+                  )}
                   <div><h3 className="text-lg font-bold">{flightData.airline.code} {flightData.flightNumber}</h3><p className="text-sm text-muted-foreground">{flightData.airline.name}</p></div>
                 </div>
                 <div className="text-right"><Badge variant="outline" className="bg-primary/10">{flightData.cabin.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</Badge></div>

@@ -1,9 +1,8 @@
-import { format, addMinutes, differenceInDays, parse, setHours, setMinutes, setSeconds } from 'date-fns'; // Added setHours, setMinutes, setSeconds, parse
-import { toZonedTime, formatInTimeZone } from 'date-fns-tz'; // Still need these for converting UTC back to local and formatting
+import { format, addMinutes, differenceInDays, parse, setHours, setMinutes, setSeconds } from 'date-fns';
+// Import toZonedTime, formatInTimeZone, AND getTimezoneOffset (aliased) from date-fns-tz
+import { toZonedTime, formatInTimeZone, getTimezoneOffset as getIANATimezoneOffset } from 'date-fns-tz';
 
-// Airport coordinates with latitude and longitude
-// IMPORTANT: For accurate flight calculations, ensure ALL airports listed here
-// have 'latitude' and 'longitude' defined.
+// Airport coordinates (ensure all airports used have lat/lon)
 const airportCoordinates: { [code: string]: { lat: number; lon: number } } = {
   // North America
   'JFK': { lat: 40.6413, lon: -73.7781 },
@@ -59,7 +58,6 @@ const airportCoordinates: { [code: string]: { lat: number; lon: number } } = {
   'VNO': { lat: 54.6340, lon: 25.2858 },
 
   // Asia
-  //'TPE': { lat: 25.0797, lon: 121.2328 }, // Duplicate TPE, commented out
   'HND': { lat: 35.5494, lon: 139.7798 },
   'NRT': { lat: 35.7719, lon: 140.3929 },
   'PEK': { lat: 40.0725, lon: 116.5974 },
@@ -133,7 +131,7 @@ const airportTimezones: { [code: string]: string } = {
   'ANC': 'America/Anchorage',
   'YYZ': 'America/Toronto',
   'YVR': 'America/Vancouver',
-  'YYC': 'America/Edmonton', // Note: Calgary is Mountain Time
+  'YYC': 'America/Edmonton',
   'MEX': 'America/Mexico_City',
   'HNL': 'Pacific/Honolulu',
   'OGG': 'Pacific/Honolulu',
@@ -153,12 +151,12 @@ const airportTimezones: { [code: string]: string } = {
   // Europe
   'LHR': 'Europe/London',
   'CDG': 'Europe/Paris',
-  'FRA': 'Europe/Berlin', // Frankfurt uses CET/CEST
+  'FRA': 'Europe/Berlin',
   'AMS': 'Europe/Amsterdam',
   'MAD': 'Europe/Madrid',
   'FCO': 'Europe/Rome',
   'ZRH': 'Europe/Zurich',
-  'MUC': 'Europe/Berlin', // Munich uses CET/CEST
+  'MUC': 'Europe/Berlin',
   'IST': 'Europe/Istanbul',
   'LIS': 'Europe/Lisbon',
   'LGW': 'Europe/London',
@@ -178,8 +176,8 @@ const airportTimezones: { [code: string]: string } = {
   'TPE': 'Asia/Taipei',
   'HND': 'Asia/Tokyo',
   'NRT': 'Asia/Tokyo',
-  'PEK': 'Asia/Shanghai', // Beijing uses China Standard Time
-  'PVG': 'Asia/Shanghai', // Shanghai uses China Standard Time
+  'PEK': 'Asia/Shanghai',
+  'PVG': 'Asia/Shanghai',
   'HKG': 'Asia/Hong_Kong',
   'SIN': 'Asia/Singapore',
   'BKK': 'Asia/Bangkok',
@@ -191,19 +189,19 @@ const airportTimezones: { [code: string]: string } = {
   'CEI': 'Asia/Bangkok',
   'ICN': 'Asia/Seoul',
   'GMP': 'Asia/Seoul',
-  'DEL': 'Asia/Kolkata', // India Standard Time
+  'DEL': 'Asia/Kolkata',
   'KIX': 'Asia/Tokyo',
-  'BOM': 'Asia/Kolkata', // India Standard Time
+  'BOM': 'Asia/Kolkata',
   'KUL': 'Asia/Kuala_Lumpur',
   'MNL': 'Asia/Manila',
   'SGN': 'Asia/Ho_Chi_Minh',
   'HAN': 'Asia/Hanoi',
-  'DPS': 'Asia/Makassar', // Central Indonesia Time
+  'DPS': 'Asia/Makassar',
 
   // Australia/Oceania
   'SYD': 'Australia/Sydney',
   'MEL': 'Australia/Melbourne',
-  'BNE': 'Australia/Brisbane', // Brisbane does not observe DST
+  'BNE': 'Australia/Brisbane',
   'PER': 'Australia/Perth',
   'AKL': 'Pacific/Auckland',
   'CHC': 'Pacific/Auckland',
@@ -256,7 +254,7 @@ export async function calculateRealisticFlightTimes(
   originCode: string,
   destCode: string,
   departureDateStrInput: string = new Date().toISOString().split('T')[0],
-  departureTimeStrInput: string = '09:00'
+  departureTimeStrInput: string = '09:00' // Expected format "HH:mm"
 ): Promise<{
   durationMinutes: number;
   departureUTC: Date;
@@ -280,58 +278,67 @@ export async function calculateRealisticFlightTimes(
   const bufferMinutes = 36 + (baseFlightTimeHours * 60 * 0.08);
   const durationMinutes = Math.round((baseFlightTimeHours * 60) + bufferMinutes);
 
-  const originTimezone = airportTimezones[originCode];
-  const destTimezone = airportTimezones[destCode];
+  const originTimezone = airportTimezones[originCode] || 'UTC';
+  const destTimezone = airportTimezones[destCode] || 'UTC';
 
   if (!originTimezone) console.warn(`Missing timezone for origin airport ${originCode}, using UTC as fallback.`);
   if (!destTimezone) console.warn(`Missing timezone for destination airport ${destCode}, using UTC as fallback.`);
 
   const departureDateToUse = departureDateStrInput || new Date().toISOString().split('T')[0];
-  const departureTimeParts = (departureTimeStrInput || '09:00').split(':').map(Number);
-  const departureHour = departureTimeParts[0];
-  const departureMinute = departureTimeParts[1];
 
   let departureUTC: Date;
   let departureLocalForReturn: Date;
 
   try {
-    // --- FALLBACK MANUAL UTC CALCULATION ---
-    // Create a Date object representing the local departure time
-    // We need to parse the date string and set the time components
-    // Use parse from date-fns
-    let localDepartureDateTime = parse(`${departureDateToUse} ${departureHour}:${departureMinute}`, 'yyyy-MM-dd HH:mm', new Date());
+    // Construct the local departure time string in a full ISO-like format for parsing
+    const departureLocalWallTimeString = `${departureDateToUse}T${departureTimeStrInput}:00`; // e.g., "2025-05-20T04:40:00"
+    
+    // Parse this string to get a naive Date object (it will have the correct Y,M,D,H,M numbers, but in host timezone)
+    const naiveParsedDate = parse(departureLocalWallTimeString, "yyyy-MM-dd'T'HH:mm:ss", new Date());
 
-    if (isNaN(localDepartureDateTime.getTime())) {
-         throw new Error(`Failed to parse local departure date/time: "${departureDateToUse} ${departureHour}:${departureMinute}"`);
+    if (isNaN(naiveParsedDate.getTime())) {
+        throw new Error(`Could not parse input date/time for UTC conversion: "${departureLocalWallTimeString}"`);
     }
 
-    // Convert local time to UTC using the browser's/system's understanding of the origin timezone offset
-    // This is less precise than zonedTimeToUtc but avoids the import issue
-    // Note: This relies on the system having correct timezone data for the origin timezone.
-    // The getTimezoneOffset() method returns the difference in minutes between UTC and local time.
-    // We need to add this offset (converted to milliseconds) to the local time to get UTC.
-    const offsetMinutes = localDepartureDateTime.getTimezoneOffset();
-    departureUTC = new Date(localDepartureDateTime.getTime() + (offsetMinutes * 60000));
-    // --- END FALLBACK MANUAL UTC CALCULATION ---
+    // Get the offset for the origin timezone AT THE TIME of the naiveParsedDate
+    // date-fns-tz getTimezoneOffset returns the offset in milliseconds.
+    // This offset is what you *add* to a UTC time to get the wall time in that zone.
+    // Therefore, to get UTC from a wall time, you *subtract* this offset from the wall time (when treated as UTC).
+    const originOffsetMilliseconds = getIANATimezoneOffset(originTimezone, naiveParsedDate);
 
+    // Create a UTC date using the numerical components from naiveParsedDate,
+    // then adjust it by the origin timezone's offset to get the true UTC time.
+    // Date.UTC() treats its arguments as UTC components and returns a UTC millisecond timestamp.
+    const utcMsFromNaiveComponents = Date.UTC(
+        naiveParsedDate.getFullYear(),
+        naiveParsedDate.getMonth(), // Month is 0-indexed for Date.UTC
+        naiveParsedDate.getDate(),
+        naiveParsedDate.getHours(),
+        naiveParsedDate.getMinutes(),
+        naiveParsedDate.getSeconds(), 
+        naiveParsedDate.getMilliseconds() 
+    );
+    departureUTC = new Date(utcMsFromNaiveComponents - originOffsetMilliseconds);
 
-    // Use toZonedTime to get a Date object representing the local time at origin for return
-    // This function should still work even if zonedTimeToUtc is problematic
-    departureLocalForReturn = toZonedTime(departureUTC, originTimezone || 'UTC');
-     if (isNaN(departureLocalForReturn.getTime())) { // Should not happen if departureUTC is valid
+    // departureLocalForReturn is essentially departureUTC "viewed" in the origin timezone.
+    // toZonedTime(departureUTC, originTimezone) will give a Date object that, when formatted
+    // in originTimezone, will show the original input local time.
+    departureLocalForReturn = toZonedTime(departureUTC, originTimezone);
+
+     if (isNaN(departureLocalForReturn.getTime())) {
       throw new Error('toZonedTime for departureLocalForReturn resulted in Invalid Date.');
     }
 
   } catch(e) {
     console.error(
       "Error processing departure time:", e,
-      "\nInput string for local parse:", `${departureDateToUse} ${departureHour}:${departureMinute}`,
+      "\nInput date string:", departureDateToUse,
+      "\nInput time string:", departureTimeStrInput,
       "\nOrigin timezone:", originTimezone
     );
-    throw new Error(`Failed to process departure time "${departureDateToUse} ${departureTimeStrInput}" in timezone "${originTimezone || 'UTC'}". Original error: ${e instanceof Error ? e.message : String(e)}`);
+    throw new Error(`Failed to process departure time "${departureDateToUse} ${departureTimeStrInput}" in timezone "${originTimezone}". Original error: ${e instanceof Error ? e.message : String(e)}`);
   }
 
-  // Calculate the arrival time in UTC by adding the duration
   const arrivalUTC = addMinutes(departureUTC, durationMinutes);
 
   if (isNaN(arrivalUTC.getTime())) {
@@ -340,14 +347,13 @@ export async function calculateRealisticFlightTimes(
 
   let arrivalLocalForReturn: Date;
   try {
-    // Convert UTC arrival time back to local time using toZonedTime
-    arrivalLocalForReturn = toZonedTime(arrivalUTC, destTimezone || 'UTC');
+    arrivalLocalForReturn = toZonedTime(arrivalUTC, destTimezone);
     if (isNaN(arrivalLocalForReturn.getTime())) {
         throw new Error('toZonedTime for arrival resulted in Invalid Date.');
     }
   } catch(e) {
     console.error("Error in toZonedTime for arrival:", e);
-    throw new Error(`Failed to convert arrival time to local using timezone: ${destTimezone || 'UTC'}. Original error: ${e instanceof Error ? e.message : String(e)}`);
+    throw new Error(`Failed to convert arrival time to local using timezone: ${destTimezone}. Original error: ${e instanceof Error ? e.message : String(e)}`);
   }
 
   return {
@@ -367,20 +373,17 @@ export function formatDuration(minutes: number): string {
 }
 
 export function calculateTimezoneDifference(timezone1: string, timezone2: string): number {
-  const referenceDate = new Date();
-  // Get the UTC offset for each timezone at this current moment
-  // This approach is simpler but might not be accurate for historical dates or DST transitions
-  // A more robust way is to format a known UTC time into each zone and compare.
+  const referenceDate = new Date(); // Use a common reference date
+  // Get the offset in milliseconds for each timezone from UTC
+  // This offset is what you add to UTC to get local time.
+  const offset1Milliseconds = getIANATimezoneOffset(timezone1, referenceDate);
+  const offset2Milliseconds = getIANATimezoneOffset(timezone2, referenceDate);
 
-  // For a more robust offset calculation:
-  // Use toZonedTime to get Date objects representing the same instant in different timezones
-  const nowInTz1 = toZonedTime(referenceDate, timezone1);
-  const nowInTz2 = toZonedTime(referenceDate, timezone2);
-
-  // The difference in their UTC timestamps gives the timezone offset difference
-  const offsetDifferenceMs = nowInTz2.getTime() - nowInTz1.getTime();
-
-  return offsetDifferenceMs / (1000 * 60 * 60); // Difference in hours
+  // The difference in offsets gives the difference between the timezones
+  // (offset2 - offset1) will be positive if timezone2 is "further ahead" (larger positive offset or smaller negative offset)
+  const differenceMilliseconds = offset2Milliseconds - offset1Milliseconds;
+  
+  return differenceMilliseconds / (1000 * 60 * 60); // Difference in hours
 }
 
 export function formatTimezoneDifference(hoursDiff: number): string {
@@ -420,8 +423,8 @@ export async function calculateEnhancedFlightDetails(
     departureUTC,
     arrivalUTC,
     distanceKm,
-    departureLocal, // Get the local date object from calculateRealisticFlightTimes
-    arrivalLocal // Get the local date object from calculateRealisticFlightTimes
+    departureLocal,
+    arrivalLocal
   } = await calculateRealisticFlightTimes(
     originCode,
     destCode,
@@ -439,7 +442,7 @@ export async function calculateEnhancedFlightDetails(
     throw new Error("[CalcEFD] calculateRealisticFlightTimes returned an invalid arrivalUTC date.");
   }
 
-  // Use formatInTimeZone directly
+  // Use formatInTimeZone with the correctly calculated departureUTC and arrivalUTC
   const departureTimeLocalStr = formatInTimeZone(departureUTC, originTimezone, 'HH:mm');
   const departureDateLocalStr = formatInTimeZone(departureUTC, originTimezone, 'yyyy-MM-dd');
   const arrivalTimeLocalStr = formatInTimeZone(arrivalUTC, destTimezone, 'HH:mm');
@@ -448,11 +451,7 @@ export async function calculateEnhancedFlightDetails(
   const tzDiffHours = calculateTimezoneDifference(originTimezone, destTimezone);
   const timezoneDifference = formatTimezoneDifference(tzDiffHours);
 
-  // Calculate day change using the local date objects returned by calculateRealisticFlightTimes
-  // This is more reliable than parsing strings again
   const dayChange = differenceInDays(arrivalLocal, departureLocal);
-
-  // Use formatInTimeZone directly
   const exitDay = formatInTimeZone(arrivalUTC, destTimezone, 'EEEE');
   const durationFormatted = formatDuration(durationMinutes);
 

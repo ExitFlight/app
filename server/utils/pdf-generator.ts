@@ -122,10 +122,13 @@ function drawVATopHeader(doc: PDFKit.PDFDocument, ticket: TicketWithDetails, tem
         const sqTextWidth = doc.widthOfString(sqText);
         const sqTextX = logoX - sqTextWidth - 10; 
         
-        const logoCenterY = logoY + (LOGO_MAX_HEIGHT / 2); // Use allocated height for centering
-        const textMetrics = doc.font(FONT_BOLD).fontSize(sqTextFontSize).textMetrics(sqText, {width: sqTextWidth});
+        const logoCenterY = logoY + (LOGO_MAX_HEIGHT / 2); 
+        // Correct way to get height and descent after font is set
+        const textHeight = doc.heightOfString(sqText, { width: sqTextWidth });
+        // PDFKit doesn't directly expose 'descent' easily after the fact without more complex fontkit usage.
+        // For simple vertical centering, using textHeight is often sufficient.
         // A common approximation for vertical centering text against an image's middle:
-        const sqTextDrawY = logoCenterY - (textMetrics.height / 2) + (textMetrics.descent / 2); // Attempt to adjust for baseline
+        const sqTextDrawY = logoCenterY - (textHeight / 2);
 
         doc.fillColor(template.secondaryColor) // SQ Blue for the text
            .text(sqText, sqTextX, sqTextDrawY, {

@@ -145,16 +145,36 @@ const PassengerDetails = () => {
                             placeholder="DD-MM-YYYY" // Visual placeholder
                             value={birthdateInputText} // Display formatted text or raw input
                             onChange={(e) => {
-                                const currentInput = e.target.value;
-                                setBirthdateInputText(currentInput); // Update display immediately
+                                let currentInput = e.target.value;
+                                // Remove non-digit characters except for slashes to allow backspacing slashes
+                                const digitsOnly = currentInput.replace(/[^\d/]/g, "");
+                                
+                                let formattedInput = "";
+                                if (digitsOnly.length > birthdateInputText.length && // Check if adding characters
+                                    (digitsOnly.replace(/\//g, "").length === 2 || digitsOnly.replace(/\//g, "").length === 4) &&
+                                    !digitsOnly.endsWith('/')) {
+                                    // Add slash after DD or MM (if not already there)
+                                    // Count existing slashes to avoid double slashes
+                                    const existingSlashes = (digitsOnly.match(/\//g) || []).length;
+                                    if ((digitsOnly.replace(/\//g, "").length === 2 && existingSlashes < 1) ||
+                                        (digitsOnly.replace(/\//g, "").length === 4 && existingSlashes < 2)) {
+                                      formattedInput = digitsOnly + "/";
+                                    } else {
+                                      formattedInput = digitsOnly;
+                                    }
+                                } else {
+                                    formattedInput = digitsOnly;
+                                }
+                                // Limit length to DD/MM/YYYY (10 chars)
+                                formattedInput = formattedInput.substring(0, 10);
+                                setBirthdateInputText(formattedInput);
+
                                 // Try to parse and update RHF if it's a full valid date in DD-MM-YYYY
-                                const parsedFromDisplay = parse(currentInput, "dd-MM-yyyy", new Date());
+                                const parsedFromDisplay = parse(formattedInput, "dd-MM-yyyy", new Date());
                                 if (isValid(parsedFromDisplay)) {
                                     field.onChange(format(parsedFromDisplay, "yyyy-MM-dd")); // Store as yyyy-MM-dd
                                 } else {
-                                    // If not fully valid as dd-MM-yyyy, pass raw for Zod to eventually validate
-                                    // Or, you could choose to not call field.onChange here until blur/valid
-                                    field.onChange(currentInput); // This allows partial input to be validated by Zod
+                                    field.onChange(formattedInput); // Pass formatted input for Zod validation
                                 }
                             }}
                             onBlur={() => {

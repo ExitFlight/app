@@ -1,5 +1,5 @@
 // /home/jordan/Desktop/FlightBack/client/src/pages/EnhancedFlightSelection.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -353,10 +353,20 @@ const EnhancedFlightSelection = () => {
   const [error, setError] = useState<string>("");
   const [hasDirectFlight, setHasDirectFlight] = useState<boolean>(true);
   const [isDepartureCalendarOpen, setIsDepartureCalendarOpen] = useState(false);
+  const ticketPreviewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.title = "Select Flight - FlightBack";
   }, []);
+
+  useEffect(() => {
+    if (flightData && ticketPreviewRef.current) {
+      ticketPreviewRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [flightData]);
 
   const setCachedDepartureRegion = (value: string) => { saveToCache("departureRegion", value); setDepartureRegion(value); };
   const setCachedDestinationRegion = (value: string) => { saveToCache("destinationRegion", value); setDestinationRegion(value); };
@@ -605,7 +615,6 @@ const EnhancedFlightSelection = () => {
         date: flightData.arrivalDate
       },
       duration: flightData.duration,
-      // price: `$${Math.floor(Math.random() * 1000) + 200}`, // REMOVED
       class: flightData.cabin
     };
     setSelectedFlight(mockFlight);
@@ -708,12 +717,20 @@ const EnhancedFlightSelection = () => {
                 <div><label className="block text-foreground font-medium mb-2 text-sm">Departure Region</label>
                   <Select value={departureRegion} onValueChange={setCachedDepartureRegion}>
                     <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select region" /></SelectTrigger>
-                    <SelectContent><SelectItem value="All Regions">All Regions</SelectItem>{Object.keys(majorAirports).map((r) => (<SelectItem key={r} value={r}>{r}</SelectItem>))}</SelectContent>
+                    <SelectContent>
+                      <SelectItem value="All Regions">All Regions</SelectItem>{Object.keys(majorAirports).sort().map((r) => (<SelectItem key={r} value={r}>{r}</SelectItem>))}
+                    </SelectContent>
                   </Select></div>
                 <div><label className="block text-foreground font-medium mb-2 text-sm">Departure Airport</label>
                   <Select value={departureAirport} onValueChange={setCachedDepartureAirport} disabled={!departureRegion && departureRegion !== "All Regions"}>
                     <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select airport" /></SelectTrigger>
-                    <SelectContent>{(departureRegion === "All Regions" || !departureRegion ? allAirportsList : majorAirports[departureRegion as keyof typeof majorAirports] || []).map((a) => (<SelectItem key={a.code} value={a.code}>{a.code} - {a.name}</SelectItem>))}</SelectContent>
+                    <SelectContent>
+                      {(departureRegion === "All Regions" || !departureRegion ? allAirportsFlat : 
+                        (majorAirports[departureRegion as keyof typeof majorAirports] || []).slice().sort((a, b) => a.code.localeCompare(b.code))
+                      ).map((a) => (
+                        <SelectItem key={a.code} value={a.code}>{a.code} - {a.name}</SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select></div>
                 <div><label className="block text-foreground font-medium mb-2 text-sm">Departure Date</label>
                   <Popover open={isDepartureCalendarOpen} onOpenChange={setIsDepartureCalendarOpen}>
@@ -730,19 +747,29 @@ const EnhancedFlightSelection = () => {
                 <div><label className="block text-foreground font-medium mb-2 text-sm">Destination Region</label>
                   <Select value={destinationRegion} onValueChange={setCachedDestinationRegion}>
                     <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select region" /></SelectTrigger>
-                    <SelectContent><SelectItem value="All Regions">All Regions</SelectItem>{Object.keys(majorAirports).map((r) => (<SelectItem key={r} value={r}>{r}</SelectItem>))}</SelectContent>
+                    <SelectContent>
+                      <SelectItem value="All Regions">All Regions</SelectItem>{Object.keys(majorAirports).sort().map((r) => (<SelectItem key={r} value={r}>{r}</SelectItem>))}
+                    </SelectContent>
                   </Select></div>
                 <div><label className="block text-foreground font-medium mb-2 text-sm">Destination Airport</label>
                   <Select value={destinationAirport} onValueChange={setCachedDestinationAirport} disabled={!destinationRegion && destinationRegion !== "All Regions"}>
                     <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select airport" /></SelectTrigger>
-                    <SelectContent>{(destinationRegion === "All Regions" || !destinationRegion ? allAirportsList : majorAirports[destinationRegion as keyof typeof majorAirports] || []).map((a) => (<SelectItem key={a.code} value={a.code}>{a.code} - {a.name}</SelectItem>))}</SelectContent>
+                    <SelectContent>
+                      {(destinationRegion === "All Regions" || !destinationRegion ? allAirportsFlat : 
+                        (majorAirports[destinationRegion as keyof typeof majorAirports] || []).slice().sort((a, b) => a.code.localeCompare(b.code))
+                      ).map((a) => (
+                        <SelectItem key={a.code} value={a.code}>{a.code} - {a.name}</SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select></div>
                 {departureAirport && destinationAirport && !hasDirectFlight && (<Alert variant="destructive" className="bg-destructive/10 text-destructive"><AlertTriangle className="h-4 w-4" /> <AlertTitle>No Direct Flights Known</AlertTitle><AlertDescription>No direct flights known between {departureAirport} and {destinationAirport}. A theoretical direct flight will be generated.</AlertDescription></Alert>)}
                 <div className="space-y-4">
                   <div><label className="block text-foreground font-medium mb-2 text-sm">Airline Region Filter (Optional)</label>
                     <Select value={airlineRegionFilter} onValueChange={setCachedAirlineRegionFilter}>
                       <SelectTrigger className="w-full bg-background"><SelectValue placeholder="All Regions" /></SelectTrigger>
-                      <SelectContent><SelectItem value="All Regions">All Regions</SelectItem>{Object.keys(majorAirports).map((r) => (<SelectItem key={r} value={r}>{r}</SelectItem>))}</SelectContent>
+                      <SelectContent>
+                        <SelectItem value="All Regions">All Regions</SelectItem>{Object.keys(majorAirports).sort().map((r) => (<SelectItem key={r} value={r}>{r}</SelectItem>))}
+                      </SelectContent>
                     </Select>
                     {departureAirport && airlineRegionFilter !== getAirportRegion(departureAirport) && getAirportRegion(departureAirport) !== "Unknown" && (<p className="text-xs text-muted-foreground mt-1">Tip: Airlines from {getAirportRegion(departureAirport)} are common for {departureAirport}.</p>)}</div>
                   <div><label className="block text-foreground font-medium mb-2 text-sm">Airline</label>
@@ -766,7 +793,7 @@ const EnhancedFlightSelection = () => {
           </CardContent>
         </Card>
         {flightData && (
-          <Card className="mb-6 md:mb-8 border-border bg-card">
+          <Card ref={ticketPreviewRef} className="mb-6 md:mb-8 border-border bg-card">
             <CardContent className="p-4 md:p-6">
               <div className="mb-4 flex justify-between items-center">
                 <div className="flex items-center">

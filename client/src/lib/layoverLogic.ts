@@ -24,6 +24,7 @@ const airlineHubs: { [airline: string]: string[] } = {
   'QR': ['DOH'], // Qatar Airways
 
   // Asia
+  'AK': ['KUL'], // AirAsia
   'CX': ['HKG'], // Cathay Pacific
   'SQ': ['SIN'], // Singapore Airlines
   'MH': ['KUL'], // Malaysia Airlines

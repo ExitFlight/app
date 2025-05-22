@@ -16,6 +16,7 @@ interface AirlineTemplate {
 
 const airlineTemplates: Record<string, AirlineTemplate> = {
   'AA': { primaryColor: '#E0242A', secondaryColor: '#0078D2', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/aa_logo.png' },
+  'AK': { primaryColor: '#FF0000', secondaryColor: '#333333', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/ak_logo.png' }, // AirAsia - Ensure ak_logo.png exists
   'DL': { primaryColor: '#E01933', secondaryColor: '#003366', fontFamily: 'Helvetica-Bold', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/dl_logo.png' },
   'UA': { primaryColor: '#005287', secondaryColor: '#4B92DB', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/ua_logo.png' },
   'BA': { primaryColor: '#075AAA', secondaryColor: '#EB2226', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/ba_logo.png' },

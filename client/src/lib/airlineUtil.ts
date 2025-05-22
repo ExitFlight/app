@@ -71,6 +71,7 @@ export const airlinesGroupedByRegion = [
     regionName: "Asia",
     airlines: [
       // China
+      { code: "AK", name: "AirAsia" },
       { code: "CA", name: "Air China" },
       { code: "MU", name: "China Eastern" },
       { code: "CZ", name: "China Southern" },
@@ -94,8 +95,8 @@ export const airlinesGroupedByRegion = [
       { code: "VN", name: "Vietnam Airlines" },
       // India
       { code: "AI", name: "Air India" },
-      { code: "UK", name: "Vistara" },
-      { code: "6E", name: "IndiGo" }
+      // { code: "UK", name: "Vistara" },
+      // { code: "6E", name: "IndiGo" }
     ].sort((a, b) => a.name.localeCompare(b.name)),
   },
   {

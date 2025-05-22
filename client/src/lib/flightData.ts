@@ -1,9 +1,11 @@
 // Airline logos from reliable sources
 export const airlineLogos = {
+  // Note: Keys are typically lowercase airline names. Ensure your UI lookup matches.
   delta: "https://logos-world.net/wp-content/uploads/2020/11/Delta-Air-Lines-Logo.png",
   american: "https://logos-world.net/wp-content/uploads/2020/11/American-Airlines-Logo.png",
   united: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/United_Airlines_logo_2019.svg/2560px-United_Airlines_logo_2019.svg.png",
   british: "https://1000logos.net/wp-content/uploads/2020/04/British-Airways-Logo.png",
+  airasia: "https://upload.wikimedia.org/wikipedia/commons/f/f5/AirAsia_New_Logo.svg", // Example AirAsia logo URL
 };
 
 // Flight images from Unsplash (reliable source)

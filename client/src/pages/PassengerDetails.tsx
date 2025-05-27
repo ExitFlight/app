@@ -390,4 +390,5 @@ const PassengerDetails = () => {
   );
 };
 
+
 export default PassengerDetails;

@@ -8,14 +8,14 @@ export const airlinesGroupedByRegion = [
       { code: "AS", name: "Alaska Airlines" },
       { code: "B6", name: "JetBlue Airways" },
       { code: "DL", name: "Delta Air Lines" },
-      { code: "F9", name: "Frontier Airlines" },
+      //{ code: "F9", name: "Frontier Airlines" },
       { code: "HA", name: "Hawaiian Airlines" },
-      { code: "NK", name: "Spirit Airlines" },
+      //{ code: "NK", name: "Spirit Airlines" },
       { code: "UA", name: "United Airlines" },
       { code: "WN", name: "Southwest Airlines" },
       // Canada
       { code: "AC", name: "Air Canada" },
-      { code: "WS", name: "WestJet" }
+      //{ code: "WS", name: "WestJet" }
     ].sort((a, b) => a.name.localeCompare(b.name)), // Sort airlines within the region
   },
   {
@@ -25,25 +25,25 @@ export const airlinesGroupedByRegion = [
       { code: "BA", name: "British Airways" },
       { code: "VS", name: "Virgin Atlantic" },
       // Germany
-      { code: "LH", name: "Lufthansa" },
-      { code: "DE", name: "Condor" },
+      //{ code: "LH", name: "Lufthansa" },
+      //{ code: "DE", name: "Condor" },
       // France
       { code: "AF", name: "Air France" },
       // Netherlands
       { code: "KL", name: "KLM Royal Dutch Airlines" },
       // Spain
-      { code: "IB", name: "Iberia" },
-      { code: "UX", name: "Air Europa" },
+      //{ code: "IB", name: "Iberia" },
+      //{ code: "UX", name: "Air Europa" },
       // Italy
-      { code: "AZ", name: "ITA Airways (Alitalia)" },
+      //{ code: "AZ", name: "ITA Airways (Alitalia)" },
       // Switzerland
-      { code: "LX", name: "SWISS" },
+      //{ code: "LX", name: "SWISS" },
       // Ireland
-      { code: "EI", name: "Aer Lingus" },
+      //{ code: "EI", name: "Aer Lingus" },
       // Scandinavia
       { code: "SK", name: "SAS Scandinavian" },
       { code: "DY", name: "Norwegian Air" },
-      { code: "AY", name: "Finnair" }
+      //{ code: "AY", name: "Finnair" }
     ].sort((a, b) => a.name.localeCompare(b.name)),
   },
   {
@@ -52,19 +52,19 @@ export const airlinesGroupedByRegion = [
       // UAE
       { code: "EK", name: "Emirates" },
       { code: "EY", name: "Etihad Airways" },
-      { code: "FZ", name: "flydubai" },
+      //{ code: "FZ", name: "flydubai" },
       // Qatar
       { code: "QR", name: "Qatar Airways" },
       // Saudi Arabia
-      { code: "SV", name: "Saudia" },
-      // Turkey
-      { code: "TK", name: "Turkish Airlines" },
-      // Jordan
-      { code: "RJ", name: "Royal Jordanian" },
-      // Israel
-      { code: "LY", name: "El Al Israel Airlines" },
-      // Oman
-      { code: "WY", name: "Oman Air" }
+      // { code: "SV", name: "Saudia" },
+      // // Turkey
+      // { code: "TK", name: "Turkish Airlines" },
+      // // Jordan
+      // { code: "RJ", name: "Royal Jordanian" },
+      // // Israel
+      // { code: "LY", name: "El Al Israel Airlines" },
+      // // Oman
+      // { code: "WY", name: "Oman Air" }
     ].sort((a, b) => a.name.localeCompare(b.name)),
   },
   {
@@ -72,17 +72,17 @@ export const airlinesGroupedByRegion = [
     airlines: [
       // China
       { code: "AK", name: "AirAsia" },
-      { code: "CA", name: "Air China" },
-      { code: "MU", name: "China Eastern" },
+      //{ code: "CA", name: "Air China" },
+      //{ code: "MU", name: "China Eastern" },
       { code: "CZ", name: "China Southern" },
       // Hong Kong
       { code: "CX", name: "Cathay Pacific" },
       // Japan
       { code: "JL", name: "Japan Airlines" },
-      { code: "NH", name: "All Nippon Airways" },
+      //{ code: "NH", name: "All Nippon Airways" },
       // South Korea
       { code: "KE", name: "Korean Air" },
-      { code: "OZ", name: "Asiana Airlines" },
+      //{ code: "OZ", name: "Asiana Airlines" },
       // Thailand
       { code: "TG", name: "Thai Airways" },
       // Singapore
@@ -94,7 +94,7 @@ export const airlinesGroupedByRegion = [
       // Vietnam
       { code: "VN", name: "Vietnam Airlines" },
       // India
-      { code: "AI", name: "Air India" },
+      //{ code: "AI", name: "Air India" },
       // { code: "UK", name: "Vistara" },
       // { code: "6E", name: "IndiGo" }
     ].sort((a, b) => a.name.localeCompare(b.name)),
@@ -109,9 +109,9 @@ export const airlinesGroupedByRegion = [
       // New Zealand
       { code: "NZ", name: "Air New Zealand" },
       // Fiji
-      { code: "FJ", name: "Fiji Airways" },
+      //{ code: "FJ", name: "Fiji Airways" },
       // Papua New Guinea
-      { code: "PX", name: "Air Niugini" }
+      //{ code: "PX", name: "Air Niugini" }
     ].sort((a, b) => a.name.localeCompare(b.name)),
   },
   {
@@ -119,23 +119,23 @@ export const airlinesGroupedByRegion = [
     airlines: [
       // South Africa
       { code: "SA", name: "South African Airways" },
-      { code: "CAW", name: "Comair (South Africa)" },
+      //{ code: "CAW", name: "Comair (South Africa)" },
       // Ethiopia
-      { code: "ET", name: "Ethiopian Airlines" },
+      //{ code: "ET", name: "Ethiopian Airlines" },
       // Kenya
-      { code: "KQ", name: "Kenya Airways" },
+      //{ code: "KQ", name: "Kenya Airways" },
       // Egypt
       { code: "MS", name: "EgyptAir" },
       // Morocco
       { code: "AT", name: "Royal Air Maroc" },
       // Nigeria
-      { code: "W3", name: "Arik Air" },
+      //{ code: "W3", name: "Arik Air" },
       // Algeria
-      { code: "AH", name: "Air Algérie" },
+      //{ code: "AH", name: "Air Algérie" },
       // Tunisia
-      { code: "TU", name: "Tunisair" },
+      //{ code: "TU", name: "Tunisair" },
       // Mauritius
-      { code: "MK", name: "Air Mauritius" }
+      //{ code: "MK", name: "Air Mauritius" }
     ].sort((a, b) => a.name.localeCompare(b.name)),
   },
   {
@@ -146,44 +146,38 @@ export const airlinesGroupedByRegion = [
       // Costa Rica
       { code: "LR", name: "LACSA (Avianca Costa Rica)" },
       // El Salvador
-      { code: "TA", name: "TACA (Avianca El Salvador)" },
+      //{ code: "TA", name: "TACA (Avianca El Salvador)" },
       // Dominican Republic
-      { code: "7I", name: "Aerolínea Mas" },
+      //{ code: "7I", name: "Aerolínea Mas" },
       // Cuba
-      { code: "CU", name: "Cubana de Aviación" },
+      //{ code: "CU", name: "Cubana de Aviación" },
       // Jamaica
-      { code: "BW", name: "Caribbean Airlines" },
-      // Puerto Rico
-      { code: "BB", name: "Seaborne Airlines" },
-      // Bahamas
-      { code: "UP", name: "Bahamasair" },
+      //{ code: "BW", name: "Caribbean Airlines" },
       // Mexico (often grouped with Central America)
       { code: "AM", name: "Aeroméxico" },
-      { code: "Y4", name: "Volaris" },
-      { code: "4O", name: "Interjet" }
+      //{ code: "Y4", name: "Volaris" },
+      //{ code: "4O", name: "Interjet" }
     ].sort((a, b) => a.name.localeCompare(b.name)),
   },
   {
     regionName: "South America",
     airlines: [
-      // Brazil
-      { code: "G3", name: "Gol Transportes Aéreos" },
-      { code: "JJ", name: "LATAM Brasil" },
-      { code: "AD", name: "Azul Brazilian Airlines" },
+      // // Brazil
+      // { code: "G3", name: "Gol Transportes Aéreos" },
+      // { code: "JJ", name: "LATAM Brasil" },
+      // { code: "AD", name: "Azul Brazilian Airlines" },
       // Chile
       { code: "LA", name: "LATAM Chile" },
       // Colombia
       { code: "AV", name: "Avianca" },
       // Argentina
-      { code: "AR", name: "Aerolíneas Argentinas" },
+      //{ code: "AR", name: "Aerolíneas Argentinas" },
       // Peru
       { code: "LP", name: "LATAM Perú" },
       // Ecuador
       { code: "EQ", name: "TAME" },
       // Venezuela
-      { code: "V0", name: "Conviasa" },
-      // Panama
-      { code: "CM", name: "Copa Airlines" }
+      //{ code: "V0", name: "Conviasa" },
     ].sort((a, b) => a.name.localeCompare(b.name)),
   },
 ].sort((a, b) => a.regionName.localeCompare(b.regionName)); // Sort regions by name

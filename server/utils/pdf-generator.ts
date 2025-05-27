@@ -3,33 +3,107 @@ import { TicketWithDetails } from '@shared/schema'; // Ensure this path is corre
 import fs from 'fs';
 import path from 'path';
 
+// server/utils/pdf-generator.ts
 interface AirlineTemplate {
   primaryColor: string;
   secondaryColor: string;
   fontFamily: string;
   logoPosition: 'left' | 'center' | 'right';
-  paperSize: [number, number];
+  paperSize: [number, number]; // [width, height] in PostScript points (1/72 inch)
   usesQrCode: boolean;
-  logoPath?: string;
-  abn?: string;
+  logoPath?: string; // Relative to project root, e.g., 'server/assets/logos/Region/airline.png'
+  abn?: string; // For specific airlines like Virgin Australia
 }
 
+// Organized by region, ALL airlines from airlineUtil.ts have defined primary/secondary colors.
+// TODO: Review and update placeholder colors for accurate branding.
 const airlineTemplates: Record<string, AirlineTemplate> = {
-  'AA': { primaryColor: '#E0242A', secondaryColor: '#0078D2', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/aa_logo.png' },
-  'AK': { primaryColor: '#FF0000', secondaryColor: '#333333', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/ak_logo.png' }, // AirAsia - Ensure ak_logo.png exists
-  'DL': { primaryColor: '#E01933', secondaryColor: '#003366', fontFamily: 'Helvetica-Bold', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/dl_logo.png' },
-  'UA': { primaryColor: '#005287', secondaryColor: '#4B92DB', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/ua_logo.png' },
-  'BA': { primaryColor: '#075AAA', secondaryColor: '#EB2226', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/ba_logo.png' },
-  'LH': { primaryColor: '#05164D', secondaryColor: '#FFC900', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/lh_logo.png' },
-  'AF': { primaryColor: '#002157', secondaryColor: '#ED1B2E', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/af_logo.png' },
-  'SQ': { primaryColor: '#F9A01B', secondaryColor: '#0F4287', fontFamily: 'Helvetica', logoPosition: 'right', paperSize: [595.28, 841.89], usesQrCode: false, logoPath: 'server/assets/logos/SQ.png' }, // Ensure casing matches actual file
-  'CX': { primaryColor: '#006564', secondaryColor: '#A6A8AB', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/cx_logo.png' },
-  'EK': { primaryColor: '#C8102E', secondaryColor: '#231F20', fontFamily: 'Helvetica-Bold', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/ek_logo.png' },
-  'QR': { primaryColor: '#5C0632', secondaryColor: '#A4A6A9', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/qr_logo.png' },
-  'VA': { primaryColor: '#E5001A', secondaryColor: '#333333', fontFamily: 'Helvetica', logoPosition: 'right', paperSize: [595.28, 841.89], usesQrCode: false, logoPath: 'server/assets/logos/va_logo.png', abn: '36 090 670 965'},
-  'default': { primaryColor: '#333333', secondaryColor: '#555555', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: false, logoPath: undefined }
+  // --- North America ---
+  // USA
+  'AA': { primaryColor: '#E0242A', secondaryColor: '#0078D2', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/NorthAmerica/AA.png' },
+  'AS': { primaryColor: '#004268', secondaryColor: '#78C0E2', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/NorthAmerica/AS.png' }, // Alaska - Colors were guesses
+  'B6': { primaryColor: '#003876', secondaryColor: '#0090D0', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/NorthAmerica/B6.png' }, // JetBlue - Colors were guesses
+  'DL': { primaryColor: '#E01933', secondaryColor: '#003366', fontFamily: 'Helvetica-Bold', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/NorthAmerica/DL.png' },
+  'HA': { primaryColor: '#6B2C8F', secondaryColor: '#FBB813', fontFamily: 'Helvetica', logoPosition: 'right', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/NorthAmerica/HA.png' }, // Hawaiian - Colors were guesses
+  'UA': { primaryColor: '#005287', secondaryColor: '#4B92DB', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/NorthAmerica/UA.png' },
+  'WN': { primaryColor: '#FFBF00', secondaryColor: '#304EA0', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/NorthAmerica/WN.png' }, // Southwest - Colors were guesses
+  // Canada
+  'AC': { primaryColor: '#F00000', secondaryColor: '#231F20', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/NorthAmerica/AC.png' }, // Air Canada - Colors were guesses
+
+  // --- Europe ---
+  // UK
+  'BA': { primaryColor: '#075AAA', secondaryColor: '#EB2226', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/Europe/BA.png' },
+  'VS': { primaryColor: '#E50000', secondaryColor: '#333333', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/Europe/VS.png' }, // Virgin Atlantic - TODO: Verify/Update brand colors
+  // France
+  'AF': { primaryColor: '#002157', secondaryColor: '#ED1B2E', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/Europe/AF.png' },
+  // Netherlands
+  'KL': { primaryColor: '#00A1E4', secondaryColor: '#FFFFFF', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/Europe/KL.png' }, // KLM - TODO: Verify/Update brand colors
+  // Switzerland
+  'LX': { primaryColor: '#E30613', secondaryColor: '#FFFFFF', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath:  'server/assets/logos/Europe/LX.png'}, // SWISS - TODO: Verify/Update brand colors
+  // Scandinavia
+  'SK': { primaryColor: '#004B93', secondaryColor: '#EB2226', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/Europe/SK.png' }, // SAS - TODO: Verify/Update brand colors
+  'DY': { primaryColor: '#D81924', secondaryColor: '#FFFFFF', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/Europe/DY.png' }, // Norwegian - TODO: Verify/Update brand colors
+  
+
+  // --- Middle East ---
+  // UAE
+  'EK': { primaryColor: '#C8102E', secondaryColor: '#231F20', fontFamily: 'Helvetica-Bold', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/MiddleEast/EK.png' }, // Emirates },
+  'EY': { primaryColor: '#B7905B', secondaryColor: '#333333', fontFamily: 'Helvetica', logoPosition: 'right', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/MiddleEast/EY.png'}, // Etihad - TODO: Verify/Update brand colors
+  // Qatar
+  'QR': { primaryColor: '#5C0632', secondaryColor: '#A4A6A9', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/MiddleEast/QR.png' },
+
+  // --- Asia ---
+  // China
+  'AK': { primaryColor: '#FF0000', secondaryColor: '#333333', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/Asia/AK.png' }, // AirAsia
+  'CZ': { primaryColor: '#005BAC', secondaryColor: '#EE2A34', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/Asia/CZ.png' }, // China Southern - TODO: Verify/Update brand colors
+  // Hong Kong
+  'CX': { primaryColor: '#006564', secondaryColor: '#A6A8AB', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/Asia/CX.png' }, // Cathay Pacific
+  // Japan
+  'JL': { primaryColor: '#D90000', secondaryColor: '#333333', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/Asia/JL.png'}, // Japan Airlines - TODO: Verify/Update brand colors
+  // South Korea
+  'KE': { primaryColor: '#0064A0', secondaryColor: '#DA2128', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/Asia/KE.png' }, // Korean Air - TODO: Verify/Update brand colors
+  // Thailand
+  'TG': { primaryColor: '#5F259F', secondaryColor: '#FFC700', fontFamily: 'Helvetica', logoPosition: 'right', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/Asia/TG.png' }, // Thai Airways - TODO: Verify/Update brand colors
+  // Singapore
+  'SQ': { primaryColor: '#F9A01B', secondaryColor: '#0F4287', fontFamily: 'Helvetica', logoPosition: 'right', paperSize: [595.28, 841.89], usesQrCode: false, logoPath: 'server/assets/logos/Asia/SQ.png' },
+  // Malaysia
+  'MH': { primaryColor: '#00327D', secondaryColor: '#CC0000', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/Asia/MH.png' }, // Malaysia Airlines - TODO: Verify/Update brand colors
+  // Indonesia
+  'GA': { primaryColor: '#1A4A9C', secondaryColor: '#00A89D', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/Asia/GA.png' }, // Garuda Indonesia - TODO: Verify/Update brand colors
+  // Vietnam
+  'VN': { primaryColor: '#0066A1', secondaryColor: '#FFCC00', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/Asia/VN.png' }, // Vietnam Airlines - TODO: Verify/Update brand colors
+
+  // --- Oceania ---
+  // Australia
+  'QF': { primaryColor: '#E40000', secondaryColor: '#FFFFFF', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: undefined /* server/assets/logos/Oceania/QF.png */ }, // Qantas - TODO: Verify/Update brand colors
+  'VA': { primaryColor: '#E5001A', secondaryColor: '#333333', fontFamily: 'Helvetica', logoPosition: 'right', paperSize: [595.28, 841.89], usesQrCode: false, logoPath: undefined, abn: '36 090 670 965' /* server/assets/logos/Oceania/VA.png */ }, // Virgin Australia - TODO: Verify/Update brand colors
+  'JQ': { primaryColor: '#F36F21', secondaryColor: '#333333', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: undefined /* server/assets/logos/Oceania/JQ.png */ }, // Jetstar - TODO: Verify/Update brand colors
+  // New Zealand
+  'NZ': { primaryColor: '#000000', secondaryColor: '#79C29D', fontFamily: 'Helvetica', logoPosition: 'right', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: undefined /* server/assets/logos/Oceania/NZ.png */ }, // Air New Zealand - TODO: Verify/Update brand colors
+
+  // --- Africa ---
+  'SA': { primaryColor: '#00387D', secondaryColor: '#FFB612', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: undefined /* server/assets/logos/Africa/SA.png */ }, // South African Airways - TODO: Verify/Update brand colors
+  'MS': { primaryColor: '#003366', secondaryColor: '#A0A0A0', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: undefined /* server/assets/logos/Africa/MS.png */ }, // EgyptAir - TODO: Verify/Update brand colors
+  'AT': { primaryColor: '#DA2128', secondaryColor: '#009A44', fontFamily: 'Helvetica', logoPosition: 'right', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: undefined /* server/assets/logos/Africa/AT.png */ }, // Royal Air Maroc - TODO: Verify/Update brand colors
+
+  // --- Central America & Caribbean ---
+  'CM': { primaryColor: '#004D98', secondaryColor: '#FFCC00', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: undefined /* server/assets/logos/CentralAmerica/CM.png */ }, // Copa Airlines - TODO: Verify/Update brand colors
+  'LR': { primaryColor: '#E60000', secondaryColor: '#FFFFFF', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: undefined /* server/assets/logos/CentralAmerica/LR.png */ }, // LACSA (Avianca Costa Rica) - TODO: Verify/Update brand colors
+  'AM': { primaryColor: '#005A9E', secondaryColor: '#E11C2C', fontFamily: 'Helvetica', logoPosition: 'right', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: undefined /* server/assets/logos/CentralAmerica/AM.png */ }, // Aeroméxico - TODO: Verify/Update brand colors
+
+  // --- South America ---
+  'LA': { primaryColor: '#0033A0', secondaryColor: '#D40000', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: undefined /* server/assets/logos/SouthAmerica/LA.png */ }, // LATAM Chile - TODO: Verify/Update brand colors
+  'AV': { primaryColor: '#ED1C24', secondaryColor: '#333333', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: undefined /* server/assets/logos/SouthAmerica/AV.png */ }, // Avianca - TODO: Verify/Update brand colors
+  'LP': { primaryColor: '#0033A0', secondaryColor: '#D40000', fontFamily: 'Helvetica', logoPosition: 'right', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: undefined /* server/assets/logos/SouthAmerica/LP.png */ }, // LATAM Perú - TODO: Verify/Update brand colors
+  'EQ': { primaryColor: '#004B8C', secondaryColor: '#FFD100', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: undefined /* server/assets/logos/SouthAmerica/EQ.png */ }, // TAME - TODO: Verify/Update brand colors
+
+  // --- Default ---
+  'default': { primaryColor: '#666666', secondaryColor: '#999999', fontFamily: 'Helvetica', logoPosition: 'center', paperSize: [595.28, 841.89], usesQrCode: false, logoPath: undefined } // Default colors
 };
 
+// ... (rest of your pdf-generator.ts file) ...
+
+// ... (rest of your pdf-generator.ts file) ...
 function getAirlineTemplate(airlineCodeInput: string): AirlineTemplate { let code = 'default'; if (typeof airlineCodeInput === 'string' && airlineCodeInput.length >= 2) { code = airlineCodeInput.substring(0, 2).toUpperCase(); } return airlineTemplates[code] || airlineTemplates.default; }
 const VA_TEXT_COLOR_DARK = '#222222'; const VA_TEXT_COLOR_MEDIUM = '#555555'; const VA_TEXT_COLOR_LIGHT = '#777777';
 const VA_BORDER_COLOR = '#B0B0B0'; const VA_MEDIUM_GREY_BG = '#E0E0E0'; const VA_LIGHT_GREY_BG_COL1 = '#FFFFFF';
@@ -208,7 +282,9 @@ export async function generateTicketPdf(ticket: TicketWithDetails): Promise<Buff
     }
 
     const flightNumberStr = String(ticket.flight.flightNumber || '');
+    console.log(`[DEBUG] Raw flight number for airline code derivation: "${flightNumberStr}"`);
     const airlineCodeFromFlightNum = flightNumberStr.substring(0, 2).toUpperCase();
+    console.log(`[DEBUG] Derived airlineCodeFromFlightNum: "${airlineCodeFromFlightNum}"`); // ADD THIS
     const template = getAirlineTemplate(airlineCodeFromFlightNum);
 
   return new Promise((resolve, reject) => {

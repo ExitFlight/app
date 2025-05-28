@@ -4,6 +4,8 @@ import { TicketWithDetails } from '@shared/schema'; // Ensure this path is corre
 import fs from 'fs';
 import path from 'path';
 
+
+
 // --- Assumed Constants (Adjust to your actual values) ---
 const PAGE_MARGIN = 30;
 const CONTENT_WIDTH = 595.28 - 2 * PAGE_MARGIN;
@@ -25,7 +27,7 @@ const FONT_SIZE_XLARGE = 20;
 const COMMON_AIRCRAFT_TYPES = [ "Airbus A320", "Airbus A321", "Airbus A330-300", "Airbus A350-900", "Boeing 737-800", "Boeing 787-9" ];
 // --- End of Assumed Constants ---
 
-interface AirlineTemplate {
+export interface AirlineTemplate {
   primaryColor: string;
   secondaryColor: string;
   headerTextColor?: string;
@@ -37,7 +39,7 @@ interface AirlineTemplate {
   abn?: string;
 }
 
-const airlineTemplates: Record<string, AirlineTemplate> = {
+export const airlineTemplates: Record<string, AirlineTemplate> = {
   // --- North America ---
   'AA': { primaryColor: '#E0242A', secondaryColor: '#0078D2', headerTextColor: '#0078D2', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/NorthAmerica/AA.png' },
   'AS': { primaryColor: '#004268', secondaryColor: '#78C0E2', headerTextColor: '#004268', fontFamily: 'Helvetica', logoPosition: 'left', paperSize: [595.28, 841.89], usesQrCode: true, logoPath: 'server/assets/logos/NorthAmerica/AS.png' },
@@ -88,7 +90,7 @@ const airlineTemplates: Record<string, AirlineTemplate> = {
 };
 
 // --- Helper Functions ---
-function getAirlineTemplate(airlineCodeInput: string): AirlineTemplate {
+export function getAirlineTemplate(airlineCodeInput: string): AirlineTemplate {
     let code = 'default';
     if (typeof airlineCodeInput === 'string' && airlineCodeInput.length >= 2) {
         code = airlineCodeInput.substring(0, 2).toUpperCase();

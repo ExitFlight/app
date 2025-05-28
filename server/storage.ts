@@ -426,9 +426,9 @@ export class MemStorage implements IStorage {
     const id = this.currentPassengerId++;
     const passenger: Passenger = {
        id,
-      title: insertPassenger.title, // <<< ADD THIS LINE
+      title: insertPassenger.title,
       firstName: insertPassenger.firstName,
-      middleName: insertPassenger.middleName, // <<< ADD THIS LINE
+      middleName: insertPassenger.middleName,
       lastName: insertPassenger.lastName,
       email: insertPassenger.email,
       phone: insertPassenger.phone || null,

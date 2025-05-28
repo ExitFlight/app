@@ -253,8 +253,165 @@ function drawTicketHeader(doc: PDFKit.PDFDocument, ticket: TicketWithDetails, te
     console.log("[PDF_GENERATOR_DEBUG] drawTicketHeader finished.");
 }
 
-function drawFlightBlock(doc: PDFKit.PDFDocument, ticket: TicketWithDetails, template: AirlineTemplate) { /* ... same as your existing ... */ console.log("[PDF_GENERATOR_DEBUG] drawFlightBlock started."); let currentY = doc.y; const flight = ticket.flight; const departureTerminal = safeToString(flight.departure.terminal || getRandomTerminal()).toUpperCase(); const arrivalTerminal = safeToString(flight.arrival.terminal || getRandomTerminal()).toUpperCase(); const aircraftType = safeToString(flight.aircraft || getRandomAircraft()); const planeIconPath = path.resolve(process.cwd(), 'server/assets/logos/Departure.png');  const planeIconWidth = 22; const planeIconHeight = 18; const planeIconYOffset = -4;  if (fs.existsSync(planeIconPath)) { doc.image(planeIconPath, PAGE_MARGIN, currentY + planeIconYOffset , { fit: [planeIconWidth, planeIconHeight], align: 'center', valign: 'center'}); } else { doc.circle(PAGE_MARGIN + (planeIconWidth/2), currentY + (planeIconHeight/2) + planeIconYOffset, planeIconWidth/2 -2).strokeColor(TEXT_COLOR_DARK).stroke(); console.warn("[PDF_GENERATOR_DEBUG] DEPARTURE PLANE ICON NOT FOUND AT:", planeIconPath); } doc.font(FONT_BOLD).fontSize(FONT_SIZE_MEDIUM).fillColor(TEXT_COLOR_DARK) .text(`DEPARTURE: ${formatDateStyled(flight.departure.date, 'short_date_time')}`, PAGE_MARGIN + planeIconWidth + 10, currentY); doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT) .text("Please verify flight times prior to departure", PAGE_MARGIN + 250, currentY + 3); currentY += Math.max(FONT_SIZE_MEDIUM, planeIconHeight + Math.abs(planeIconYOffset)) + 10;  const boxTopLineY = currentY; drawHorizontalLine(doc, boxTopLineY, 'light');  currentY += 5;  const boxStartY = currentY; const col1X = PAGE_MARGIN; const col2X = PAGE_MARGIN + 155; const col3X = col2X + 160; const col4X = col3X + 160; const colContentPadding = 5;  let currentYCol1 = boxStartY; doc.font(FONT_BOLD).fontSize(FONT_SIZE_MEDIUM).fillColor(TEXT_COLOR_DARK).text(safeToString(flight.airline.name).toUpperCase(), col1X + colContentPadding, currentYCol1); currentYCol1 += FONT_SIZE_MEDIUM + 4; doc.font(FONT_REGULAR).fontSize(FONT_SIZE_MEDIUM).fillColor(TEXT_COLOR_DARK).text(`${safeToString(flight.airline.code).toUpperCase()} ${safeToString(flight.flightNumber)}`, col1X + colContentPadding, currentYCol1); currentYCol1 += FONT_SIZE_MEDIUM + 10; const fieldsCol1 = [ {label: "Operated by:", value: safeToString(ticket.flight.operatingAirline || flight.airline.name, 'N/A')}, {label: "Duration:", value: safeToString(flight.duration)}, {label: "Fare Type:", value: safeToString(ticket.fareType, 'N/A')}, {label: "Cabin:", value: safeToString(flight.class, "Economy")}, {label: "Status:", value: safeToString(ticket.status, "Confirmed")}, ]; fieldsCol1.forEach(f => { doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text(f.label, col1X + colContentPadding, currentYCol1); currentYCol1 += FONT_SIZE_SMALL + 2; doc.font(FONT_REGULAR).fontSize(FONT_SIZE_NORMAL).fillColor(TEXT_COLOR_DARK).text(f.value, col1X + colContentPadding, currentYCol1); currentYCol1 += FONT_SIZE_NORMAL + 4; }); const col1EndY = currentYCol1; let iterY = boxStartY;  const sharedAirportInfoYOffset = FONT_SIZE_LARGE + 4; doc.font(FONT_BOLD).fontSize(FONT_SIZE_LARGE).fillColor(TEXT_COLOR_DARK).text(safeToString(flight.departure.airport.code, 'N/A'), col2X + colContentPadding, iterY); doc.font(FONT_REGULAR).fontSize(FONT_SIZE_NORMAL).fillColor(TEXT_COLOR_MEDIUM) .text(`${safeToString(flight.departure.airport.name, 'N/A')}`, col2X + colContentPadding, iterY + sharedAirportInfoYOffset);  const arrowIconPath = path.resolve(process.cwd(), 'server/assets/icons/right_arrow_icon.png'); if (fs.existsSync(arrowIconPath)) { doc.image(arrowIconPath, col2X + 75 + colContentPadding, iterY + 4 , {width: 15}); } else { doc.moveTo(col2X + 75+colContentPadding, iterY + 10).lineTo(col2X + 85+colContentPadding, iterY + 10).strokeColor(TEXT_COLOR_DARK).lineWidth(1).stroke(); console.warn("[PDF_GENERATOR_DEBUG] Arrow icon not found");} let currentYCol2 = iterY + sharedAirportInfoYOffset + FONT_SIZE_NORMAL + 15; doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("Departing At:", col2X + colContentPadding, currentYCol2); currentYCol2 += FONT_SIZE_SMALL + 2; doc.font(FONT_BOLD).fontSize(FONT_SIZE_LARGE).fillColor(TEXT_COLOR_DARK).text(formatTimeStyled(flight.departure.time, true), col2X + colContentPadding, currentYCol2); currentYCol2 += FONT_SIZE_LARGE + 5; doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("Terminal:", col2X + colContentPadding, currentYCol2); currentYCol2 += FONT_SIZE_SMALL + 2; doc.font(FONT_REGULAR).fontSize(FONT_SIZE_NORMAL).fillColor(TEXT_COLOR_DARK).text(departureTerminal, col2X + colContentPadding, currentYCol2); const col2EndY = currentYCol2 + FONT_SIZE_NORMAL; iterY = boxStartY; doc.font(FONT_BOLD).fontSize(FONT_SIZE_LARGE).fillColor(TEXT_COLOR_DARK).text(safeToString(flight.arrival.airport.code, 'N/A'), col3X + colContentPadding, iterY); doc.font(FONT_REGULAR).fontSize(FONT_SIZE_NORMAL).fillColor(TEXT_COLOR_MEDIUM) .text(`${safeToString(flight.arrival.airport.name, 'N/A')}`, col3X + colContentPadding, iterY + sharedAirportInfoYOffset); let currentYCol3 = iterY + sharedAirportInfoYOffset + FONT_SIZE_NORMAL + 15; doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("Arriving At:", col3X + colContentPadding, currentYCol3); currentYCol3 += FONT_SIZE_SMALL + 2; doc.font(FONT_BOLD).fontSize(FONT_SIZE_LARGE).fillColor(TEXT_COLOR_DARK).text(formatTimeStyled(flight.arrival.time, true), col3X + colContentPadding, currentYCol3); currentYCol3 += FONT_SIZE_LARGE + 5; doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("Terminal:", col3X + colContentPadding, currentYCol3); currentYCol3 += FONT_SIZE_SMALL + 2; doc.font(FONT_REGULAR).fontSize(FONT_SIZE_NORMAL).fillColor(TEXT_COLOR_DARK).text(arrivalTerminal, col3X + colContentPadding, currentYCol3); const col3EndY = currentYCol3 + FONT_SIZE_NORMAL; iterY = boxStartY; doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("Aircraft:", col4X + colContentPadding, iterY); doc.font(FONT_REGULAR).fontSize(FONT_SIZE_NORMAL).fillColor(TEXT_COLOR_DARK).text(aircraftType, col4X + colContentPadding, iterY + FONT_SIZE_SMALL + 2); const col4EndY = iterY + FONT_SIZE_SMALL + 2 + FONT_SIZE_NORMAL; const boxContentEndY = Math.max(col1EndY, col2EndY, col3EndY, col4EndY) + 5; const vLineBottom = boxContentEndY; doc.strokeColor(DEFAULT_BORDER_COLOR).lineWidth(0.5); doc.moveTo(col2X, boxTopLineY).lineTo(col2X, vLineBottom).stroke(); doc.moveTo(col3X, boxTopLineY).lineTo(col3X, vLineBottom).stroke(); doc.moveTo(col4X, boxTopLineY).lineTo(col4X, vLineBottom).stroke(); drawHorizontalLine(doc, vLineBottom, 'light'); doc.y = vLineBottom + 5; console.log("[PDF_GENERATOR_DEBUG] drawFlightBlock finished."); }
-function drawPassengerInfoBar(doc: PDFKit.PDFDocument, ticket: TicketWithDetails) { /* ... same as the version from my previous message that includes title and middle name ... */ console.log("[PDF_GENERATOR_DEBUG] drawPassengerInfoBar started."); drawHorizontalLine(doc, doc.y + 5, 'light'); const barY = doc.y + 10; const barHeight = FONT_SIZE_NORMAL + FONT_SIZE_MEDIUM + 15; const textPadding = 7; const textLineHeight = FONT_SIZE_NORMAL + 3; doc.rect(PAGE_MARGIN, barY, CONTENT_WIDTH, barHeight).fillColor(MEDIUM_GREY_BG).fill(); const col1Width = CONTENT_WIDTH * 0.45; const col2Width = CONTENT_WIDTH * 0.25; const col1X = PAGE_MARGIN + textPadding; const col2X = PAGE_MARGIN + col1Width + textPadding; const col3X = PAGE_MARGIN + col1Width + col2Width + textPadding; const labelY = barY + textPadding; const valueY = labelY + textLineHeight; doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("Passenger Name:", col1X, labelY); const titleStrBar = safeToString(ticket.passenger.title, ''); const firstNameStrBar = safeToString(ticket.passenger.firstName, 'N/A').toUpperCase(); const middleNameStrBar = safeToString(ticket.passenger.middleName, '').toUpperCase(); const lastNameStrBar = safeToString(ticket.passenger.lastName, 'N/A').toUpperCase(); let passengerFullNameForBar = titleStrBar ? `${titleStrBar}. ` : ''; passengerFullNameForBar += firstNameStrBar; if (middleNameStrBar) { passengerFullNameForBar += ` ${middleNameStrBar}`; } passengerFullNameForBar += ` ${lastNameStrBar}`; passengerFullNameForBar = passengerFullNameForBar.trim(); doc.font(FONT_BOLD).fontSize(FONT_SIZE_MEDIUM).fillColor(TEXT_COLOR_DARK).text(`» ${passengerFullNameForBar}`, col1X, valueY, { width: col1Width - (textPadding * 2) }); doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("Seats:", col2X, labelY); doc.font(FONT_BOLD).fontSize(FONT_SIZE_MEDIUM).fillColor(TEXT_COLOR_DARK).text(safeToString(ticket.seatNumber, 'Check-In Required'), col2X, valueY, { width: col2Width - (textPadding * 2) }); doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("eTicket Receipt(s):", col3X, labelY); doc.font(FONT_BOLD).fontSize(FONT_SIZE_MEDIUM).fillColor(TEXT_COLOR_DARK).text(safeToString(ticket.ticketNumber, ticket.bookingReference), col3X, valueY, { width: CONTENT_WIDTH - (col1X + col1Width + col2Width + textPadding) }); doc.y = barY + barHeight + 5; drawHorizontalLine(doc, doc.y, 'light'); doc.y += PAGE_MARGIN; console.log("[PDF_GENERATOR_DEBUG] drawPassengerInfoBar finished."); }
+function drawFlightBlock(doc: PDFKit.PDFDocument, ticket: TicketWithDetails, template: AirlineTemplate) {
+    console.log("[PDF_GENERATOR_DEBUG] drawFlightBlock started.");
+    let currentY = doc.y;
+    const flight = ticket.flight; // flight here is FlightWithDetails type
+
+    const departureTerminal = safeToString(flight.departure.terminal || getRandomTerminal()).toUpperCase();
+    const arrivalTerminal = safeToString(flight.arrival.terminal || getRandomTerminal()).toUpperCase();
+    const aircraftType = safeToString(flight.aircraft || getRandomAircraft());
+    const planeIconPath = path.resolve(process.cwd(), 'server/assets/logos/Departure.png');
+    const planeIconWidth = 22;
+    const planeIconHeight = 18;
+    const planeIconYOffset = -4;
+
+    if (fs.existsSync(planeIconPath)) {
+        doc.image(planeIconPath, PAGE_MARGIN, currentY + planeIconYOffset, { fit: [planeIconWidth, planeIconHeight], align: 'center', valign: 'center' });
+    } else {
+        doc.circle(PAGE_MARGIN + (planeIconWidth / 2), currentY + (planeIconHeight / 2) + planeIconYOffset, planeIconWidth / 2 - 2).strokeColor(TEXT_COLOR_DARK).stroke();
+        console.warn("[PDF_GENERATOR_DEBUG] DEPARTURE PLANE ICON NOT FOUND AT:", planeIconPath);
+    }
+
+    doc.font(FONT_BOLD).fontSize(FONT_SIZE_MEDIUM).fillColor(TEXT_COLOR_DARK)
+        .text(`DEPARTURE: ${formatDateStyled(flight.departure.date, 'short_date_time')}`, PAGE_MARGIN + planeIconWidth + 10, currentY);
+    doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT)
+        .text("Please verify flight times prior to departure", PAGE_MARGIN + 250, currentY + 3);
+
+    currentY += Math.max(FONT_SIZE_MEDIUM, planeIconHeight + Math.abs(planeIconYOffset)) + 10;
+    const boxTopLineY = currentY;
+    drawHorizontalLine(doc, boxTopLineY, 'light');
+    currentY += 5;
+    const boxStartY = currentY;
+
+    const col1X = PAGE_MARGIN;
+    const col2X = PAGE_MARGIN + 155;
+    const col3X = col2X + 160;
+    const col4X = col3X + 160;
+    const colContentPadding = 5;
+
+    let currentYCol1 = boxStartY;
+    doc.font(FONT_BOLD).fontSize(FONT_SIZE_MEDIUM).fillColor(TEXT_COLOR_DARK)
+        .text(safeToString(flight.airline.name).toUpperCase(), col1X + colContentPadding, currentYCol1);
+    currentYCol1 += FONT_SIZE_MEDIUM + 4;
+
+    // --- CORRECTED FLIGHT NUMBER DISPLAY ---
+    // Directly use flight.flightNumber as it should now be the complete flight number (e.g., "SQ1223")
+    doc.font(FONT_REGULAR).fontSize(FONT_SIZE_MEDIUM).fillColor(TEXT_COLOR_DARK)
+        .text(safeToString(flight.flightNumber).toUpperCase(), col1X + colContentPadding, currentYCol1);
+    // --- END OF CORRECTION ---
+
+    currentYCol1 += FONT_SIZE_MEDIUM + 10;
+
+    const fieldsCol1 = [
+        { label: "Operated by:", value: safeToString(ticket.flight.operatingAirline || flight.airline.name, 'N/A') },
+        { label: "Duration:", value: safeToString(flight.duration) },
+        { label: "Fare Type:", value: safeToString(ticket.fareType, 'N/A') }, // Ensure ticket.fareType exists on TicketWithDetails or remove
+        { label: "Cabin:", value: safeToString(flight.class, "Economy") },
+        { label: "Status:", value: safeToString(ticket.status, "Confirmed") }, // Ensure ticket.status exists on TicketWithDetails or remove
+    ];
+    fieldsCol1.forEach(f => {
+        doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text(f.label, col1X + colContentPadding, currentYCol1);
+        currentYCol1 += FONT_SIZE_SMALL + 2;
+        doc.font(FONT_REGULAR).fontSize(FONT_SIZE_NORMAL).fillColor(TEXT_COLOR_DARK).text(f.value, col1X + colContentPadding, currentYCol1);
+        currentYCol1 += FONT_SIZE_NORMAL + 4;
+    });
+    const col1EndY = currentYCol1;
+
+    let iterY = boxStartY;
+    const sharedAirportInfoYOffset = FONT_SIZE_LARGE + 4;
+    doc.font(FONT_BOLD).fontSize(FONT_SIZE_LARGE).fillColor(TEXT_COLOR_DARK).text(safeToString(flight.departure.airport.code, 'N/A'), col2X + colContentPadding, iterY);
+    doc.font(FONT_REGULAR).fontSize(FONT_SIZE_NORMAL).fillColor(TEXT_COLOR_MEDIUM)
+        .text(`${safeToString(flight.departure.airport.name, 'N/A')}`, col2X + colContentPadding, iterY + sharedAirportInfoYOffset);
+
+    const arrowIconPath = path.resolve(process.cwd(), 'server/assets/icons/right_arrow_icon.png');
+    if (fs.existsSync(arrowIconPath)) {
+        doc.image(arrowIconPath, col2X + 75 + colContentPadding, iterY + 4, { width: 15 });
+    } else {
+        doc.moveTo(col2X + 75 + colContentPadding, iterY + 10).lineTo(col2X + 85 + colContentPadding, iterY + 10).strokeColor(TEXT_COLOR_DARK).lineWidth(1).stroke();
+        console.warn("[PDF_GENERATOR_DEBUG] Arrow icon not found");
+    }
+
+    let currentYCol2 = iterY + sharedAirportInfoYOffset + FONT_SIZE_NORMAL + 15;
+    doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("Departing At:", col2X + colContentPadding, currentYCol2); currentYCol2 += FONT_SIZE_SMALL + 2;
+    doc.font(FONT_BOLD).fontSize(FONT_SIZE_LARGE).fillColor(TEXT_COLOR_DARK).text(formatTimeStyled(flight.departure.time, true), col2X + colContentPadding, currentYCol2); currentYCol2 += FONT_SIZE_LARGE + 5;
+    doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("Terminal:", col2X + colContentPadding, currentYCol2); currentYCol2 += FONT_SIZE_SMALL + 2;
+    doc.font(FONT_REGULAR).fontSize(FONT_SIZE_NORMAL).fillColor(TEXT_COLOR_DARK).text(departureTerminal, col2X + colContentPadding, currentYCol2);
+    const col2EndY = currentYCol2 + FONT_SIZE_NORMAL;
+
+    iterY = boxStartY;
+    doc.font(FONT_BOLD).fontSize(FONT_SIZE_LARGE).fillColor(TEXT_COLOR_DARK).text(safeToString(flight.arrival.airport.code, 'N/A'), col3X + colContentPadding, iterY);
+    doc.font(FONT_REGULAR).fontSize(FONT_SIZE_NORMAL).fillColor(TEXT_COLOR_MEDIUM)
+        .text(`${safeToString(flight.arrival.airport.name, 'N/A')}`, col3X + colContentPadding, iterY + sharedAirportInfoYOffset);
+
+    let currentYCol3 = iterY + sharedAirportInfoYOffset + FONT_SIZE_NORMAL + 15;
+    doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("Arriving At:", col3X + colContentPadding, currentYCol3); currentYCol3 += FONT_SIZE_SMALL + 2;
+    doc.font(FONT_BOLD).fontSize(FONT_SIZE_LARGE).fillColor(TEXT_COLOR_DARK).text(formatTimeStyled(flight.arrival.time, true), col3X + colContentPadding, currentYCol3); currentYCol3 += FONT_SIZE_LARGE + 5;
+    doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("Terminal:", col3X + colContentPadding, currentYCol3); currentYCol3 += FONT_SIZE_SMALL + 2;
+    doc.font(FONT_REGULAR).fontSize(FONT_SIZE_NORMAL).fillColor(TEXT_COLOR_DARK).text(arrivalTerminal, col3X + colContentPadding, currentYCol3);
+    const col3EndY = currentYCol3 + FONT_SIZE_NORMAL;
+
+    iterY = boxStartY;
+    doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("Aircraft:", col4X + colContentPadding, iterY);
+    doc.font(FONT_REGULAR).fontSize(FONT_SIZE_NORMAL).fillColor(TEXT_COLOR_DARK).text(aircraftType, col4X + colContentPadding, iterY + FONT_SIZE_SMALL + 2);
+    const col4EndY = iterY + FONT_SIZE_SMALL + 2 + FONT_SIZE_NORMAL;
+
+    const boxContentEndY = Math.max(col1EndY, col2EndY, col3EndY, col4EndY) + 5;
+    const vLineBottom = boxContentEndY;
+    doc.strokeColor(DEFAULT_BORDER_COLOR).lineWidth(0.5);
+    doc.moveTo(col2X, boxTopLineY).lineTo(col2X, vLineBottom).stroke();
+    doc.moveTo(col3X, boxTopLineY).lineTo(col3X, vLineBottom).stroke();
+    doc.moveTo(col4X, boxTopLineY).lineTo(col4X, vLineBottom).stroke();
+    drawHorizontalLine(doc, vLineBottom, 'light');
+    doc.y = vLineBottom + 5;
+    console.log("[PDF_GENERATOR_DEBUG] drawFlightBlock finished.");
+}
+
+function drawPassengerInfoBar(doc: PDFKit.PDFDocument, ticket: TicketWithDetails) {
+    console.log("[PDF_GENERATOR_DEBUG] drawPassengerInfoBar started.");
+    drawHorizontalLine(doc, doc.y + 5, 'light');
+    const barY = doc.y + 10;
+    const barHeight = FONT_SIZE_NORMAL + FONT_SIZE_MEDIUM + 15;
+    const textPadding = 7;
+    const textLineHeight = FONT_SIZE_NORMAL + 3;
+
+    doc.rect(PAGE_MARGIN, barY, CONTENT_WIDTH, barHeight).fillColor(MEDIUM_GREY_BG).fill();
+
+    const col1Width = CONTENT_WIDTH * 0.45;
+    const col2Width = CONTENT_WIDTH * 0.25;
+    const col1X = PAGE_MARGIN + textPadding;
+    const col2X = PAGE_MARGIN + col1Width + textPadding;
+    const col3X = PAGE_MARGIN + col1Width + col2Width + textPadding;
+
+    const labelY = barY + textPadding;
+    const valueY = labelY + textLineHeight;
+
+    doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("Passenger Name:", col1X, labelY);
+    const titleStrBar = safeToString(ticket.passenger.title, '');
+    const firstNameStrBar = safeToString(ticket.passenger.firstName, 'N/A').toUpperCase();
+    const middleNameStrBar = safeToString(ticket.passenger.middleName, '').toUpperCase();
+    const lastNameStrBar = safeToString(ticket.passenger.lastName, 'N/A').toUpperCase();
+    let passengerFullNameForBar = titleStrBar ? `${titleStrBar}. ` : '';
+    passengerFullNameForBar += firstNameStrBar;
+    if (middleNameStrBar) {
+        passengerFullNameForBar += ` ${middleNameStrBar}`;
+    }
+    passengerFullNameForBar += ` ${lastNameStrBar}`;
+    passengerFullNameForBar = passengerFullNameForBar.trim();
+    doc.font(FONT_BOLD).fontSize(FONT_SIZE_MEDIUM).fillColor(TEXT_COLOR_DARK).text(`» ${passengerFullNameForBar}`, col1X, valueY, { width: col1Width - (textPadding * 2) });
+
+    doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("Seats:", col2X, labelY);
+    doc.font(FONT_BOLD).fontSize(FONT_SIZE_MEDIUM).fillColor(TEXT_COLOR_DARK).text(safeToString(ticket.seatNumber, 'Check-In Required'), col2X, valueY, { width: col2Width - (textPadding * 2) });
+
+    doc.font(FONT_REGULAR).fontSize(FONT_SIZE_SMALL).fillColor(TEXT_COLOR_LIGHT).text("eTicket Receipt(s):", col3X, labelY);
+    doc.font(FONT_BOLD).fontSize(FONT_SIZE_MEDIUM).fillColor(TEXT_COLOR_DARK).text(safeToString(ticket.ticketNumber, ticket.bookingReference), col3X, valueY, { width: CONTENT_WIDTH - (col1X + col1Width + col2Width + textPadding) }); // Adjusted width calculation
+
+    doc.y = barY + barHeight + 5;
+    drawHorizontalLine(doc, doc.y, 'light');
+    doc.y += PAGE_MARGIN;
+    console.log("[PDF_GENERATOR_DEBUG] drawPassengerInfoBar finished.");
+}
+
 
 export async function generateTicketPdf(ticket: TicketWithDetails): Promise<Buffer> {
     console.log("[VERY_TOP_DEBUG] generateTicketPdf called with ticket.flight.airline:", JSON.stringify(ticket?.flight?.airline, null, 2));

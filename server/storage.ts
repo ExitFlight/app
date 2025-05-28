@@ -425,16 +425,19 @@ export class MemStorage implements IStorage {
   async createPassenger(insertPassenger: InsertPassenger): Promise<Passenger> {
     const id = this.currentPassengerId++;
     const passenger: Passenger = {
-      id,
+       id,
+      title: insertPassenger.title, // <<< ADD THIS LINE
       firstName: insertPassenger.firstName,
+      middleName: insertPassenger.middleName, // <<< ADD THIS LINE
       lastName: insertPassenger.lastName,
       email: insertPassenger.email,
       phone: insertPassenger.phone || null,
-      passportNumber: insertPassenger.passportNumber,
+      // passportNumber: insertPassenger.passportNumber, // Ensure this is removed if fully removed from schema
       nationality: insertPassenger.nationality,
-      birthdate: insertPassenger.birthdate
+      // birthdate: insertPassenger.birthdate, // Ensure this is removed if fully removed from schema
     };
     this.passengers.set(id, passenger);
+     console.log("[MemStorage createPassenger] Stored passenger:", JSON.stringify(passenger, null, 2));
     return passenger;
   }
 

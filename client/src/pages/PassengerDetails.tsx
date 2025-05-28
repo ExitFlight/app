@@ -1,5 +1,5 @@
 // /home/jordan/Desktop/FlightBack/client/src/pages/PassengerDetails.tsx
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -9,20 +9,18 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, ArrowRight, CalendarIcon, SaveIcon } from "lucide-react"; // Added SaveIcon
+import { ArrowLeft, ArrowRight, RefreshCcwIcon } from "lucide-react"; // Changed SaveIcon to RefreshCcwIcon
 import ProgressStepper from "@/components/ProgressStepper";
 import { useFlightContext } from "@/lib/context/FlightContext";
-import { passengerDetailsSchema, type PassengerDetailsForm } from "@shared/schema";
+import { passengerDetailsSchema, type PassengerDetailsForm } from "@shared/schema"; // Ensure schema has no birthdate
 
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { format, isValid, parse } from "date-fns";
+const titles = [
+  { value: "Mr", label: "Mr." }, { value: "Mrs", label: "Mrs." },
+  { value: "Ms", label: "Ms." }, { value: "Miss", label: "Miss" },
+  { value: "Dr", label: "Dr." }, { value: "Prof", label: "Prof." },
+];
 
-const nationalities = [
+const nationalities = [ /* ... your full nationalities array ... */
   { value: "af", label: "Afghanistan" }, { value: "dz", label: "Algeria" },
   { value: "al", label: "Albania" }, { value: "ad", label: "Andorra" },
   { value: "ao", label: "Angola" }, { value: "ar", label: "Argentina" },
@@ -101,23 +99,22 @@ const nationalities = [
   { value: "zm", label: "Zambia" }, { value: "zw", label: "Zimbabwe" },
 ].sort((a, b) => a.label.localeCompare(b.label));
 
-const LOCAL_STORAGE_KEY = "flightAppPassengerDetails"; // Key for storing passenger details
+const LOCAL_STORAGE_KEY = "flightAppPassengerDetails";
 
 const PassengerDetails = () => {
   const [_, navigate] = useLocation();
   const { toast } = useToast();
   const { selectedFlight, passengerDetails: contextPassengerDetails, setPassengerDetails } = useFlightContext();
-  const [isBirthdatePopoverOpen, setIsBirthdatePopoverOpen] = useState(false);
 
-  // Function to load details from localStorage
-  const loadDetailsFromStorage = (): PassengerDetailsForm | null => {
+  const loadDetailsFromStorage = (): Partial<PassengerDetailsForm> | null => {
     try {
       const savedDetails = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (savedDetails) {
         const parsed = JSON.parse(savedDetails) as PassengerDetailsForm;
-        // Basic validation: ensure it's an object with at least one expected key
         if (parsed && typeof parsed === 'object' && parsed.firstName !== undefined) {
-          return parsed;
+          // Ensure no old/removed fields like birthdate are loaded
+          const { birthdate, passportNumber, ...relevantDetails } = parsed as any;
+          return relevantDetails;
         }
       }
     } catch (error) {
@@ -126,36 +123,44 @@ const PassengerDetails = () => {
     return null;
   };
 
-  // Function to save details to localStorage
   const saveDetailsToStorage = (details: PassengerDetailsForm) => {
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(details));
+      // Ensure no old/removed fields are saved
+      const { birthdate, passportNumber, ...detailsToSave } = details as any;
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(detailsToSave));
     } catch (error) {
       console.error("Error saving passenger details to localStorage:", error);
     }
   };
 
-  // Determine initial form values: Context > localStorage > Empty
+  const emptyFormDefaults: Partial<PassengerDetailsForm> = {
+    title: "", firstName: "", middleName: "", lastName: "", email: "", phone: "",
+    nationality: "",
+  };
+
   const getInitialFormValues = (): Partial<PassengerDetailsForm> => {
-    if (contextPassengerDetails && contextPassengerDetails.firstName) { // Check a key field from context
-      console.log("Initializing form with details from context");
-      return contextPassengerDetails;
-    }
+    let initialData = { ...emptyFormDefaults }; 
+
     const storedDetails = loadDetailsFromStorage();
     if (storedDetails) {
       console.log("Initializing form with details from localStorage");
-      return storedDetails;
+      initialData = { ...initialData, ...storedDetails };
     }
-    console.log("Initializing form with empty defaults");
-    return { // Default to empty if nothing found
-      firstName: "", lastName: "", email: "", phone: "",
-      passportNumber: "", nationality: "", birthdate: "",
-    };
-  };
 
+    if (contextPassengerDetails && contextPassengerDetails.firstName) {
+      console.log("Overriding/merging with details from context");
+      const { birthdate, passportNumber, ...contextDataToUse } = contextPassengerDetails as any;
+      initialData = { ...initialData, ...contextDataToUse };
+    }
+    
+    if (!storedDetails && !(contextPassengerDetails && contextPassengerDetails.firstName)) {
+        console.log("Initializing form with empty defaults (nothing in context or storage)");
+    }
+    return initialData;
+  };
+  
   const form = useForm<PassengerDetailsForm>({
     resolver: zodResolver(passengerDetailsSchema),
-    // Initialize with context data, or localStorage data, or empty strings
     defaultValues: getInitialFormValues(),
   });
 
@@ -168,25 +173,27 @@ const PassengerDetails = () => {
         variant: "destructive",
       });
       navigate("/select-flight");
+      return;
     }
-    // Optionally, if context changes, you might want to reset the form
-    // This ensures that if the user navigates back and context has updated info,
-    // it overrides what might have been loaded from localStorage initially for this mount.
-    // if (contextPassengerDetails && contextPassengerDetails.firstName) {
-    //   form.reset(contextPassengerDetails);
-    // }
-  }, [selectedFlight, navigate, toast, contextPassengerDetails, form]); // Added form to dependencies if using form.reset
+
+    const initialValues = getInitialFormValues();
+    if (JSON.stringify(form.getValues()) !== JSON.stringify(initialValues)) {
+        form.reset(initialValues);
+    }
+
+  }, [selectedFlight, contextPassengerDetails, navigate, toast, form]);
   
   const goBack = () => {
-    // Before navigating back, save current form values to context
-    // so if user returns, these partially filled details are available
-    setPassengerDetails(form.getValues());
+    const currentValues = form.getValues();
+    const { birthdate, passportNumber, ...valuesToSaveInContext } = currentValues as any;
+    setPassengerDetails(valuesToSaveInContext);
     navigate("/select-flight");
   };
 
   const onSubmit = (data: PassengerDetailsForm) => {
-    setPassengerDetails(data); // Update context for current session
-    saveDetailsToStorage(data); // Save to localStorage for future sessions
+   console.log("PassengerDetails onSubmit data:", JSON.stringify(data, null, 2));
+    setPassengerDetails(data); 
+    saveDetailsToStorage(data);
     toast({
         title: "Details Saved",
         description: "Your passenger details have been saved for next time.",
@@ -194,44 +201,12 @@ const PassengerDetails = () => {
     navigate("/preview");
   };
 
-  const handleLoadMyDetailsClick = () => {
-    const storedDetails = loadDetailsFromStorage();
-    if (storedDetails) {
-      form.reset(storedDetails); // Populate form with stored details
-      toast({ title: "Details Loaded", description: "Your saved information has been loaded." });
-    } else {
-      toast({ title: "No Saved Details", description: "No previously saved information found.", variant: "info" });
-    }
+  const handleResetAllClick = () => {
+    form.reset(emptyFormDefaults);
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    setPassengerDetails(null); // Clear context
+    toast({ title: "Form Reset", description: "All passenger details have been cleared." });
   };
-
-  const getDefaultCalendarMonth = (fieldValue?: string) => {
-    if (fieldValue) {
-      const d = parse(fieldValue, "yyyy-MM-dd", new Date());
-      if (isValid(d)) return d;
-    }
-    const thirtyYearsAgo = new Date();
-    thirtyYearsAgo.setFullYear(thirtyYearsAgo.getFullYear() - 30);
-    return thirtyYearsAgo;
-  };
-
-  const [birthdateInputText, setBirthdateInputText] = useState(() => {
-    const initialBirthdate = form.getValues("birthdate"); // Get from RHF initial values
-    return initialBirthdate && isValid(parse(initialBirthdate, "yyyy-MM-dd", new Date()))
-        ? format(parse(initialBirthdate, "yyyy-MM-dd", new Date()), "dd-MM-yyyy")
-        : "";
-  });
-
-  useEffect(() => {
-    const formBirthdate = form.getValues("birthdate");
-    if (formBirthdate && isValid(parse(formBirthdate, "yyyy-MM-dd", new Date()))) {
-        setBirthdateInputText(format(parse(formBirthdate, "yyyy-MM-dd", new Date()), "dd-MM-yyyy"));
-    } else if (formBirthdate) {
-        setBirthdateInputText(formBirthdate);
-    } else {
-        setBirthdateInputText("");
-    }
-  }, [form.watch("birthdate")]);
-
 
   return (
     <div className="container mx-auto px-4 py-6 md:py-8">
@@ -239,31 +214,37 @@ const PassengerDetails = () => {
       <div className="max-w-3xl mx-auto">
         <div className="flex justify-between items-center mb-4 md:mb-6">
             <h2 className="text-xl md:text-2xl font-semibold text-foreground">Passenger Details</h2>
-            {/* Button to explicitly load saved details */}
-            <Button variant="outline" size="sm" onClick={handleLoadMyDetailsClick}>
-                <SaveIcon className="mr-2 h-4 w-4" /> Load My Details
+            <Button variant="outline" size="sm" onClick={handleResetAllClick} className="text-muted-foreground hover:text-destructive">
+                <RefreshCcwIcon className="mr-2 h-4 w-4" /> Reset All
             </Button>
         </div>
         <Card className="mb-6 md:mb-8 border-border bg-card">
           <CardContent className="p-4 md:p-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                  <FormField control={form.control} name="firstName" render={({ field }) => (<FormItem><FormLabel className="text-foreground font-medium text-sm">First Name</FormLabel><FormControl><Input placeholder="First" {...field} className="w-full p-2 md:p-3 bg-background text-foreground" /></FormControl><FormMessage className="text-xs" /></FormItem>)} />
-                  <FormField control={form.control} name="lastName" render={({ field }) => (<FormItem><FormLabel className="text-foreground font-medium text-sm">Last Name</FormLabel><FormControl><Input placeholder="Last" {...field} className="w-full p-2 md:p-3 bg-background text-foreground" /></FormControl><FormMessage className="text-xs" /></FormItem>)} />
-                  <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel className="text-foreground font-medium text-sm">Email Address</FormLabel><FormControl><Input type="email" placeholder="your@email.com" {...field} className="w-full p-2 md:p-3 bg-background text-foreground" /></FormControl><FormMessage className="text-xs" /></FormItem>)} />
-                  <FormField control={form.control} name="phone" render={({ field }) => (<FormItem><FormLabel className="text-foreground font-medium text-sm">Phone Number</FormLabel><FormControl><Input type="tel" placeholder="+1 (555) 123-4567" {...field} className="w-full p-2 md:p-3 bg-background text-foreground" /></FormControl><FormMessage className="text-xs" /></FormItem>)} />
-                  <FormField control={form.control} name="passportNumber" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel className="text-foreground font-medium text-sm">Passport/ID Number</FormLabel><FormControl><Input placeholder="A1234567" {...field} className="w-full p-2 md:p-3 bg-background text-foreground" /></FormControl><FormMessage className="text-xs" /></FormItem>)} />
-                  
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                
+                <FormField control={form.control} name="title" render={({ field }) => (<FormItem><FormLabel className="text-foreground font-medium text-sm">Title (Optional)</FormLabel><Select onValueChange={field.onChange} value={field.value || ""}><FormControl><SelectTrigger className="w-full bg-background text-foreground"><SelectValue placeholder="Select title" /></SelectTrigger></FormControl><SelectContent className="bg-popover text-popover-foreground border-border">{titles.map((t) => (<SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>))}</SelectContent></Select><FormMessage className="text-xs" /></FormItem>)} />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                  <FormField control={form.control} name="firstName" render={({ field }) => (<FormItem><FormLabel className="text-foreground font-medium text-sm">First Name *</FormLabel><FormControl><Input placeholder="Enter first name" {...field} className="w-full p-2 md:p-3 bg-background text-foreground" /></FormControl><FormMessage className="text-xs" /></FormItem>)} />
+                  <FormField control={form.control} name="middleName" render={({ field }) => (<FormItem><FormLabel className="text-foreground font-medium text-sm">Middle Name/Initial (Optional)</FormLabel><FormControl><Input placeholder="Enter middle name or initial" {...field} className="w-full p-2 md:p-3 bg-background text-foreground" /></FormControl><FormMessage className="text-xs" /></FormItem>)} />
+                </div>
+
+                <FormField control={form.control} name="lastName" render={({ field }) => (<FormItem><FormLabel className="text-foreground font-medium text-sm">Last Name *</FormLabel><FormControl><Input placeholder="Enter last name" {...field} className="w-full p-2 md:p-3 bg-background text-foreground" /></FormControl><FormMessage className="text-xs" /></FormItem>)} />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                  <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel className="text-foreground font-medium text-sm">Email Address *</FormLabel><FormControl><Input type="email" placeholder="your@email.com" {...field} className="w-full p-2 md:p-3 bg-background text-foreground" /></FormControl><FormMessage className="text-xs" /></FormItem>)} />
+                  <FormField control={form.control} name="phone" render={({ field }) => (<FormItem><FormLabel className="text-foreground font-medium text-sm">Phone Number (Optional)</FormLabel><FormControl><Input type="tel" placeholder="+1 (555) 123-4567" {...field} className="w-full p-2 md:p-3 bg-background text-foreground" /></FormControl><FormMessage className="text-xs" /></FormItem>)} />
+                
                   <FormField
                     control={form.control}
                     name="nationality"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-foreground font-medium text-sm">Nationality</FormLabel>
+                        <FormLabel className="text-foreground font-medium text-sm">Nationality *</FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          value={field.value || ""} // Ensure it's controlled
+                          value={field.value || ""}
                         >
                           <FormControl>
                             <SelectTrigger className="w-full bg-background text-foreground">
@@ -282,98 +263,9 @@ const PassengerDetails = () => {
                       </FormItem>
                     )}
                   />
-                  
-                  <FormField
-                    control={form.control}
-                    name="birthdate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel className="text-foreground font-medium text-sm mb-1">Date of Birth</FormLabel>
-                        <div className="flex items-center space-x-2">
-                          <Input
-                            type="text"
-                            placeholder="DD-MM-YYYY"
-                            value={birthdateInputText}
-                            onChange={(e) => {
-                                let currentInput = e.target.value;
-                                const digitsOnly = currentInput.replace(/[^\d/]/g, "");
-                                let formattedInput = "";
-                                if (digitsOnly.length > birthdateInputText.replace(/\//g, "").length && 
-                                    (digitsOnly.replace(/\//g, "").length === 2 || digitsOnly.replace(/\//g, "").length === 4) &&
-                                    !digitsOnly.endsWith('/')) {
-                                    const existingSlashes = (digitsOnly.match(/\//g) || []).length;
-                                    if ((digitsOnly.replace(/\//g, "").length === 2 && existingSlashes < 1) ||
-                                        (digitsOnly.replace(/\//g, "").length === 4 && existingSlashes < 2)) {
-                                      formattedInput = digitsOnly + "/";
-                                    } else {
-                                      formattedInput = digitsOnly;
-                                    }
-                                } else {
-                                    formattedInput = digitsOnly;
-                                }
-                                formattedInput = formattedInput.substring(0, 10);
-                                setBirthdateInputText(formattedInput);
-
-                                const parsedFromDisplay = parse(formattedInput, "dd-MM-yyyy", new Date());
-                                if (isValid(parsedFromDisplay)) {
-                                    field.onChange(format(parsedFromDisplay, "yyyy-MM-dd"));
-                                } else {
-                                    field.onChange(formattedInput);
-                                }
-                            }}
-                            onBlur={() => {
-                                const finalInput = birthdateInputText;
-                                const parsedAs_dd_MM_yyyy = parse(finalInput, "dd-MM-yyyy", new Date());
-                                const parsedAs_MM_dd_yyyy = parse(finalInput, "MM/dd/yyyy", new Date());
-                                const parsedAs_yyyy_MM_dd = parse(finalInput, "yyyy-MM-dd", new Date());
-
-                                if (isValid(parsedAs_dd_MM_yyyy)) {
-                                    field.onChange(format(parsedAs_dd_MM_yyyy, "yyyy-MM-dd"));
-                                } else if (isValid(parsedAs_MM_dd_yyyy)) {
-                                    field.onChange(format(parsedAs_MM_dd_yyyy, "yyyy-MM-dd"));
-                                } else if (isValid(parsedAs_yyyy_MM_dd)) {
-                                     field.onChange(format(parsedAs_yyyy_MM_dd, "yyyy-MM-dd"));
-                                }
-                            }}
-                            className="w-full p-2 md:p-3 bg-background text-foreground"
-                          />
-                          <Popover open={isBirthdatePopoverOpen} onOpenChange={setIsBirthdatePopoverOpen}>
-                            <PopoverTrigger asChild>
-                              <Button variant="outline" className="px-3" aria-label="Open date picker">
-                                <CalendarIcon className="h-4 w-4" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent 
-                              className="w-auto p-0 bg-popover text-popover-foreground border-border"
-                              align="start"
-                            >
-                              <Calendar
-                                mode="single"
-                                selected={field.value && isValid(parse(field.value, "yyyy-MM-dd", new Date())) ? parse(field.value, "yyyy-MM-dd", new Date()) : undefined}
-                                onSelect={(date) => {
-                                  const newValue = date ? format(date, "yyyy-MM-dd") : "";
-                                  field.onChange(newValue);
-                                  setIsBirthdatePopoverOpen(false);
-                                }}
-                                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                                fromDate={new Date(1900, 0, 1)}
-                                toDate={new Date()}
-                                defaultMonth={getDefaultCalendarMonth(field.value)}
-                                captionLayout="dropdown"
-                                fromYear={1900}
-                                toYear={new Date().getFullYear()}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    )}
-                  />
                 </div>
                 
-                <div className="mt-6 md:mt-8 flex flex-col md:flex-row justify-between">
+                <div className="mt-8 flex flex-col md:flex-row justify-between">
                   <Button type="button" variant="outline" className="mb-3 md:mb-0 bg-background border-border text-foreground" onClick={goBack}>
                     <ArrowLeft className="mr-2" size={16} /> Back to Flights
                   </Button>
@@ -389,6 +281,5 @@ const PassengerDetails = () => {
     </div>
   );
 };
-
 
 export default PassengerDetails;

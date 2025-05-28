@@ -2,6 +2,7 @@
 import { pgTable, serial, text, integer, timestamp, pgSchema, date as pgDate, time as pgTime, boolean } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
+import { isValid, parse } from 'date-fns'; // Import for birthdate validation
 
 // Optional: Define a PostgreSQL schema if you use one (e.g., 'public')
 // export const flightSchema = pgSchema("flights_app");
@@ -17,23 +18,21 @@ export const users = pgTable("users", {
 
 export const airports = pgTable("airports", {
   id: serial("id").primaryKey(),
-  code: text("code").notNull().unique(), // e.g., JFK, LAX
+  code: text("code").notNull().unique(),
   name: text("name").notNull(),
   city: text("city").notNull(),
   country: text("country").notNull(),
-  region: text("region"), // e.g., North America, Europe, Asia
-  latitude: text("latitude"), // Using text for numeric to handle precision if needed, or use numeric type
+  region: text("region"),
+  latitude: text("latitude"),
   longitude: text("longitude"),
-  // createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const airlines = pgTable("airlines", {
   id: serial("id").primaryKey(),
-  code: text("code").notNull().unique(), // e.g., AA, DL, BA
+  code: text("code").notNull().unique(),
   name: text("name").notNull(),
-  logo: text("logo"), // URL or path to logo
+  logo: text("logo"),
   region: text("region"),
-  // createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const flights = pgTable("flights", {
@@ -42,26 +41,25 @@ export const flights = pgTable("flights", {
   airlineId: integer("airline_id").references(() => airlines.id).notNull(),
   departureAirportId: integer("departure_airport_id").references(() => airports.id).notNull(),
   arrivalAirportId: integer("arrival_airport_id").references(() => airports.id).notNull(),
-  departureDate: pgDate("departure_date").notNull(), // Using pgDate for YYYY-MM-DD
-  departureTime: pgTime("departure_time").notNull(), // Using pgTime for HH:MM:SS or HH:MM
+  departureDate: pgDate("departure_date").notNull(),
+  departureTime: pgTime("departure_time").notNull(),
   arrivalDate: pgDate("arrival_date").notNull(),
   arrivalTime: pgTime("arrival_time").notNull(),
   duration: text("duration").notNull(),
-  // price: integer("price").notNull(), // REMOVED
-  class: text("class").notNull(), // e.g., Economy, Business, First
-  // createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  class: text("class").notNull(),
 });
 
 export const passengers = pgTable("passengers", {
   id: serial("id").primaryKey(),
+  title: text("title"), // Added, optional
   firstName: text("first_name").notNull(),
+  middleName: text("middle_name"), // Added, optional
   lastName: text("last_name").notNull(),
   email: text("email").notNull(),
   phone: text("phone"),
-  passportNumber: text("passport_number").notNull(),
+  //passportNumber: text("passport_number"), // Changed to optional (can be null in DB)
   nationality: text("nationality").notNull(),
-  birthdate: pgDate("birthdate").notNull(), // YYYY-MM-DD
-  // createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  //birthdate: pgDate("birthdate").notNull(),
 });
 
 export const tickets = pgTable("tickets", {
@@ -71,40 +69,50 @@ export const tickets = pgTable("tickets", {
   seatNumber: text("seat_number").notNull(),
   bookingReference: text("booking_reference").notNull().unique(),
   gate: text("gate").notNull(),
-  boardingTime: pgTime("boarding_time").notNull(), // HH:MM:SS or HH:MM
+  boardingTime: pgTime("boarding_time").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 
-// Zod Schemas for Validation (derived from Drizzle schemas)
+// Zod Schemas for Validation
 
-// Insert Schemas (for creating new records)
+// Insert Schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertAirportSchema = createInsertSchema(airports);
 export const insertAirlineSchema = createInsertSchema(airlines);
 export const insertFlightSchema = createInsertSchema(flights, {
-  // Override or add specific Zod validations if needed
   departureDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Departure date must be YYYY-MM-DD"),
   departureTime: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, "Departure time must be HH:MM or HH:MM:SS"),
   arrivalDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Arrival date must be YYYY-MM-DD"),
   arrivalTime: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, "Arrival time must be HH:MM or HH:MM:SS"),
-  // price: z.number().int().positive("Price must be a positive integer (cents)"), // REMOVED
 });
+
 export const insertPassengerSchema = createInsertSchema(passengers, {
+  // title, middleName, passportNumber will be optional by default if they are nullable in the table
   email: z.string().email(),
-  birthdate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Birthdate must be YYYY-MM-DD"),
+  //birthdate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Birthdate must be YYYY-MM-DD"),
 });
+// If you need to explicitly make them optional for insert even if notNull in DB (not the case here for title/middleName):
+// export const insertPassengerSchema = createInsertSchema(passengers, {
+//   title: z.string().optional(),
+//   middleName: z.string().optional(),
+//   passportNumber: z.string().optional(),
+//   email: z.string().email(),
+//   birthdate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Birthdate must be YYYY-MM-DD"),
+// });
+
+
 export const insertTicketSchema = createInsertSchema(tickets, {
   boardingTime: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, "Boarding time must be HH:MM or HH:MM:SS"),
 });
 
 
-// Select Schemas (for querying records, typically includes all fields)
+// Select Schemas
 export const selectUserSchema = createSelectSchema(users);
 export const selectAirportSchema = createSelectSchema(airports);
 export const selectAirlineSchema = createSelectSchema(airlines);
 export const selectFlightSchema = createSelectSchema(flights);
-export const selectPassengerSchema = createSelectSchema(passengers);
+export const selectPassengerSchema = createSelectSchema(passengers); // Will include new optional fields
 export const selectTicketSchema = createSelectSchema(tickets);
 
 
@@ -116,14 +124,23 @@ export const flightSearchSchema = z.object({
   departureTime: z.string().regex(/^\d{2}:\d{2}$/, "Departure time must be HH:MM").optional(),
 });
 
+// Updated passengerDetailsSchema for the form
 export const passengerDetailsSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Invalid email address"),
+  title: z.string().optional(), // Added, optional
+  firstName: z.string().min(1, { message: "First name is required." }),
+  middleName: z.string().optional(), // Added, optional
+  lastName: z.string().min(1, { message: "Last name is required." }),
+  email: z.string().email({ message: "Invalid email address." }),
   phone: z.string().optional(),
-  passportNumber: z.string().min(1, "Passport/ID number is required"),
-  nationality: z.string().min(1, "Nationality is required"),
-  birthdate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date of birth must be YYYY-MM-DD"),
+  // passportNumber: z.string().min(1, "Passport/ID number is required"), // REMOVED from form validation
+  nationality: z.string().min(1, { message: "Nationality is required." }),
+  // birthdate: z.string()
+  //   .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Birthdate must be YYYY-MM-DD." })
+  //   .refine(val => isValid(parse(val, "yyyy-MM-dd", new Date())), { message: "Invalid date format." })
+  //   .refine(val => {
+  //       const date = parse(val, "yyyy-MM-dd", new Date());
+  //       return date <= new Date() && date >= new Date("1900-01-01");
+  //    }, { message: "Birthdate is out of a reasonable range." }),
 });
 export type PassengerDetailsForm = z.infer<typeof passengerDetailsSchema>;
 
@@ -134,8 +151,6 @@ export const ticketDeliverySchema = z.object({
 });
 export type TicketDeliveryForm = z.infer<typeof ticketDeliverySchema>;
 
-// New schema for the payload when creating a ticket via the API
-// This will carry the full flight details from the frontend selection
 export const apiCreateTicketFlightDetailsSchema = z.object({
   flightNumber: z.string(),
   airline: z.object({
@@ -146,11 +161,8 @@ export const apiCreateTicketFlightDetailsSchema = z.object({
   }),
   departure: z.object({
     airport: z.object({
-      code: z.string(),
-      name: z.string(),
-      city: z.string(),
-      country: z.string(),
-      region: z.string().optional(), // Added region to airport details
+      code: z.string(), name: z.string(), city: z.string(), country: z.string(),
+      region: z.string().optional(),
       latitude: z.union([z.string(), z.number()]).nullish(),
       longitude: z.union([z.string(), z.number()]).nullish(),
     }),
@@ -159,11 +171,8 @@ export const apiCreateTicketFlightDetailsSchema = z.object({
   }),
   arrival: z.object({
     airport: z.object({
-      code: z.string(),
-      name: z.string(),
-      city: z.string(),
-      country: z.string(),
-      region: z.string().optional(), // Added region to airport details
+      code: z.string(), name: z.string(), city: z.string(), country: z.string(),
+      region: z.string().optional(),
       latitude: z.union([z.string(), z.number()]).nullish(),
       longitude: z.union([z.string(), z.number()]).nullish(),
     }),
@@ -171,7 +180,6 @@ export const apiCreateTicketFlightDetailsSchema = z.object({
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Arrival date must be YYYY-MM-DD"),
   }),
   duration: z.string(),
-  // price: z.string(), // REMOVED
   class: z.string(),
 });
 
@@ -193,6 +201,7 @@ export type Airline = typeof airlines.$inferSelect;
 export type InsertFlight = z.infer<typeof insertFlightSchema>;
 export type Flight = typeof flights.$inferSelect;
 
+// These types will now include the new optional fields from the 'passengers' table
 export type InsertPassenger = z.infer<typeof insertPassengerSchema>;
 export type Passenger = typeof passengers.$inferSelect;
 
@@ -206,51 +215,25 @@ export type ApiCreateTicketFlightDetails = z.infer<typeof apiCreateTicketFlightD
 export type FlightWithDetails = {
   id: number;
   flightNumber: string;
-  airline: {
-    id: number;
-    code: string;
-    name: string;
-    logo?: string | null;
-    region?: string | null;
-  };
+  airline: { id: number; code: string; name: string; logo?: string | null; region?: string | null; };
   departure: {
-    airport: {
-      id: number;
-      code: string;
-      name: string;
-      city: string;
-      country: string;
-      latitude?: string | null; // Drizzle numeric can be string
-      longitude?: string | null; // Drizzle numeric can be string
-    };
-    time: string; // HH:MM or HH:MM:SS
-    date: string; // YYYY-MM-DD
+    airport: { id: number; code: string; name: string; city: string; country: string; latitude?: string | null; longitude?: string | null; };
+    time: string; date: string;
   };
   arrival: {
-    airport: {
-      id: number;
-      code: string;
-      name: string;
-      city: string;
-      country: string;
-      latitude?: string | null;
-      longitude?: string | null;
-    };
-    time: string; // HH:MM or HH:MM:SS
-    date: string; // YYYY-MM-DD
+    airport: { id: number; code: string; name: string; city: string; country: string; latitude?: string | null; longitude?: string | null; };
+    time: string; date: string;
   };
-  duration: string;
-  // price: string; // REMOVED
-  class: string;
+  duration: string; class: string;
 };
 
 export type TicketWithDetails = {
   id: number;
   flight: FlightWithDetails;
-  passenger: Passenger;
+  passenger: Passenger; // Passenger type now includes optional title, middleName, passportNumber
   seatNumber: string;
   bookingReference: string;
   gate: string;
-  boardingTime: string; // HH:MM or HH:MM:SS
+  boardingTime: string;
   createdAt: Date;
 };

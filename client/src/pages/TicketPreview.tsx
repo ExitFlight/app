@@ -154,6 +154,8 @@ const TicketPreview = () => {
 
   const deliverTicketMutation = useMutation({
     mutationFn: async (data: TicketDeliveryForm) => {
+       console.log("TicketPreview - passengerDetails from context:", JSON.stringify(passengerDetails, null, 2));
+
       if (!ticket) {
         throw new Error("No ticket to deliver");
       }

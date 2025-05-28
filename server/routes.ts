@@ -189,8 +189,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Create passenger
   app.post("/api/passengers", async (req: Request, res: Response) => {
+    console.log("[SERVER /api/passengers] Received req.body:", JSON.stringify(req.body, null, 2));
     try {
       const passengerData = insertPassengerSchema.parse(req.body);
+      console.log("[SERVER /api/passengers] Parsed passengerData for storage:", JSON.stringify(passengerData, null, 2));
       const passenger = await storage.createPassenger(passengerData);
       res.status(201).json(passenger);
     } catch (error) {
@@ -334,7 +336,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!ticket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
-
+ console.log("[SERVER /api/tickets/:id/pdf] ticket.passenger data for PDF:", JSON.stringify(ticket.passenger, null, 2));
     try {
       const pdfBuffer = await generateTicketPdf(ticket); // generateTicketPdf expects TicketWithDetails
 

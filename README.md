@@ -1,12 +1,12 @@
 
-# FlightBack ✈️ E-Ticket Generator & Booking Simulator
+# ExitFlight ✈️ E-Ticket Generator & Booking Simulator
 
-**FlightBack is a full-stack application designed to simulate the core functionalities of a flight booking and e-ticket generation system.** It allows users to navigate a mock flight selectionll need to fill in specifics and add your screenshots.**
+**ExitFlight is a full-stack application designed to simulate the core functionalities of a flight booking and e-ticket generation system.** It allows users to navigate a mock flight selectionll need to fill in specifics and add your screenshots.**
 
 ```markdown
-# ✈️ FlightBack: Your Personal Flight Booking & E-Ticket Generator
+# ✈️ ExitFlight: Your Personal Flight Booking & E-Ticket Generator
 
-**FlightBack is a full-stack application designed to simulate the core functionalities of a flight booking system process, input passenger details, and ultimately receive a dynamically generated PDF e-ticket and an email confirmation with the ticket attached.
+** ExitFlight is a full-stack application designed to simulate the core functionalities of a flight booking system process, input passenger details, and ultimately receive a dynamically generated PDF e-ticket and an email confirmation with the ticket attached.
 
 This, from selecting flights and inputting passenger details to generating dynamic PDF e-tickets and receiving email confirmations.**
 
@@ -25,7 +25,7 @@ This, from selecting flights and inputting passenger details to generating dynam
 
 *   **✈️ Dynamic Flight Selection:**
     *   Browse and select flights with (theoretical) availability](YOUR_DEMO_URL_HERE) | -->
-[View Project on GitHub](https://github.comYes/jordanurbany/FlightBack)
+[View Project on GitHub](https://github.comYes/ExitFlight/app)
 
 ---
 
@@ -38,7 +38,7 @@ This, from selecting flights and inputting passenger details to generating dynam
 *   👤 **Comprehensive Passenger Details:**
     *   Secure input, you can absolutely add images (like screenshots of your application or the generated PDFs) to your `README.md` to make it much more engaging and visually appealing! You can't directly embed a PDF to be *viewable* within the README, but you can link to an example PDF or show images of it.
 
-Let's craft a really nice, comprehensive `README.md` for your `FlightBack` project.
+Let's craft a really nice, comprehensive `README.md` for your `ExitFlight` project.
 
 --- forms for all necessary passenger information (title, full name, contact details, nationality).
     *   User-friendly date then link them using Markdown `![Alt text](URL_to_image)`)*
@@ -93,14 +93,14 @@ izes Ethereal.email for robust email testing in the development environment.
 ##
 
 ```markdown
-# FlightBack ✈️ E-Ticket Generator
+# ExitFlight ✈️ E-Ticket Generator
 
-**FlightBack is a full-stack application designed to simulate the core functionalities of a flight booking and e-ticket generation system.** It allows users to navigate through a mock with Tailwind CSS for a polished look and feel.
+**ExitFlight is a full-stack application designed to simulate the core functionalities of a flight booking and e-ticket generation system.** It allows users to navigate through a mock with Tailwind CSS for a polished look and feel.
     *   Multi-step progress stepper to guide users through the booking flow.
 *   ⚙️ **Robust Backend API:**
     *   Node.js and Express.js backend providing 📖 About The Project
 
-FlightBack was developed to provide a hands-on experience in building a modern, full-stack web application flight selection process, input passenger details, and ultimately receive a dynamically generated PDF e-ticket and an email confirmation with the ticket attached.
+ExitFlight was developed to provide a hands-on experience in building a modern, full-stack web application flight selection process, input passenger details, and ultimately receive a dynamically generated PDF e-ticket and an email confirmation with the ticket attached.
 
 This project serves as a practical demonstration of building a modern web application incorporating various technologies and features, from frontend user interface design to backend RESTful API endpoints.
     *   Manages data for airports, airlines, flights, passengers, and tickets.
@@ -147,15 +147,15 @@ This both client and server sides.
 *   **✈️ Intuitive Flight Selection:**
     *    User Experience:**
     *   `localStorage` utilized to remember user's previous flight selection criteria and passenger details for deploy your project, add a link here! -->
-<!-- Example: [Try FlightBack Live!](https://yourRegion, country, and airport-based filtering (for API-driven version).
+<!-- Example: [Try ExitFlight Live!](https://yourRegion, country, and airport-based filtering (for API-driven version).
     *   (Enhanced Version) Dynamic calculation convenience across sessions.
     *   Option to reset form fields.
 *   **Dynamic PDF E-Ticket Generation:**
-    *   -flightback-demo-url.com) -->
+    *   -ExitFlight-demo-url.com) -->
 <!-- You can also include a GIF here showcasing the app inOn-the-fly creation of professional-looking PDF e-tickets using `pdfkit`.
     *   ** of flight details (duration, arrival times) using Haversine formula.
     *   User-configurable airline and action -->
-<!-- ![FlightBack Demo GIF](path/to/your/demo.gif) -->
+<!-- ![ExitFlight Demo GIF](path/to/your/demo.gif) -->
 
 ---
 
@@ -375,12 +375,12 @@ To get a local copy up and running, follow these simpleite (Frontend build and d
 ### Installation
 
 1.  **Clone
-    git clone https://github.com/jordanurbany/FlightBack.git
-    cd FlightBack testing)
+    git clone https://github.com/ExitFlight/app.git
+    cd ExitFlight testing)
 *   **Schema Validation (Server):** Zod
 *   **(Planned/Schema-Ready) the repo:**
     ```bash
-    git clone https://github.com/jordanurbany/FlightBack.git
+    git clone https://github.com/ExitFlight/app.git
     ```
 
 2.  **Install dependencies for both client and server:**
@@ -388,7 +388,7 @@ To get a local copy up and running, follow these simpleite (Frontend build and d
     # Install root Database:** PostgreSQL
 *   **(Planned/Schema-Ready) ORM:** Drizzle ORM
 *   **(Current Demo
-    cd FlightBack
+    cd ExitFlight
     ```
 2.  **Install NPM packages for both client and server:**
     *, client, and server dependencies
@@ -480,8 +480,8 @@ This project was developed to:
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/usually defined in your root `package.json`) should typically start both the backend Node.js/Express server (often on a default, which doesn't require these DB steps for basic operation. Check `server/storage.ts` and `jordanurbany/FlightBack.git
-    cd FlightBack
+    git clone https://github.com/usually defined in your root `package.json`) should typically start both the backend Node.js/Express server (often on a default, which doesn't require these DB steps for basic operation. Check `server/storage.ts` and `ExitFlight/app.git
+    cd ExitFlight
     ```
 
 2.  **Install dependencies for port like 5000 or 3001) and the frontend Vite dev server (often on portserver/index.ts` for how the storage is initialized.)*

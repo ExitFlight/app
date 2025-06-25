@@ -1,8 +1,4 @@
-14. **Contact/Acknowledgements**
 
----
-
-**Here's a template for your `README.md`. You'markdown
 # FlightBack ✈️ E-Ticket Generator & Booking Simulator
 
 **FlightBack is a full-stack application designed to simulate the core functionalities of a flight booking and e-ticket generation system.** It allows users to navigate a mock flight selectionll need to fill in specifics and add your screenshots.**
